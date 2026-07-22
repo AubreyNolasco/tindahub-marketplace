@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Loader2, Plus, Trash2, Upload, X } from 'lucide-react'
+import { Loader2, Plus, ShieldAlert, Trash2, Upload, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { cleanText, safeUploadPath, validateImage } from '../../utils/security'
 import { isCompleteAddress } from '../../utils/address'
+import { findProductSafetyViolation, PROHIBITED_PRODUCT_RULES } from '../../config/productSafety'
 
 const emptyForm = {
   name: '',
@@ -35,6 +36,7 @@ export default function ProductForm({ admin = false }) {
   const [saving, setSaving] = useState(false)
   const [merchants, setMerchants] = useState([])
   const [merchantId, setMerchantId] = useState('')
+  const [safetyConfirmed, setSafetyConfirmed] = useState(false)
 
   useEffect(() => {
     loadCategories()
@@ -102,6 +104,9 @@ export default function ProductForm({ admin = false }) {
     e.preventDefault()
     if (!admin && !isCompleteAddress(profile?.merchant_profiles?.business_address)) { toast.error('Complete your merchant pickup address before uploading a product.'); navigate('/merchant/address'); return }
     if (admin && !merchantId) return toast.error('Choose the Merchant that owns this product.')
+    if (!safetyConfirmed) return toast.error('Confirm the product safety and posting rules before saving.')
+    const safetyViolation = findProductSafetyViolation(form)
+    if (safetyViolation) return toast.error(`This listing contains prohibited content: “${safetyViolation}”. Remove it or contact Admin for review.`)
     setSaving(true)
     try {
       let images = existingImage ? [existingImage] : []
@@ -241,8 +246,14 @@ export default function ProductForm({ admin = false }) {
 
         <div className="rounded-2xl border border-teal-100 bg-cream p-4"><h2 className="font-display font-bold text-ink">Packed Shipping Information</h2><p className="mt-1 text-xs leading-5 text-ink/50">Enter the final packed values for one item. Dimensions are Length × Width × Height.</p><div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4"><label className="text-xs font-medium text-ink/60">Actual weight (kg)<input required type="number" min="0.001" step="0.001" className="input-field mt-1" value={form.packed_weight_kg} onChange={update('packed_weight_kg')} /></label><label className="text-xs font-medium text-ink/60">Length (cm)<input required type="number" min="0.01" step="0.01" className="input-field mt-1" value={form.packed_length_cm} onChange={update('packed_length_cm')} /></label><label className="text-xs font-medium text-ink/60">Width (cm)<input required type="number" min="0.01" step="0.01" className="input-field mt-1" value={form.packed_width_cm} onChange={update('packed_width_cm')} /></label><label className="text-xs font-medium text-ink/60">Height (cm)<input required type="number" min="0.01" step="0.01" className="input-field mt-1" value={form.packed_height_cm} onChange={update('packed_height_cm')} /></label></div><div className="mt-3 rounded-xl border border-teal-100 bg-white p-3"><p className="text-[11px] uppercase tracking-wide text-ink/40">Automatic package volume</p><p className="mt-1 font-display text-lg font-bold text-teal-700">{(Number(form.packed_length_cm || 0) * Number(form.packed_width_cm || 0) * Number(form.packed_height_cm || 0)).toLocaleString()} cm³</p><p className="mt-0.5 text-[11px] text-ink/40">Used only for vehicle fit—not as a separate volumetric charge.</p></div><label className="mt-3 block text-xs font-medium text-ink/60">Product type<input required maxLength="100" className="input-field mt-1" value={form.product_type} onChange={update('product_type')} placeholder="Food tray, bottled drinks, cake..." /></label><div className="mt-4 grid gap-2 sm:grid-cols-3"><label className="flex items-center gap-2 rounded-xl bg-white p-3 text-xs font-semibold text-ink/65"><input type="checkbox" checked={form.fragile} onChange={toggle('fragile')} className="accent-teal-600" /> Fragile</label><label className="flex items-center gap-2 rounded-xl bg-white p-3 text-xs font-semibold text-ink/65"><input type="checkbox" checked={form.keep_upright} onChange={toggle('keep_upright')} className="accent-teal-600" /> Keep upright</label><label className="flex items-center gap-2 rounded-xl bg-white p-3 text-xs font-semibold text-ink/65"><input type="checkbox" checked={form.motorcycle_safe} onChange={toggle('motorcycle_safe')} className="accent-teal-600" /> Motorcycle-safe</label></div></div>
 
+        <section className="rounded-2xl border border-coral-200 bg-coral-50/60 p-4">
+          <div className="flex items-start gap-3"><ShieldAlert className="mt-0.5 shrink-0 text-coral-600" size={22} /><div><h2 className="font-display font-bold text-ink">Product Posting Safety Rules</h2><p className="mt-1 text-xs leading-5 text-ink/55">For reseller and customer safety, JOM HUB may reject, deactivate, or investigate unlawful, unsafe, misleading, or unverified regulated listings.</p></div></div>
+          <details className="mt-4 rounded-xl border border-coral-100 bg-white p-3"><summary className="cursor-pointer text-sm font-bold text-coral-700">View products and content that cannot be posted</summary><div className="mt-3 grid gap-2 sm:grid-cols-2">{PROHIBITED_PRODUCT_RULES.map((rule) => <div key={rule.title} className="rounded-lg bg-cream p-3"><p className="text-xs font-bold text-ink">{rule.title}</p><p className="mt-1 text-[11px] leading-5 text-ink/50">{rule.detail}</p></div>)}</div></details>
+          <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl border border-coral-200 bg-white p-3 text-xs leading-5 text-ink/65"><input required type="checkbox" checked={safetyConfirmed} onChange={(event) => setSafetyConfirmed(event.target.checked)} className="mt-1 accent-coral-600" /><span>I confirm that this product is lawful, authentic, safe, not expired/recalled, accurately described, and has all required registrations, permits, and certifications. I accept responsibility for the listing and supporting documents.</span></label>
+        </section>
+
         <div className="flex gap-3 pt-2">
-          <button type="submit" disabled={saving || (admin ? !merchantId : !isCompleteAddress(profile?.merchant_profiles?.business_address))} className="btn-primary flex-1 flex items-center justify-center gap-2">
+          <button type="submit" disabled={saving || !safetyConfirmed || (admin ? !merchantId : !isCompleteAddress(profile?.merchant_profiles?.business_address))} className="btn-primary flex-1 flex items-center justify-center gap-2">
             {saving && <Loader2 size={16} className="animate-spin" />}
             {saving ? 'Sine-save...' : 'I-save ang Produkto'}
           </button>
