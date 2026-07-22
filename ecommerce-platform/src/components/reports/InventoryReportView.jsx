@@ -9,6 +9,7 @@ import EmptyState from '../ui/EmptyState'
 import Spinner from '../ui/Spinner'
 import ReportToolbar from './ReportToolbar'
 import SummaryCards from './SummaryCards'
+import { dateStart, nextDateStart, reportPeriodLabel } from '../../utils/reportDates'
 
 const LOW_STOCK_THRESHOLD = 5
 
@@ -19,13 +20,13 @@ function downloadMerchantExcel(products, role) {
     p.name, p.sku || '', p.price, p.wholesale_price || '', p.stock_quantity, Number(p.price) * Number(p.stock_quantity),
     p.is_active ? 'Active' : 'Hidden'
   ])
-  exportExcel(`jom-hub-${role}-inventory-${today()}.xls`, 'Inventory Report', headers, rows)
+  exportExcel(`jom-hub-${role}-inventory-snapshot-${today()}.xls`, 'Inventory Report', headers, rows, { title: 'Inventory Report', period: `Live snapshot as of ${new Date().toLocaleString('en-PH')}`, scope: role })
 }
 
 function downloadResellerExcel(rows, startDate, endDate) {
   const headers = ['Product', 'Merchant', 'Total Qty Purchased', 'Total Spent', 'Orders', 'Last Order Date']
   const excelRows = rows.map((r) => [r.product, r.merchant, r.totalQty, r.totalSpent, r.orderCount, formatDate(r.lastOrderDate)])
-  exportExcel(`jom-hub-reseller-inventory-${startDate}-to-${endDate}.xls`, 'Inventory Report', headers, excelRows)
+  exportExcel(`jom-hub-reseller-inventory-${startDate}-to-${endDate}.xls`, 'Inventory Report', headers, excelRows, { title: 'Reseller Inventory Activity', period: reportPeriodLabel(startDate, endDate), scope: 'reseller' })
 }
 
 function stockBadge(qty) {
@@ -75,6 +76,7 @@ function MerchantInventory({ user, role }) {
         showDateRange={false}
         onDownload={() => downloadMerchantExcel(products, role)}
         downloadDisabled={!products.length}
+        recordCount={products.length}
       />
 
       {loading ? <div className="flex justify-center py-24"><Spinner /></div> : <>
@@ -120,19 +122,20 @@ function ResellerInventory({ user }) {
   const [endDate, setEndDate] = useState(today)
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(true)
+  const [appliedRange, setAppliedRange] = useState({ start: firstDayOfMonth(), end: today() })
 
   useEffect(() => { load() }, [])
 
-  const load = async () => {
-    if (startDate > endDate) return toast.error('The start date must be before or the same as the end date.')
+  const load = async (rangeStart = startDate, rangeEnd = endDate) => {
+    if (rangeStart > rangeEnd) return toast.error('The start date must be before or the same as the end date.')
     setLoading(true)
     const { data, error } = await supabase
       .from('orders')
       .select('id, created_at, merchant_profiles(business_name), order_items(product_name, quantity, line_total)')
       .eq('reseller_id', user.id)
       .neq('status', 'cancelled')
-      .gte('created_at', `${startDate}T00:00:00`)
-      .lte('created_at', `${endDate}T23:59:59.999`)
+      .gte('created_at', dateStart(rangeStart))
+      .lt('created_at', nextDateStart(rangeEnd))
     if (error) toast.error(error.message)
 
     const grouped = {}
@@ -154,6 +157,7 @@ function ResellerInventory({ user }) {
       .sort((a, b) => b.totalSpent - a.totalSpent)
 
     setRows(aggregated)
+    if (!error) setAppliedRange({ start: rangeStart, end: rangeEnd })
     setLoading(false)
   }
 
@@ -177,9 +181,12 @@ function ResellerInventory({ user }) {
         endDate={endDate}
         onStartDateChange={setStartDate}
         onEndDateChange={setEndDate}
-        onApply={load}
-        onDownload={() => downloadResellerExcel(rows, startDate, endDate)}
+        onApply={() => load(startDate, endDate)}
+        onDownload={() => downloadResellerExcel(rows, appliedRange.start, appliedRange.end)}
         downloadDisabled={!rows.length}
+        appliedStartDate={appliedRange.start}
+        appliedEndDate={appliedRange.end}
+        recordCount={rows.length}
       />
 
       {loading ? <div className="flex justify-center py-24"><Spinner /></div> : <>

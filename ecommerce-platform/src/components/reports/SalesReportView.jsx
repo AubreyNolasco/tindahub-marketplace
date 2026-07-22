@@ -9,6 +9,7 @@ import EmptyState from '../ui/EmptyState'
 import Spinner from '../ui/Spinner'
 import ReportToolbar from './ReportToolbar'
 import SummaryCards from './SummaryCards'
+import { dateStart, nextDateStart, reportPeriodLabel } from '../../utils/reportDates'
 
 const MERCHANT_SELECT = '*, order_items(*), payments(method, reference_number, status), profiles!orders_reseller_id_fkey(full_name, phone)'
 const RESELLER_SELECT = '*, order_items(*), merchant_profiles(business_name), customers(name, phone, address)'
@@ -33,7 +34,7 @@ function downloadExcel(role, orders, startDate, endDate) {
     : role === 'admin'
       ? ['Order No.', 'Order Date', 'Status', 'Merchant', 'Reseller', 'Payment Method', 'Payment Status', 'Product', 'Unit Price', 'Quantity', 'Line Total', 'Subtotal', 'Actual Shipping Fee', 'Delivery Provider', 'Tracking Number', 'Reseller 1% Fee', 'Merchant 3% Fee', 'Wallet Order Total', 'Shipping Address', 'Notes']
       : ['Order No.', 'Order Date', 'Status', 'Merchant', 'Customer', 'Customer Phone', 'Customer Address', 'Product', 'Unit Price', 'Quantity', 'Line Total', 'Subtotal', 'Actual Shipping Fee', 'Delivery Provider', 'Tracking Number', 'Reseller 1% Fee', 'Wallet Order Total', 'Shipping Address', 'Notes']
-  exportExcel(`jom-hub-${role}-sales-${startDate}-to-${endDate}.xls`, 'Sales Report', headers, rows)
+  exportExcel(`jom-hub-${role}-sales-${startDate}-to-${endDate}.xls`, 'Sales Report', headers, rows, { title: 'Sales Report', period: reportPeriodLabel(startDate, endDate), scope: role })
 }
 
 export default function SalesReportView({ role }) {
@@ -42,22 +43,24 @@ export default function SalesReportView({ role }) {
   const [endDate, setEndDate] = useState(today)
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
+  const [appliedRange, setAppliedRange] = useState({ start: firstDayOfMonth(), end: today() })
 
   useEffect(() => { load() }, [])
 
-  const load = async () => {
-    if (startDate > endDate) return toast.error('The start date must be before or the same as the end date.')
+  const load = async (rangeStart = startDate, rangeEnd = endDate) => {
+    if (rangeStart > rangeEnd) return toast.error('The start date must be before or the same as the end date.')
     setLoading(true)
     let query = supabase
       .from('orders')
       .select(role === 'merchant' ? MERCHANT_SELECT : role === 'admin' ? ADMIN_SELECT : RESELLER_SELECT)
-      .gte('created_at', `${startDate}T00:00:00`)
-      .lte('created_at', `${endDate}T23:59:59.999`)
+      .gte('created_at', dateStart(rangeStart))
+      .lt('created_at', nextDateStart(rangeEnd))
       .order('created_at', { ascending: false })
     if (role !== 'admin') query = query.eq(role === 'merchant' ? 'merchant_id' : 'reseller_id', user.id)
     const { data, error } = await query
     if (error) toast.error(error.message)
     setOrders(data || [])
+    if (!error) setAppliedRange({ start: rangeStart, end: rangeEnd })
     setLoading(false)
   }
 
@@ -86,9 +89,12 @@ export default function SalesReportView({ role }) {
         endDate={endDate}
         onStartDateChange={setStartDate}
         onEndDateChange={setEndDate}
-        onApply={load}
-        onDownload={() => downloadExcel(role, orders, startDate, endDate)}
+        onApply={() => load(startDate, endDate)}
+        onDownload={() => downloadExcel(role, orders, appliedRange.start, appliedRange.end)}
         downloadDisabled={!orders.length}
+        appliedStartDate={appliedRange.start}
+        appliedEndDate={appliedRange.end}
+        recordCount={orders.length}
       />
 
       {loading ? <div className="flex justify-center py-24"><Spinner /></div> : <>

@@ -9,6 +9,7 @@ import EmptyState from '../ui/EmptyState'
 import Spinner from '../ui/Spinner'
 import ReportToolbar from './ReportToolbar'
 import SummaryCards from './SummaryCards'
+import { dateStart, nextDateStart, reportPeriodLabel } from '../../utils/reportDates'
 
 function downloadExcel(requests, startDate, endDate, role) {
   const headers = [...(role === 'admin' ? ['Account Owner'] : []), 'Date', 'Amount', 'Bank', 'Account Name', 'Account Number', 'Status', 'Scheduled For', 'Sent At', 'Transfer Reference', 'Transfer Proof Stored', 'Admin Notes', 'Reviewed At']
@@ -17,7 +18,7 @@ function downloadExcel(requests, startDate, endDate, role) {
     formatDate(r.created_at), r.amount, r.bank_name, r.bank_account_name, r.bank_account_number, r.sent_at ? 'Sent' : TOPUP_STATUS_LABELS[r.status] || r.status,
     r.scheduled_for ? new Date(r.scheduled_for).toLocaleString('en-PH') : '',r.sent_at ? new Date(r.sent_at).toLocaleString('en-PH') : '',r.transfer_reference || '',r.transfer_proof_url ? 'Yes' : 'No',r.admin_notes || '', r.reviewed_at ? formatDate(r.reviewed_at) : ''
   ])
-  exportExcel(`jom-hub-withdrawals-${startDate}-to-${endDate}.xls`, 'Withdrawal Report', headers, rows)
+  exportExcel(`jom-hub-${role}-withdrawals-${startDate}-to-${endDate}.xls`, 'Withdrawal Report', headers, rows, { title: 'Withdrawal Report', period: reportPeriodLabel(startDate, endDate), scope: role })
 }
 
 export default function WithdrawalReportView({ role }) {
@@ -26,22 +27,24 @@ export default function WithdrawalReportView({ role }) {
   const [endDate, setEndDate] = useState(today)
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
+  const [appliedRange, setAppliedRange] = useState({ start: firstDayOfMonth(), end: today() })
 
   useEffect(() => { load() }, [])
 
-  const load = async () => {
-    if (startDate > endDate) return toast.error('The start date must be before or the same as the end date.')
+  const load = async (rangeStart = startDate, rangeEnd = endDate) => {
+    if (rangeStart > rangeEnd) return toast.error('The start date must be before or the same as the end date.')
     setLoading(true)
     let query = supabase
       .from('withdrawal_requests')
       .select(role === 'admin' ? '*, profiles!withdrawal_requests_owner_id_fkey(full_name, role)' : '*')
-      .gte('created_at', `${startDate}T00:00:00`)
-      .lte('created_at', `${endDate}T23:59:59.999`)
+      .gte('created_at', dateStart(rangeStart))
+      .lt('created_at', nextDateStart(rangeEnd))
       .order('created_at', { ascending: false })
     if (role !== 'admin') query = query.eq('owner_id', user.id)
     const { data, error } = await query
     if (error) toast.error(error.message)
     setRequests(data || [])
+    if (!error) setAppliedRange({ start: rangeStart, end: rangeEnd })
     setLoading(false)
   }
 
@@ -66,9 +69,12 @@ export default function WithdrawalReportView({ role }) {
         endDate={endDate}
         onStartDateChange={setStartDate}
         onEndDateChange={setEndDate}
-        onApply={load}
-        onDownload={() => downloadExcel(requests, startDate, endDate, role)}
+        onApply={() => load(startDate, endDate)}
+        onDownload={() => downloadExcel(requests, appliedRange.start, appliedRange.end, role)}
         downloadDisabled={!requests.length}
+        appliedStartDate={appliedRange.start}
+        appliedEndDate={appliedRange.end}
+        recordCount={requests.length}
       />
 
       {loading ? <div className="flex justify-center py-24"><Spinner /></div> : <>
