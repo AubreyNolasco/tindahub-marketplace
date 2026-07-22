@@ -7,6 +7,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { cleanText, safeUploadPath, validateImage } from '../../utils/security'
 import { isCompleteAddress } from '../../utils/address'
 import { findProductSafetyViolation, PROHIBITED_PRODUCT_RULES } from '../../config/productSafety'
+import ProductProfitPreview from '../../components/product/ProductProfitPreview'
 
 const emptyForm = {
   name: '',
@@ -231,7 +232,9 @@ export default function ProductForm({ admin = false }) {
             <input type="number" step="0.01" min="0" className="input-field mt-1" value={form.wholesale_price} onChange={update('wholesale_price')} />
           </div>
         </div>
-        <div className="rounded-2xl border border-mango-300 bg-mango-100/50 p-4"><label className="text-sm font-semibold text-ink">Suggested Reseller Retail Price (₱)<input required type="number" step="0.01" min="0" className="input-field mt-1 bg-white" value={form.suggested_retail_price} onChange={update('suggested_retail_price')} /></label><p className="mt-2 text-xs leading-5 text-ink/55">Wholesale must leave at least 15% projected gross margin at this suggested price. The reseller controls the final lawful customer price.</p>{Number(form.wholesale_price)>0&&Number(form.suggested_retail_price)>0&&<p className="mt-2 font-semibold text-teal-700">Projected reseller gross profit: ₱{(Number(form.suggested_retail_price)-Number(form.wholesale_price)-(Number(form.wholesale_price)*.01)).toFixed(2)} per item, before marketing, delivery and taxes.</p>}</div>
+        <div className="rounded-2xl border border-mango-300 bg-mango-100/50 p-4"><label className="text-sm font-semibold text-ink">Suggested Reseller Retail Price (₱)<input required type="number" step="0.01" min="0" className="input-field mt-1 bg-white" value={form.suggested_retail_price} onChange={update('suggested_retail_price')} /></label><p className="mt-2 text-xs leading-5 text-ink/55">Wholesale must leave at least 15% projected gross margin at this suggested price. The complete one-piece and bulk earnings preview below includes the capped system fee.</p></div>
+
+        <ProductProfitPreview form={form} />
 
         <div className="grid grid-cols-2 gap-4">
           <div>
