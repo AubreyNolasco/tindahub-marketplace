@@ -1,7 +1,5 @@
 import { BarChart3, Boxes, ClipboardList, FileDown, FileUp, LayoutDashboard, MapPin, MessageSquare, Users, WalletCards } from 'lucide-react'
 import WorkspaceLayout from '../../components/layout/WorkspaceLayout'
-import RoleGuide from '../../components/onboarding/RoleGuide'
-import RoleNotifications from '../../components/notifications/RoleNotifications'
 
 const sections = [
   { label: 'Workspace', items: [
@@ -20,4 +18,4 @@ const sections = [
     { to: '/reseller/reports/ordered', label: 'Ordered Report', icon: ClipboardList }
   ]}
 ]
-export default function ResellerLayout() { return <WorkspaceLayout title="Reseller Hub" subtitle="Sales workspace" sections={sections}><RoleNotifications /><RoleGuide /></WorkspaceLayout> }
+export default function ResellerLayout() { return <WorkspaceLayout title="Reseller Hub" subtitle="Sales workspace" sections={sections} /> }

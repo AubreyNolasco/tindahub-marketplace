@@ -3,6 +3,8 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { AlertCircle, ChevronRight, Menu, PanelLeftClose, Store, X } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { isCompleteAddress } from '../../utils/address'
+import RoleNotifications from '../notifications/RoleNotifications'
+import PageWalkthroughGuide from '../onboarding/PageWalkthroughGuide'
 
 export default function WorkspaceLayout({ title, subtitle, sections, children }) {
   const [open, setOpen] = useState(false)
@@ -32,7 +34,7 @@ export default function WorkspaceLayout({ title, subtitle, sections, children })
       {!collapsed && <div className="border-t border-black/5 p-4"><div className="rounded-xl bg-cream px-3 py-3 text-xs leading-5 text-ink/50">Secure workspace for your account activity and reports.</div></div>}
     </aside>
     <section className="min-w-0 flex-1 bg-[radial-gradient(circle_at_top_right,rgba(22,121,75,0.08),transparent_30%),#F7FAF7]">
-      <div className="sticky top-16 z-30 flex h-14 items-center justify-between border-b border-black/5 bg-white/90 px-4 backdrop-blur lg:hidden"><button onClick={() => setOpen(true)} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-teal-700 hover:bg-teal-50"><Menu size={19} /> Menu</button><p className="truncate text-sm font-semibold text-ink">{current?.label || title}</p><Store size={19} className="text-teal-500" /></div>
+      <div className="sticky top-16 z-30 flex h-14 items-center justify-between gap-3 border-b border-black/5 bg-white/90 px-3 backdrop-blur sm:px-5 lg:px-8"><button onClick={() => setOpen(true)} className="flex shrink-0 items-center gap-2 rounded-xl px-2 py-2 text-sm font-semibold text-teal-700 hover:bg-teal-50 lg:hidden"><Menu size={19} /><span className="hidden sm:inline">Menu</span></button><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-ink">{current?.label || title}</p><p className="hidden text-[11px] text-ink/40 lg:block">{role === 'merchant' ? 'Merchant workspace' : 'Reseller workspace'}</p></div><div className="flex shrink-0 items-center gap-2"><PageWalkthroughGuide/><RoleNotifications/></div></div>
       {needsAddress && <div className="mx-4 mt-4 flex flex-col gap-3 rounded-2xl border border-mango-300 bg-mango-100/70 p-4 text-sm sm:mx-6 sm:flex-row sm:items-center sm:justify-between lg:mx-8"><div className="flex items-start gap-3"><AlertCircle size={19} className="mt-0.5 shrink-0 text-mango-600" /><div><p className="font-semibold text-ink">Complete your address to unlock all features</p><p className="mt-0.5 text-xs leading-5 text-ink/55">A complete address is required for products, customers, and orders.</p></div></div><Link to={role === 'merchant' ? '/merchant/address' : '/reseller/address'} className="btn-secondary shrink-0 px-4 py-2 text-center text-xs">Complete address</Link></div>}
       {children}
       <main className="min-w-0"><Outlet /></main>

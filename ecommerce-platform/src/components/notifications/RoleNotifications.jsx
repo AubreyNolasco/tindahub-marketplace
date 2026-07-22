@@ -1,136 +1,82 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { AlertTriangle, Megaphone, PackageCheck, ShoppingBag, WalletCards, X } from 'lucide-react'
+import { Bell, CalendarClock, PackageCheck, ShoppingBag, WalletCards, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
-import { peso } from '../../utils/format'
+import { formatDate, peso } from '../../utils/format'
 
 const LOW_BALANCE_LIMIT = 500
-
-const notificationKey = (userId, notification) =>
-  `rmhub-notification:${userId}:${notification.type}:${notification.id || 'current'}`
 
 export default function RoleNotifications() {
   const { user, role } = useAuth()
   const navigate = useNavigate()
-  const [queue, setQueue] = useState([])
-  const queuedKeys = useRef(new Set())
+  const panelRef = useRef(null)
+  const [open, setOpen] = useState(false)
+  const [notifications, setNotifications] = useState([])
+  const seenKey = user ? `jom-hub-notifications-seen:${user.id}` : ''
+  const [seen, setSeen] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(seenKey) || '[]') } catch { return [] }
+  })
 
-  const enqueue = useCallback((notification, force = false) => {
-    if (!user) return
-    const key = notificationKey(user.id, notification)
-    if (queuedKeys.current.has(key) || (!force && sessionStorage.getItem(key))) return
-    queuedKeys.current.add(key)
-    setQueue((current) => [...current, { ...notification, key }])
-  }, [user])
+  const load = useCallback(async () => {
+    if (!user || !['merchant', 'reseller'].includes(role)) return
+    const items = []
+    const { data: wallet } = await supabase.from('wallets').select('id,balance,updated_at').eq('owner_id', user.id).maybeSingle()
+    if (wallet) items.push({ id:`wallet:${wallet.id}:${wallet.updated_at}`, title:Number(wallet.balance) <= LOW_BALANCE_LIMIT ? 'Low wallet balance' : 'Current wallet balance', message:`Your available balance is ${peso(wallet.balance)}.`, to:`/${role}/wallet`, action:'Open wallet', icon:WalletCards, tone:Number(wallet.balance) <= LOW_BALANCE_LIMIT ? 'coral' : 'teal' })
 
-  const dismiss = () => {
-    const current = queue[0]
-    if (!current) return
-    sessionStorage.setItem(current.key, 'dismissed')
-    queuedKeys.current.delete(current.key)
-    setQueue((items) => items.slice(1))
-  }
-
-  const act = () => {
-    const current = queue[0]
-    if (!current) return
-    dismiss()
-    navigate(current.to)
-  }
+    if (role === 'merchant') {
+      const [{ data: orders }, { data: subscription }] = await Promise.all([
+        supabase.from('orders').select('id,order_number,status,updated_at').eq('merchant_id', user.id).in('status', ['pending','confirmed']).order('created_at', { ascending:false }).limit(10),
+        supabase.from('subscriptions').select('id,status,expires_at,updated_at').eq('owner_id', user.id).maybeSingle()
+      ])
+      orders?.forEach(order => items.unshift({ id:`order:${order.id}:${order.status}`, title:'Order needs your attention', message:`Order ${order.order_number} is ${order.status} and ready for review.`, to:'/merchant/orders', action:'Review order', icon:ShoppingBag, tone:'mango' }))
+      if (subscription) {
+        const days = Math.ceil((new Date(subscription.expires_at) - new Date()) / 86400000)
+        items.unshift({ id:`subscription:${subscription.id}:${subscription.updated_at}`, title:days < 0 ? 'Subscription expired' : days <= 30 ? 'Subscription expiring soon' : 'Subscription active', message:days < 0 ? `Expired on ${formatDate(subscription.expires_at)}.` : `Active until ${formatDate(subscription.expires_at)}${days <= 30 ? ` (${days} days left)` : ''}.`, to:'/choose-subscription', action:'View subscription', icon:CalendarClock, tone:days <= 30 ? 'coral' : 'teal' })
+      }
+    } else {
+      const { data: orders } = await supabase.from('orders').select('id,order_number,status,updated_at').eq('reseller_id', user.id).in('status', ['confirmed','processing','shipped']).order('updated_at', { ascending:false }).limit(10)
+      orders?.forEach(order => items.unshift({ id:`order:${order.id}:${order.status}`, title:order.status === 'shipped' ? 'Order shipped—confirm after receipt' : 'Order status updated', message:`Order ${order.order_number} is now ${order.status}.`, to:'/reseller/orders', action:'Track order', icon:PackageCheck, tone:order.status === 'shipped' ? 'mango' : 'teal' }))
+    }
+    setNotifications(items)
+  }, [user?.id, role])
 
   useEffect(() => {
-    if (!user || !['merchant', 'reseller'].includes(role)) return
-    let active = true
-
-    const loadNotifications = async () => {
-      // Best effort: databases with the calendar-campaign migration generate
-      // this month's and upcoming campaigns before notifications are loaded.
-      await supabase.rpc('ensure_recurring_campaigns')
-      const now = new Date()
-      const nowIso = now.toISOString()
-      const awarenessUntil = new Date(now.getTime() + 7 * 86400000).toISOString()
-      if (role === 'merchant') {
-        const [{ data: orders }, { data: campaigns }] = await Promise.all([
-          supabase.from('orders').select('id, order_number, status').eq('merchant_id', user.id).eq('status', 'pending').order('created_at', { ascending: false }).limit(5),
-          supabase.from('campaigns').select('id, name, discount_percent, starts_at, ends_at').eq('is_active', true).lte('starts_at', awarenessUntil).gte('ends_at', nowIso).order('starts_at').limit(5)
-        ])
-        if (!active) return
-        orders?.forEach((order) => enqueue({ type: 'new-order', id: order.id, title: 'May bago kang order!', message: `Order ${order.order_number} ay naghihintay ng review mo.`, to: '/merchant/orders', action: 'Tingnan ang order', icon: ShoppingBag, tone: 'teal' }))
-        campaigns?.forEach((campaign) => enqueue({ type: 'campaign', id: campaign.id, title: 'Puwede kang sumali sa campaign!', message: `${campaign.name} — ${Number(campaign.discount_percent)}% discount. Join para awtomatikong ma-discount ang products mo habang live ang campaign.`, to: '/merchant/campaigns', action: 'Sumali sa campaign', icon: Megaphone, tone: 'mango' }))
-      } else {
-        const [{ data: orders }, { data: wallet }, { data: campaigns }] = await Promise.all([
-          supabase.from('orders').select('id, order_number, status').eq('reseller_id', user.id).eq('status', 'shipped').order('updated_at', { ascending: false }).limit(5),
-          supabase.from('wallets').select('id, balance').eq('owner_id', user.id).maybeSingle(),
-          supabase.from('campaigns').select('id, name, discount_percent, starts_at, ends_at').eq('is_active', true).lte('starts_at', awarenessUntil).gte('ends_at', nowIso).order('starts_at').limit(5)
-        ])
-        if (!active) return
-        orders?.forEach((order) => enqueue({ type: 'delivery', id: order.id, title: 'Delivered na ang item mo!', message: `Order ${order.order_number} ay na-deliver na. Paki-confirm muna na natanggap mo ang item para makumpleto ang order.`, to: '/reseller/orders', action: 'I-confirm ang natanggap', icon: PackageCheck, tone: 'teal' }))
-        if (wallet && Number(wallet.balance) <= LOW_BALANCE_LIMIT) enqueue({ type: 'low-wallet', id: wallet.id, title: 'Mababa na ang wallet balance mo', message: `${peso(wallet.balance)} na lang ang balance mo. Mag-top up para hindi maantala ang susunod mong order.`, to: '/reseller/wallet', action: 'Mag-top up', icon: WalletCards, tone: 'coral' })
-        campaigns?.forEach((campaign) => {
-          const upcoming = new Date(campaign.starts_at) > now
-          const schedule = upcoming ? `Magsisimula sa ${new Date(campaign.starts_at).toLocaleDateString('en-PH')}.` : 'Live na ngayon!'
-          enqueue({ type: 'reseller-campaign', id: campaign.id, title: `${campaign.name}: ${Number(campaign.discount_percent)}% OFF`, message: `${schedule} Abangan ang discounted products ng mga participating merchant.`, to: '/catalog', action: 'Tingnan ang discounted products', icon: Megaphone, tone: 'mango' })
-        })
-      }
-    }
-
-    loadNotifications()
-
-    const channel = supabase.channel(`role-notifications-${user.id}`)
-    if (role === 'merchant') {
-      channel
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders', filter: `merchant_id=eq.${user.id}` }, ({ new: order }) => {
-          enqueue({ type: 'new-order', id: order.id, title: 'May bago kang order!', message: `Order ${order.order_number} ay naghihintay ng review mo.`, to: '/merchant/orders', action: 'Tingnan ang order', icon: ShoppingBag, tone: 'teal' }, true)
-        })
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'campaigns' }, ({ new: campaign }) => {
-          if (!campaign.is_active) return
-          enqueue({ type: 'campaign', id: campaign.id, title: 'May bagong campaign!', message: `${campaign.name} — ${Number(campaign.discount_percent)}% discount. Tingnan ito at sumali para mapalago ang sales.`, to: '/merchant/campaigns', action: 'Tingnan ang campaign', icon: Megaphone, tone: 'mango' }, true)
-        })
-    } else {
-      channel
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders', filter: `reseller_id=eq.${user.id}` }, ({ new: order, old }) => {
-          if (order.status !== 'shipped' || old.status === 'shipped') return
-          enqueue({ type: 'delivery', id: order.id, title: 'Delivered na ang item mo!', message: `Order ${order.order_number} ay na-deliver na. Paki-confirm muna na natanggap mo ang item para makumpleto ang order.`, to: '/reseller/orders', action: 'I-confirm ang natanggap', icon: PackageCheck, tone: 'teal' }, true)
-        })
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'wallets', filter: `owner_id=eq.${user.id}` }, ({ new: wallet, old }) => {
-          if (Number(wallet.balance) > LOW_BALANCE_LIMIT || Number(old.balance) <= LOW_BALANCE_LIMIT) return
-          enqueue({ type: 'low-wallet', id: wallet.id, title: 'Mababa na ang wallet balance mo', message: `${peso(wallet.balance)} na lang ang balance mo. Mag-top up para hindi maantala ang susunod mong order.`, to: '/reseller/wallet', action: 'Mag-top up', icon: WalletCards, tone: 'coral' }, true)
-        })
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'campaigns' }, ({ new: campaign }) => {
-          if (!campaign.is_active) return
-          enqueue({ type: 'reseller-campaign', id: campaign.id, title: `${campaign.name}: ${Number(campaign.discount_percent)}% OFF`, message: 'May bagong marketplace campaign! Abangan ang discounted products ng mga participating merchant.', to: '/catalog', action: 'Tingnan ang campaign products', icon: Megaphone, tone: 'mango' }, true)
-        })
-    }
+    load()
+    if (!user) return
+    const channel = supabase.channel(`header-notifications-${user.id}`)
+      .on('postgres_changes', { event:'*', schema:'public', table:'orders' }, load)
+      .on('postgres_changes', { event:'*', schema:'public', table:'wallets', filter:`owner_id=eq.${user.id}` }, load)
+    if (role === 'merchant') channel.on('postgres_changes', { event:'*', schema:'public', table:'subscriptions', filter:`owner_id=eq.${user.id}` }, load)
     channel.subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [user?.id, role, load])
 
-    return () => {
-      active = false
-      supabase.removeChannel(channel)
-      queuedKeys.current.clear()
-      setQueue([])
+  useEffect(() => {
+    const close = event => { if (panelRef.current && !panelRef.current.contains(event.target)) setOpen(false) }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [])
+
+  const unread = notifications.filter(item => !seen.includes(item.id)).length
+  const toggle = () => {
+    const next = !open
+    setOpen(next)
+    if (next) {
+      const ids = notifications.map(item => item.id)
+      setSeen(ids)
+      try { localStorage.setItem(seenKey, JSON.stringify(ids.slice(0, 100))) } catch { /* restricted storage */ }
     }
-  }, [user?.id, role, enqueue])
-
-  const notification = queue[0]
-  if (!notification) return null
-  const Icon = notification.icon || AlertTriangle
-  const tones = {
-    teal: 'bg-teal-100 text-teal-700',
-    mango: 'bg-mango-100 text-mango-700',
-    coral: 'bg-coral-100 text-coral-600'
   }
+  const act = item => { setOpen(false); navigate(item.to) }
 
-  return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-ink/45 px-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="role-notification-title">
-      <div className="card relative w-full max-w-sm p-6 text-center shadow-xl">
-        <button onClick={dismiss} aria-label="Isara ang notification" className="absolute right-3 top-3 rounded-lg p-1.5 text-ink/40 transition hover:bg-black/5 hover:text-ink"><X size={18} /></button>
-        <div className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full ${tones[notification.tone]}`}><Icon size={27} /></div>
-        <h2 id="role-notification-title" className="font-display text-xl font-bold text-ink">{notification.title}</h2>
-        <p className="mt-2 text-sm leading-6 text-ink/60">{notification.message}</p>
-        <button onClick={act} className="btn-primary mt-5 w-full">{notification.action}</button>
-        {queue.length > 1 && <p className="mt-3 text-xs text-ink/40">May {queue.length - 1} pang notification</p>}
-      </div>
-    </div>
-  )
+  return <div className="relative" ref={panelRef}>
+    <button type="button" onClick={toggle} className="relative grid h-10 w-10 place-items-center rounded-xl border border-black/[.06] bg-white text-teal-700 shadow-sm transition hover:bg-teal-50" aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`} aria-expanded={open}>
+      <Bell size={19}/>{unread > 0 && <span className="absolute -right-1 -top-1 grid min-h-5 min-w-5 place-items-center rounded-full bg-coral-500 px-1 text-[10px] font-bold text-white">{Math.min(unread, 9)}{unread > 9 ? '+' : ''}</span>}
+    </button>
+    {open && <div className="fixed inset-x-3 top-[7.6rem] z-[80] max-h-[70vh] overflow-hidden rounded-2xl border border-black/[.08] bg-white shadow-2xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-12 sm:w-[24rem]">
+      <div className="flex items-center justify-between border-b border-black/5 px-4 py-3"><div><p className="font-display font-bold text-ink">{role === 'merchant' ? 'Merchant' : 'Reseller'} notifications</p><p className="text-[11px] text-ink/45">Orders, wallet{role === 'merchant' ? ', and subscription' : ''}</p></div><button onClick={()=>setOpen(false)} className="rounded-lg p-1.5 text-ink/40 hover:bg-cream" aria-label="Close notifications"><X size={17}/></button></div>
+      <div className="max-h-[55vh] overflow-y-auto p-2">{notifications.length ? notifications.map(item => { const Icon=item.icon; return <button key={item.id} onClick={()=>act(item)} className="flex w-full gap-3 rounded-xl p-3 text-left transition hover:bg-cream"><span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${item.tone === 'coral' ? 'bg-coral-100 text-coral-600' : item.tone === 'mango' ? 'bg-mango-100 text-mango-700' : 'bg-teal-50 text-teal-700'}`}><Icon size={18}/></span><span className="min-w-0"><span className="block text-sm font-bold text-ink">{item.title}</span><span className="mt-0.5 block text-xs leading-5 text-ink/55">{item.message}</span><span className="mt-1 block text-[11px] font-bold text-teal-700">{item.action}</span></span></button> }) : <p className="px-4 py-10 text-center text-sm text-ink/45">No notifications right now.</p>}</div>
+    </div>}
+  </div>
 }
