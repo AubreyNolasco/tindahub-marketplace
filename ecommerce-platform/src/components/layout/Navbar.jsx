@@ -22,7 +22,7 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-black/[0.06] bg-white/90 shadow-sm shadow-teal-950/[0.02] backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-3 sm:h-[68px] sm:px-6">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-3 sm:px-6">
         <Link to="/" className="block shrink-0" onClick={() => setMenuOpen(false)} aria-label="JOM HUB home">
           <img src="/rmhub-logo.svg" alt="JOM HUB" className="h-9 w-auto sm:h-12" />
         </Link>
@@ -88,12 +88,12 @@ export default function Navbar() {
           <Link to="/" className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600" onClick={() => setMenuOpen(false)}><Store size={17} /> Store</Link>
           <Link to="/catalog" className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600" onClick={() => setMenuOpen(false)}><Package size={17} /> Products</Link>
           {user && (
-            <Link to={dashLink} className="py-2.5 hover:text-teal-600 transition-colors flex items-center gap-2" onClick={() => setMenuOpen(false)}>
+            <Link to={dashLink} className="flex min-h-11 items-center gap-3 rounded-xl px-3 transition-colors hover:bg-teal-50 hover:text-teal-600" onClick={() => setMenuOpen(false)}>
               <LayoutDashboard size={16} /> Dashboard
             </Link>
           )}
           {role === 'admin' && (
-            <Link to="/admin" className="py-2.5 hover:text-teal-600 transition-colors flex items-center gap-2" onClick={() => setMenuOpen(false)}>
+            <Link to="/admin" className="flex min-h-11 items-center gap-3 rounded-xl px-3 transition-colors hover:bg-teal-50 hover:text-teal-600" onClick={() => setMenuOpen(false)}>
               <ShieldCheck size={16} /> Admin
             </Link>
           )}
@@ -105,7 +105,7 @@ export default function Navbar() {
               </span>
               <button
                 onClick={handleSignOut}
-                className="flex items-center gap-1.5 text-sm font-semibold text-coral-600"
+                className="flex min-h-11 items-center gap-1.5 rounded-xl px-3 text-sm font-semibold text-coral-600 hover:bg-coral-50"
               >
                 <LogOut size={16} /> Sign out
               </button>

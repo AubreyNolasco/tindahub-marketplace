@@ -15,6 +15,7 @@ body {
   color: #142019;
   min-width: 320px;
   overflow-x: hidden;
+  min-height: 100dvh;
 }
 
 img, video, canvas, svg {
@@ -39,7 +40,7 @@ p, h1, h2, h3, h4, a, button, label, td, th {
     border-radius: 1rem;
   }
 
-  .btn-primary, .btn-secondary, .btn-accent { min-height: 44px; }
+  button, [role="button"], .btn-primary, .btn-secondary, .btn-accent { min-height: 44px; }
   main { width: 100%; }
   table th, table td { white-space: nowrap; }
 
@@ -47,6 +48,16 @@ p, h1, h2, h3, h4, a, button, label, td, th {
   .subscription-audience > div > span { width: 2.25rem; height: 2.25rem; }
   .subscription-audience > div > h3 { margin-top: 0.5rem; font-size: 0.875rem; }
   .subscription-audience > div > p { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 button, a, input, select, textarea {

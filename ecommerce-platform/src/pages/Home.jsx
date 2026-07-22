@@ -59,14 +59,6 @@ export default function Home() {
     const timer = window.setTimeout(() => document.getElementById(location.hash.slice(1))?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
     return () => window.clearTimeout(timer)
   }, [location.hash])
-  useEffect(() => {
-    if (user) return
-    let seen = false
-    try { seen = sessionStorage.getItem('rmhub_subscription_popup_seen') === 'true' } catch { /* restricted storage */ }
-    if (seen) return
-    const timer = setTimeout(() => setSubscriptionPopup(true), 8000)
-    return () => { clearTimeout(timer) }
-  }, [user])
 
   const closeSubscriptionPopup = () => {
     try { sessionStorage.setItem('rmhub_subscription_popup_seen', 'true') } catch { /* restricted storage */ }
