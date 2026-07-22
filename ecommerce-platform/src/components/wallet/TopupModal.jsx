@@ -4,6 +4,7 @@ import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { cleanText, safeUploadPath, validateImage } from '../../utils/security'
+import BankTransferQr from '../payment/BankTransferQr'
 
 export default function TopupModal({ open, onClose, onSubmitted }) {
   const { user } = useAuth()
@@ -102,6 +103,8 @@ export default function TopupModal({ open, onClose, onSubmitted }) {
               <button type="button" onClick={() => setMethod('bank_transfer')} className={`flex-1 py-2.5 rounded-xl border-2 font-semibold text-sm ${method === 'bank_transfer' ? 'border-teal-500 bg-teal-50' : 'border-black/10'}`}>Bank</button>
             </div>
           </div>
+
+          <BankTransferQr compact />
 
           <div>
             <label className="text-sm font-medium text-ink/70">Reference Number</label>
