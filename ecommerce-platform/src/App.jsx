@@ -168,6 +168,9 @@ export default function App() {
                   <Route index element={<AdminPermissionRoute permission="overview"><AdminDashboard /></AdminPermissionRoute>} />
                   <Route path="staff" element={<AdminPermissionRoute adminOnly><StaffManagement /></AdminPermissionRoute>} />
                   <Route path="full-access" element={<AdminPermissionRoute adminOnly><AdminFullAccess /></AdminPermissionRoute>} />
+                  <Route path="products" element={<AdminPermissionRoute adminOnly><Products admin /></AdminPermissionRoute>} />
+                  <Route path="products/new" element={<AdminPermissionRoute adminOnly><ProductForm admin /></AdminPermissionRoute>} />
+                  <Route path="products/:id/edit" element={<AdminPermissionRoute adminOnly><ProductForm admin /></AdminPermissionRoute>} />
                   <Route path="legal" element={<AdminPermissionRoute adminOnly><LegalSettings /></AdminPermissionRoute>} />
                   <Route path="process-guide" element={<AdminPermissionRoute adminOnly><ProcessGuide /></AdminPermissionRoute>} />
                   <Route path="merchants" element={<AdminPermissionRoute permission="merchants"><Merchants /></AdminPermissionRoute>} />

@@ -22,7 +22,7 @@ const emptyForm = {
   product_type: '', fragile: false, keep_upright: false, motorcycle_safe: false
 }
 
-export default function ProductForm() {
+export default function ProductForm({ admin = false }) {
   const { id } = useParams()
   const isEdit = Boolean(id)
   const navigate = useNavigate()
@@ -33,11 +33,22 @@ export default function ProductForm() {
   const [imagePreview, setImagePreview] = useState(null)
   const [existingImage, setExistingImage] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [merchants, setMerchants] = useState([])
+  const [merchantId, setMerchantId] = useState('')
 
   useEffect(() => {
     loadCategories()
+    if (admin) loadMerchants()
     if (isEdit) loadProduct()
   }, [id])
+
+  const loadMerchants = async () => {
+    const { data, error } = await supabase.rpc('get_admin_merchant_profiles')
+    if (error) return toast.error(error.message)
+    const approved = (data || []).filter((merchant) => merchant.status === 'approved')
+    setMerchants(approved)
+    if (!isEdit && approved.length === 1) setMerchantId(approved[0].id)
+  }
 
   const loadCategories = async () => {
     const { data, error } = await supabase.from('categories').select('*').order('name')
@@ -49,6 +60,7 @@ export default function ProductForm() {
     const { data, error } = await supabase.from('products').select('*').eq('id', id).maybeSingle()
     if (error) toast.error(error.message)
     if (data) {
+      setMerchantId(data.merchant_id)
       setForm({
         name: data.name,
         description: data.description || '',
@@ -88,7 +100,8 @@ export default function ProductForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!isCompleteAddress(profile?.merchant_profiles?.business_address)) { toast.error('Complete your merchant pickup address before uploading a product.'); navigate('/merchant/address'); return }
+    if (!admin && !isCompleteAddress(profile?.merchant_profiles?.business_address)) { toast.error('Complete your merchant pickup address before uploading a product.'); navigate('/merchant/address'); return }
+    if (admin && !merchantId) return toast.error('Choose the Merchant that owns this product.')
     setSaving(true)
     try {
       let images = existingImage ? [existingImage] : []
@@ -114,7 +127,7 @@ export default function ProductForm() {
       if (discountTiers.some((tier) => !Number.isInteger(tier.min_qty) || tier.min_qty < 2 || tier.discount_percent <= 0 || tier.discount_percent >= 100 || tier.price <= 0)) throw new Error('Quantity must be at least 2 and discount must be between 1% and 99%.')
       if (new Set(discountTiers.map((tier) => tier.min_qty)).size !== discountTiers.length) throw new Error('Each discount quantity must be unique.')
       const payload = {
-        merchant_id: user.id,
+        merchant_id: admin ? merchantId : user.id,
         name: cleanText(form.name, 200),
         description: cleanText(form.description, 5000),
         sku: cleanText(form.sku, 100),
@@ -140,7 +153,7 @@ export default function ProductForm() {
         if (error) throw error
         toast.success('Naidagdag ang produkto.')
       }
-      navigate('/merchant/products')
+      navigate(admin ? '/admin/products' : '/merchant/products')
     } catch (err) {
       toast.error(err.message)
     } finally {
@@ -150,12 +163,13 @@ export default function ProductForm() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
-      {!isCompleteAddress(profile?.merchant_profiles?.business_address) && <div className="mb-5 rounded-2xl border border-mango-300 bg-mango-100/60 p-4 text-sm text-ink/65">Complete your pickup address before uploading products. <button onClick={() => navigate('/merchant/address')} className="font-bold text-teal-700 underline">Update address</button></div>}
+      {!admin && !isCompleteAddress(profile?.merchant_profiles?.business_address) && <div className="mb-5 rounded-2xl border border-mango-300 bg-mango-100/60 p-4 text-sm text-ink/65">Complete your pickup address before uploading products. <button onClick={() => navigate('/merchant/address')} className="font-bold text-teal-700 underline">Update address</button></div>}
       <h1 className="font-display font-bold text-2xl text-ink mb-6">
         {isEdit ? 'I-edit ang Produkto' : 'Bagong Produkto'}
       </h1>
 
       <form onSubmit={handleSubmit} className="card p-6 space-y-4">
+        {admin && <label className="block text-sm font-semibold text-ink/70">Product owner (Merchant)<select required className="input-field mt-1" value={merchantId} onChange={(event) => setMerchantId(event.target.value)} disabled={isEdit}><option value="">Choose approved Merchant</option>{merchants.map((merchant) => <option key={merchant.id} value={merchant.id}>{merchant.business_name} · {merchant.profile_full_name}</option>)}</select>{isEdit && <span className="mt-1 block text-[11px] font-normal text-ink/40">Product ownership is locked while editing.</span>}</label>}
         <div>
           <label className="text-sm font-medium text-ink/70">Larawan ng Produkto</label>
           <label className="mt-1 flex flex-col items-center justify-center border-2 border-dashed border-teal-200 rounded-xl p-6 cursor-pointer hover:bg-teal-50 transition-colors relative">
@@ -228,11 +242,11 @@ export default function ProductForm() {
         <div className="rounded-2xl border border-teal-100 bg-cream p-4"><h2 className="font-display font-bold text-ink">Packed Shipping Information</h2><p className="mt-1 text-xs leading-5 text-ink/50">Enter the final packed values for one item. Dimensions are Length × Width × Height.</p><div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4"><label className="text-xs font-medium text-ink/60">Actual weight (kg)<input required type="number" min="0.001" step="0.001" className="input-field mt-1" value={form.packed_weight_kg} onChange={update('packed_weight_kg')} /></label><label className="text-xs font-medium text-ink/60">Length (cm)<input required type="number" min="0.01" step="0.01" className="input-field mt-1" value={form.packed_length_cm} onChange={update('packed_length_cm')} /></label><label className="text-xs font-medium text-ink/60">Width (cm)<input required type="number" min="0.01" step="0.01" className="input-field mt-1" value={form.packed_width_cm} onChange={update('packed_width_cm')} /></label><label className="text-xs font-medium text-ink/60">Height (cm)<input required type="number" min="0.01" step="0.01" className="input-field mt-1" value={form.packed_height_cm} onChange={update('packed_height_cm')} /></label></div><div className="mt-3 rounded-xl border border-teal-100 bg-white p-3"><p className="text-[11px] uppercase tracking-wide text-ink/40">Automatic package volume</p><p className="mt-1 font-display text-lg font-bold text-teal-700">{(Number(form.packed_length_cm || 0) * Number(form.packed_width_cm || 0) * Number(form.packed_height_cm || 0)).toLocaleString()} cm³</p><p className="mt-0.5 text-[11px] text-ink/40">Used only for vehicle fit—not as a separate volumetric charge.</p></div><label className="mt-3 block text-xs font-medium text-ink/60">Product type<input required maxLength="100" className="input-field mt-1" value={form.product_type} onChange={update('product_type')} placeholder="Food tray, bottled drinks, cake..." /></label><div className="mt-4 grid gap-2 sm:grid-cols-3"><label className="flex items-center gap-2 rounded-xl bg-white p-3 text-xs font-semibold text-ink/65"><input type="checkbox" checked={form.fragile} onChange={toggle('fragile')} className="accent-teal-600" /> Fragile</label><label className="flex items-center gap-2 rounded-xl bg-white p-3 text-xs font-semibold text-ink/65"><input type="checkbox" checked={form.keep_upright} onChange={toggle('keep_upright')} className="accent-teal-600" /> Keep upright</label><label className="flex items-center gap-2 rounded-xl bg-white p-3 text-xs font-semibold text-ink/65"><input type="checkbox" checked={form.motorcycle_safe} onChange={toggle('motorcycle_safe')} className="accent-teal-600" /> Motorcycle-safe</label></div></div>
 
         <div className="flex gap-3 pt-2">
-          <button type="submit" disabled={saving || !isCompleteAddress(profile?.merchant_profiles?.business_address)} className="btn-primary flex-1 flex items-center justify-center gap-2">
+          <button type="submit" disabled={saving || (admin ? !merchantId : !isCompleteAddress(profile?.merchant_profiles?.business_address))} className="btn-primary flex-1 flex items-center justify-center gap-2">
             {saving && <Loader2 size={16} className="animate-spin" />}
             {saving ? 'Sine-save...' : 'I-save ang Produkto'}
           </button>
-          <button type="button" onClick={() => navigate('/merchant/products')} className="btn-secondary flex items-center gap-1">
+          <button type="button" onClick={() => navigate(admin ? '/admin/products' : '/merchant/products')} className="btn-secondary flex items-center gap-1">
             <X size={16} /> Kanselahin
           </button>
         </div>

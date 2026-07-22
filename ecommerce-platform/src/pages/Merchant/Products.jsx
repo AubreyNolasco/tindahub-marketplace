@@ -8,7 +8,7 @@ import { peso } from '../../utils/format'
 import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
 
-export default function Products() {
+export default function Products({ admin = false }) {
   const { user } = useAuth()
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -19,11 +19,12 @@ export default function Products() {
 
   const load = async () => {
     setLoading(true)
-    const { data, error } = await supabase
+    let query = supabase
       .from('products')
-      .select('*')
-      .eq('merchant_id', user.id)
+      .select(admin ? '*, merchant_profiles(business_name)' : '*')
       .order('created_at', { ascending: false })
+    if (!admin) query = query.eq('merchant_id', user.id)
+    const { data, error } = await query
     if (error) toast.error(error.message)
     setProducts(data || [])
     setLoading(false)
@@ -49,7 +50,7 @@ export default function Products() {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-display font-bold text-2xl text-ink">Products</h1>
-        <Link to="/merchant/products/new" className="btn-primary text-sm flex items-center gap-1.5">
+        <Link to={admin ? '/admin/products/new' : '/merchant/products/new'} className="btn-primary text-sm flex items-center gap-1.5">
           <Plus size={16} /> Add Product
         </Link>
       </div>
@@ -61,7 +62,7 @@ export default function Products() {
           icon={Package}
           title="No products yet"
           message="Idagdag ang unang produkto mo para makita ng mga reseller."
-          action={<Link to="/merchant/products/new" className="btn-primary">Magdagdag Ngayon</Link>}
+          action={<Link to={admin ? '/admin/products/new' : '/merchant/products/new'} className="btn-primary">Magdagdag Ngayon</Link>}
         />
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -81,10 +82,11 @@ export default function Products() {
               </div>
               <div className="p-4">
                 <h3 className="font-semibold text-ink truncate">{p.name}</h3>
+                {admin && <p className="truncate text-xs font-semibold text-mango-700">{p.merchant_profiles?.business_name || 'Merchant'}</p>}
                 <p className="text-teal-700 font-bold mt-1">{peso(p.price)}</p>
                 <p className="text-xs text-ink/50">{p.stock_quantity} stock</p>
                 <div className="flex items-center gap-2 mt-3">
-                  <Link to={`/merchant/products/${p.id}/edit`} className="btn-secondary text-xs px-3 py-1.5 flex items-center gap-1">
+                  <Link to={admin ? `/admin/products/${p.id}/edit` : `/merchant/products/${p.id}/edit`} className="btn-secondary text-xs px-3 py-1.5 flex items-center gap-1">
                     <Pencil size={13} /> Edit
                   </Link>
                   <button onClick={() => toggleActive(p)} className="btn-secondary text-xs px-3 py-1.5">

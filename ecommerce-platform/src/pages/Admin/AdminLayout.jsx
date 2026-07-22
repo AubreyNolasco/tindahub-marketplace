@@ -16,6 +16,7 @@ const sections = [
       { to: '/admin', label: 'Overview', icon: LayoutDashboard, end: true, permission: 'overview' },
       { to: '/admin/staff', label: 'Staff Access', icon: UserCog, adminOnly: true },
       { to: '/admin/full-access', label: 'Full Access', icon: KeyRound, adminOnly: true },
+      { to: '/admin/products', label: 'Products', icon: Boxes, adminOnly: true },
       { to: '/admin/legal', label: 'Legal Settings', icon: Scale, adminOnly: true },
       { to: '/admin/process-guide', label: 'Process Guide', icon: BookOpenCheck, adminOnly: true },
       { to: '/admin/merchants', label: 'Merchants', icon: Building2, permission: 'merchants' },
