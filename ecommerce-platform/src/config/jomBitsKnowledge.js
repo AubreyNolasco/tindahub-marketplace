@@ -6,7 +6,9 @@ const shared = [
   { id: 'address', keywords: ['address','delivery address','pickup address'], title: 'Account address', answer: 'Open Update Account or the Address page and save a complete address. JOM HUB requires complete location details before protected ordering and fulfillment actions are available.' },
   { id: 'case', keywords: ['cancel','cancellation','dispute','return','replacement','refund','problem'], title: 'Order cases', answer: 'Open the affected order, select Request Cancellation / Help, choose the correct case type, explain the issue, and attach evidence when required. An open case pauses automatic completion while it is reviewed.' },
   { id: 'notification', keywords: ['notification','alert','bell'], title: 'Notifications', answer: 'Use the bell in the workspace header to review account-specific order, wallet, subscription, and case updates.' },
-  { id: 'guide', keywords: ['guide','walkthrough','tutorial','how to use'], title: 'Page guide', answer: 'Select the guide icon beside the notification bell. It highlights the controls on your current page and explains each action step by step.' }
+  { id: 'guide', keywords: ['guide','walkthrough','tutorial','how to use'], title: 'Page guide', answer: 'Select the guide icon beside the notification bell. It highlights the controls on your current page and explains each action step by step.' },
+  { id: 'next-action', keywords: ['next action','what next','what should i do','priority'], title: 'Recommended Next Action', answer: 'Open your dashboard and follow the Recommended Next Action card. It checks your role and current account activity, then links directly to the most important unfinished task.' },
+  { id: 'receipt', keywords: ['receipt','print receipt','transaction record','proof of transaction'], title: 'Printable receipts', answer: 'Open the related order or Wallet request and select Print receipt. JOM HUB provides printable records for orders, top-ups, and withdrawals; always compare them with the official external payment record.' }
 ]
 
 const roleKnowledge = {

@@ -36,7 +36,10 @@ const benefits = [
   { icon: BarChart3, title: 'Actionable reports', text: 'Download sales, inventory, orders, top-ups, and withdrawals as Excel-ready reports.' },
   { icon: MessageCircle, title: 'Faster coordination', text: 'Keep merchant and reseller conversations connected to their marketplace activity.' },
   { icon: Wallet, title: 'Organized cash flow', text: 'Track wallet balance, top-ups, withdrawals, fees, payments, and payouts in one place.' },
-  { icon: BadgeCheck, title: 'Admin-reviewed access', text: 'Payment proofs and account applications are reviewed to support a more trusted community.' }
+  { icon: BadgeCheck, title: 'Admin-reviewed access', text: 'Payment proofs and account applications are reviewed to support a more trusted community.' },
+  { icon: Sparkles, title: 'Recommended next actions', text: 'Each workspace highlights the most important account, order, wallet, or store task to complete next.' },
+  { icon: FileImage, title: 'Printable transaction records', text: 'Keep system-generated receipts for marketplace orders, wallet top-ups, and withdrawals.' },
+  { icon: LockKeyhole, title: 'Protected activity history', text: 'Sensitive operational changes are recorded for Admin review without copying payment secrets or private proofs.' }
 ]
 
 const plans = [

@@ -4,13 +4,13 @@ import { Link } from 'react-router-dom'
 const merchantBenefits = [
   { icon: Store, title: 'Build your digital store', text: 'List products, manage inventory, and present your business professionally to active resellers.' },
   { icon: Megaphone, title: 'Join sales campaigns', text: 'Participate in Payday and Double Day offers to attract more buyers with campaign pricing.' },
-  { icon: BarChart3, title: 'Make informed decisions', text: 'Monitor sales, orders, wallet activity, inventory, and downloadable reports in one place.' }
+  { icon: BarChart3, title: 'Make informed decisions', text: 'Follow your recommended next action, monitor performance, and print transaction records in one workspace.' }
 ]
 
 const resellerBenefits = [
   { icon: ShoppingBag, title: 'Choose products worth promoting', text: 'Browse approved merchants, check stock and reseller pricing, then select products that fit your audience.' },
   { icon: Share2, title: 'Sell through your social network', text: 'Promote selected products on Facebook, Messenger, TikTok, or your preferred selling channel.' },
-  { icon: TrendingUp, title: 'Turn customer orders into income', text: 'Record customers, place their orders in JOM HUB, track fulfillment, and grow through repeat sales.' }
+  { icon: TrendingUp, title: 'Turn customer orders into income', text: 'Follow your next action, record customers, track fulfillment, and keep printable order and wallet records.' }
 ]
 
 export default function GrowthSection() {
