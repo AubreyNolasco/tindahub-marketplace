@@ -9,6 +9,7 @@ import {
 import { useAuth } from '../../contexts/AuthContext'
 import { canAccessAdmin } from '../../config/adminPermissions'
 import AdminNotifications from '../../components/notifications/AdminNotifications'
+import PageWalkthroughGuide from '../../components/onboarding/PageWalkthroughGuide'
 
 const sections = [
   {
@@ -97,7 +98,7 @@ export default function AdminLayout() {
         <div className="sticky top-16 z-30 flex h-14 items-center justify-between gap-3 border-b border-black/5 bg-white/90 px-3 backdrop-blur sm:px-5 lg:px-8">
           <button onClick={() => setMenuOpen(true)} className="flex shrink-0 items-center gap-2 rounded-xl px-2 py-2 text-sm font-semibold text-teal-700 hover:bg-teal-50 lg:hidden"><Menu size={19} /><span className="hidden sm:inline">Menu</span></button>
           <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-ink">{currentItem?.label || 'Admin'}</p><p className="hidden text-[11px] text-ink/40 lg:block">Admin Center</p></div>
-          <AdminNotifications />
+          <div className="flex shrink-0 items-center gap-2"><PageWalkthroughGuide /><AdminNotifications /></div>
         </div>
         <main className="min-w-0"><Outlet /></main>
       </section>
