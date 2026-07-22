@@ -28,7 +28,7 @@ export default function Sales() {
   useEffect(() => { load() }, [])
 
   const load = async () => {
-    if (startDate > endDate) return toast.error('Ang start date ay dapat bago o kapareho ng end date.')
+    if (startDate > endDate) return toast.error('The start date must be earlier than or equal to the end date.')
     setLoading(true)
     const { data, error } = await supabase
       .from('orders')

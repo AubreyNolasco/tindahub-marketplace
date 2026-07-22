@@ -5,13 +5,13 @@ import { useAuth } from '../../contexts/AuthContext'
 const content = {
   merchant: {
     title: 'Merchant Delivery Booking Guide',
-    intro: 'Ikaw bilang Merchant ang magbu-book ng Lalamove o ibang delivery provider para sa accepted order.',
+    intro: 'The Merchant books Lalamove or another delivery provider for each accepted order.',
     steps: [
-      ['Confirm and prepare', 'I-check ang order at ihanda ang items ayon sa packed weight, dimensions, at handling requirements.'],
-      ['Use the buyer address', 'Kopyahin ang delivery address mula sa order. Private ito at gagamitin lamang para ma-deliver ang order.'],
-      ['Book the courier', 'Mag-book sa Lalamove o ibang courier. Ang Merchant pickup address ang pickup at buyer/customer address ang drop-off.'],
-      ['Share the delivery update', 'Kapag accepted na ng rider, i-mark ang order bilang Shipped. Huwag ilagay ang pickup address sa chat.'],
-      ['Receiver pays shipping', 'Ang Reseller o final customer ang magbabayad ng actual shipping fee sa rider/provider upon delivery.'],
+      ['Confirm and prepare', 'Review the order and prepare the items according to their packed weight, dimensions, and handling requirements.'],
+      ['Use the buyer address', 'Copy the delivery address from the order. It is private and may only be used to complete delivery.'],
+      ['Book the courier', 'Book Lalamove or another courier using the Merchant address for pickup and the buyer address for drop-off.'],
+      ['Share the delivery update', 'After a rider accepts the booking, mark the order as Shipped. Never post the pickup address in chat.'],
+      ['Receiver pays shipping', 'The Reseller or final customer pays the actual delivery charge directly to the courier upon delivery.'],
     ],
   },
 }

@@ -62,6 +62,7 @@ import ChatHistoryDetail from './pages/Admin/ChatHistoryDetail'
 import Categories from './pages/Admin/Categories'
 import Subscriptions from './pages/Admin/Subscriptions'
 import HomepageEditor from './pages/Admin/HomepageEditor'
+import ProcessPresentation from './pages/Admin/ProcessPresentation'
 import AdminWallet from './pages/Admin/Wallet'
 import Sales from './pages/Admin/Sales'
 import AdminSalesReport from './pages/Admin/Reports/SalesReport'
@@ -176,6 +177,8 @@ export default function App() {
                   <Route path="products/:id/edit" element={<AdminPermissionRoute adminOnly><ProductForm admin /></AdminPermissionRoute>} />
                   <Route path="legal" element={<AdminPermissionRoute adminOnly><LegalSettings /></AdminPermissionRoute>} />
                   <Route path="process-guide" element={<AdminPermissionRoute adminOnly><ProcessGuide /></AdminPermissionRoute>} />
+                  <Route path="merchant-presentation" element={<AdminPermissionRoute adminOnly><ProcessPresentation audience="merchant" /></AdminPermissionRoute>} />
+                  <Route path="reseller-presentation" element={<AdminPermissionRoute adminOnly><ProcessPresentation audience="reseller" /></AdminPermissionRoute>} />
                   <Route path="merchants" element={<AdminPermissionRoute permission="merchants"><Merchants /></AdminPermissionRoute>} />
                   <Route path="payments" element={<AdminPermissionRoute permission="payments"><Payments /></AdminPermissionRoute>} />
                   <Route path="topups" element={<AdminPermissionRoute permission="topups"><TopupRequests /></AdminPermissionRoute>} />

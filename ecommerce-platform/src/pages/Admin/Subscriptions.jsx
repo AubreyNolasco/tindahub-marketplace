@@ -179,10 +179,10 @@ export default function Subscriptions() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-      <h1 className="font-display font-bold text-2xl text-ink mb-6">Mga Subscription</h1>
+      <h1 className="font-display font-bold text-2xl text-ink mb-6">Subscriptions</h1>
 
       <h2 className="font-semibold text-ink mb-3">Payment Requests</h2>
-      {requests.length === 0 ? <EmptyState icon={CreditCard} title="Walang subscription payment request" /> : (
+      {requests.length === 0 ? <EmptyState icon={CreditCard} title="No subscription payment requests" /> : (
         <div className="space-y-3 mb-8">
           {requests.map((request) => (
             <div key={request.id} className="card p-5 flex items-start justify-between flex-wrap gap-3">
@@ -221,7 +221,7 @@ export default function Subscriptions() {
       </div>
 
       {filtered.length === 0 ? (
-        <EmptyState icon={CreditCard} title="Walang user" message="Walang user sa filter na ito." />
+        <EmptyState icon={CreditCard} title="No users found" message="No users match this filter." />
       ) : (
         <div className="space-y-3">
           {filtered.map((p) => {
@@ -240,7 +240,7 @@ export default function Subscriptions() {
                       Expires {formatDate(p.subscriptions.expires_at)}
                     </p>
                   ) : (
-                    <p className="text-sm text-ink/40">Walang subscription record</p>
+                    <p className="text-sm text-ink/40">No subscription record</p>
                   )}
                 </div>
                 <div className="flex items-center gap-2">

@@ -32,7 +32,7 @@ export const ORDER_STATUS_STYLES = {
 
 export const ORDER_STATUS_LABELS = {
   pending_payment: 'Awaiting Payment',
-  payment_review: 'Sinusuri ang Payment',
+  payment_review: 'Payment Review',
   confirmed: 'Confirmed',
   processing: 'Inihahanda',
   shipped: 'Nai-ship na',

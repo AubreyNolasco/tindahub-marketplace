@@ -37,7 +37,7 @@ export default function TopupRequests() {
       .from('payment-proofs')
       .createSignedUrl(request.proof_url, 300)
     if (error) {
-      toast.error('Hindi ma-load ang proof of payment.')
+      toast.error('Unable to load the proof of payment.')
       return
     }
     setProofUrls((p) => ({ ...p, [request.id]: data.signedUrl }))
@@ -46,7 +46,7 @@ export default function TopupRequests() {
   const review = async (request, approve) => {
     let admin_notes = null
     if (!approve) {
-      admin_notes = window.prompt('Dahilan ng pag-reject (optional):') || null
+      admin_notes = window.prompt('Reason for rejection (optional):') || null
     }
     const { error } = await supabase
       .from('topup_requests')
@@ -62,7 +62,7 @@ export default function TopupRequests() {
       toast.error(error.message)
       return
     }
-    toast.success(approve ? 'Na-approve ang top-up at na-credit sa wallet.' : 'Na-reject ang top-up request.')
+    toast.success(approve ? 'Top-up approved and credited to the wallet.' : 'Top-up request rejected.')
     load()
   }
 
@@ -72,7 +72,7 @@ export default function TopupRequests() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-      <h1 className="font-display font-bold text-2xl text-ink mb-6">Mga Top-Up Request</h1>
+      <h1 className="font-display font-bold text-2xl text-ink mb-6">Top-Up Requests</h1>
 
       <div className="flex gap-2 mb-6">
         {['pending', 'approved', 'rejected', 'all'].map((f) => (
@@ -89,7 +89,7 @@ export default function TopupRequests() {
       </div>
 
       {filtered.length === 0 ? (
-        <EmptyState icon={Banknote} title="Walang top-up request" message="Walang request sa filter na ito." />
+        <EmptyState icon={Banknote} title="No top-up requests" message="No requests match this filter." />
       ) : (
         <div className="space-y-3">
           {filtered.map((r) => (
@@ -102,7 +102,7 @@ export default function TopupRequests() {
                 <p className="text-sm text-ink/60">{peso(r.amount)} via {r.method?.toUpperCase()} · Ref# {r.reference_number || '—'}</p>
                 <p className="text-xs text-ink/40">{formatDate(r.created_at)}</p>
                 {r.status === 'rejected' && r.admin_notes && (
-                  <p className="text-xs text-coral-600 mt-1">Dahilan: {r.admin_notes}</p>
+                  <p className="text-xs text-coral-600 mt-1">Reason: {r.admin_notes}</p>
                 )}
                 {proofUrls[r.id] && (
                   <img src={proofUrls[r.id]} alt="proof" className="max-h-48 rounded-lg mt-3" />

@@ -38,12 +38,12 @@ export default function SubscriptionExpiryModal() {
           <AlertTriangle className={isExpired ? 'text-coral-600' : 'text-mango-600'} size={26} />
         </div>
         <h2 className="font-display font-bold text-lg text-ink mb-1">
-          {isExpired ? 'Tapos na ang Subscription Mo' : 'Malapit nang Mag-expire ang Subscription Mo'}
+          {isExpired ? 'Your Subscription Has Expired' : 'Your Subscription Is Expiring Soon'}
         </h2>
         <p className="text-sm text-ink/60 mb-5">
           {isExpired
-            ? `Nag-expire ang subscription mo noong ${formatDate(sub.expires_at)}. Makipag-ugnayan sa admin para i-renew.`
-            : `Mag-e-expire ang subscription mo sa loob ng ${daysLeft} araw (${formatDate(sub.expires_at)}). Makipag-ugnayan sa admin para i-renew.`}
+            ? `Your subscription expired on ${formatDate(sub.expires_at)}. Contact Admin to renew it.`
+            : `Your subscription will expire in ${daysLeft} days (${formatDate(sub.expires_at)}). Contact Admin to renew it.`}
         </p>
         <button onClick={() => setDismissed(true)} className="btn-primary w-full">
           Naintindihan

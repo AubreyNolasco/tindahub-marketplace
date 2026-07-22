@@ -9,7 +9,7 @@ export default function Footer() {
         <div>
           <Link to="/" className="inline-block rounded-xl bg-white px-2"><img src="/rmhub-logo.svg" alt="JOM HUB" className="h-14 w-auto" /></Link>
           <p className="text-sm text-white/55 mt-4 max-w-xs leading-6">
-            Ang B2B marketplace na nagkokonekta sa mga merchant at reseller sa buong Pilipinas.
+            The B2B marketplace connecting Merchants and Resellers across the Philippines.
           </p>
         </div>
 

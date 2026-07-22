@@ -152,11 +152,11 @@ export default function ProductForm({ admin = false }) {
       if (isEdit) {
         const { error } = await supabase.from('products').update(payload).eq('id', id)
         if (error) throw error
-        toast.success('Na-update ang produkto.')
+        toast.success('Product updated successfully.')
       } else {
         const { error } = await supabase.from('products').insert(payload)
         if (error) throw error
-        toast.success('Naidagdag ang produkto.')
+        toast.success('Product added successfully.')
       }
       navigate(admin ? '/admin/products' : '/merchant/products')
     } catch (err) {
@@ -170,20 +170,20 @@ export default function ProductForm({ admin = false }) {
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
       {!admin && !isCompleteAddress(profile?.merchant_profiles?.business_address) && <div className="mb-5 rounded-2xl border border-mango-300 bg-mango-100/60 p-4 text-sm text-ink/65">Complete your pickup address before uploading products. <button onClick={() => navigate('/merchant/address')} className="font-bold text-teal-700 underline">Update address</button></div>}
       <h1 className="font-display font-bold text-2xl text-ink mb-6">
-        {isEdit ? 'I-edit ang Produkto' : 'Bagong Produkto'}
+        {isEdit ? 'Edit Product' : 'New Product'}
       </h1>
 
       <form onSubmit={handleSubmit} className="card p-6 space-y-4">
         {admin && <label className="block text-sm font-semibold text-ink/70">Product owner (Merchant)<select required className="input-field mt-1" value={merchantId} onChange={(event) => setMerchantId(event.target.value)} disabled={isEdit}><option value="">Choose approved Merchant</option>{merchants.map((merchant) => <option key={merchant.id} value={merchant.id}>{merchant.business_name} · {merchant.profile_full_name}</option>)}</select>{isEdit && <span className="mt-1 block text-[11px] font-normal text-ink/40">Product ownership is locked while editing.</span>}</label>}
         <div>
-          <label className="text-sm font-medium text-ink/70">Larawan ng Produkto</label>
+          <label className="text-sm font-medium text-ink/70">Product Image</label>
           <label className="mt-1 flex flex-col items-center justify-center border-2 border-dashed border-teal-200 rounded-xl p-6 cursor-pointer hover:bg-teal-50 transition-colors relative">
             {(imagePreview || existingImage) ? (
               <img src={imagePreview || existingImage} alt="preview" className="max-h-40 rounded-lg" />
             ) : (
               <>
                 <Upload className="text-teal-400 mb-2" size={24} />
-                <span className="text-sm text-ink/60">I-click para mag-upload</span>
+                <span className="text-sm text-ink/60">Click to upload</span>
               </>
             )}
             <input type="file" accept="image/*" className="hidden" onChange={handleFile} />
@@ -191,12 +191,12 @@ export default function ProductForm({ admin = false }) {
         </div>
 
         <div>
-          <label className="text-sm font-medium text-ink/70">Pangalan ng Produkto</label>
+          <label className="text-sm font-medium text-ink/70">Product Name</label>
           <input required className="input-field mt-1" value={form.name} onChange={update('name')} />
         </div>
 
         <div>
-          <label className="text-sm font-medium text-ink/70">Deskripsyon</label>
+          <label className="text-sm font-medium text-ink/70">Description</label>
           <textarea className="input-field mt-1" rows={3} value={form.description} onChange={update('description')} />
         </div>
 
@@ -204,7 +204,7 @@ export default function ProductForm({ admin = false }) {
           <div>
             <label className="text-sm font-medium text-ink/70">Category</label>
             <select className="input-field mt-1" value={form.category_id} onChange={update('category_id')}>
-              <option value="">Walang category</option>
+              <option value="">No category</option>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
@@ -255,10 +255,10 @@ export default function ProductForm({ admin = false }) {
         <div className="flex gap-3 pt-2">
           <button type="submit" disabled={saving || !safetyConfirmed || (admin ? !merchantId : !isCompleteAddress(profile?.merchant_profiles?.business_address))} className="btn-primary flex-1 flex items-center justify-center gap-2">
             {saving && <Loader2 size={16} className="animate-spin" />}
-            {saving ? 'Sine-save...' : 'I-save ang Produkto'}
+            {saving ? 'Saving...' : 'Save Product'}
           </button>
           <button type="button" onClick={() => navigate(admin ? '/admin/products' : '/merchant/products')} className="btn-secondary flex items-center gap-1">
-            <X size={16} /> Kanselahin
+            <X size={16} /> Cancel
           </button>
         </div>
       </form>

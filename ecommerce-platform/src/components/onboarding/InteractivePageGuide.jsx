@@ -5,14 +5,14 @@ import { useLocation } from 'react-router-dom'
 
 const labelOf=(element,fallback='Control')=>(element?.getAttribute('aria-label')||element?.getAttribute('placeholder')||element?.getAttribute('title')||element?.textContent||fallback).trim().replace(/\s+/g,' ').slice(0,90)
 const instructionFor=(element,label)=>{
-  if(element.matches('[data-guide-current-nav]'))return `Ito ang active menu na “${label}”. Pindutin ito para bumalik sa page na ito.`
-  if(element.matches('h1,h2'))return `Ito ang “${label}” section. Dito magsisimula ang mga action sa page.`
-  if(element.matches('select'))return `Pindutin ang “${label}” at piliin ang tamang option.`
-  if(element.matches('textarea'))return `I-type sa “${label}” ang kumpleto at tamang impormasyon.`
-  if(element.matches('input[type="checkbox"],input[type="radio"]'))return `Piliin ang “${label}” kung naaangkop.`
-  if(element.matches('input'))return `Ilagay ang tamang ${label.toLowerCase()} dito at i-check bago mag-save.`
-  if(element.matches('a'))return `Pindutin ang “${label}” para buksan ang page o action na ito.`
-  return `Pindutin ang “${label}” para gawin ang action na ito.`
+  if(element.matches('[data-guide-current-nav]'))return `This is the active “${label}” menu. Select it to return to this page.`
+  if(element.matches('h1,h2'))return `This is the “${label}” section. Start here before using the page actions.`
+  if(element.matches('select'))return `Select “${label}” and choose the correct option.`
+  if(element.matches('textarea'))return `Enter complete and accurate information in “${label}”.`
+  if(element.matches('input[type="checkbox"],input[type="radio"]'))return `Select “${label}” when it applies.`
+  if(element.matches('input'))return `Enter the correct ${label.toLowerCase()} here and verify it before saving.`
+  if(element.matches('a'))return `Select “${label}” to open this page or action.`
+  return `Select “${label}” to perform this action.`
 }
 
 export default function InteractivePageGuide(){

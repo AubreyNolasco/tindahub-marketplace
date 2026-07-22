@@ -4,7 +4,7 @@ import {
   BarChart3, Boxes, Building2, ChevronRight, CircleDollarSign,
   ClipboardList, CreditCard, FileChartColumn, FileDown,
   FileUp, FolderTree, House, LayoutDashboard, Menu, MessageSquare,
-  Megaphone, PanelLeftClose, ReceiptText, ShieldCheck, Star, UsersRound, WalletCards, X, History, CalendarDays, UserCog, Scale, BookOpenCheck, KeyRound
+  Megaphone, PanelLeftClose, Presentation, ReceiptText, ShieldCheck, Star, UsersRound, WalletCards, X, History, CalendarDays, UserCog, Scale, BookOpenCheck, KeyRound
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { canAccessAdmin } from '../../config/adminPermissions'
@@ -21,6 +21,8 @@ const sections = [
       { to: '/admin/products', label: 'Products', icon: Boxes, adminOnly: true },
       { to: '/admin/legal', label: 'Legal Settings', icon: Scale, adminOnly: true },
       { to: '/admin/process-guide', label: 'Process Guide', icon: BookOpenCheck, adminOnly: true },
+      { to: '/admin/merchant-presentation', label: 'Merchant Slides', icon: Presentation, adminOnly: true },
+      { to: '/admin/reseller-presentation', label: 'Reseller Slides', icon: Presentation, adminOnly: true },
       { to: '/admin/merchants', label: 'Merchants', icon: Building2, permission: 'merchants' },
       { to: '/admin/categories', label: 'Categories', icon: FolderTree, permission: 'categories' },
       { to: '/admin/homepage', label: 'Homepage', icon: House, permission: 'homepage' },

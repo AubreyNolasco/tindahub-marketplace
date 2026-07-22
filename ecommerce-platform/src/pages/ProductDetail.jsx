@@ -75,9 +75,9 @@ export default function ProductDetail() {
   }
 
   if (loading) return <div className="flex justify-center py-24"><Spinner /></div>
-  if (!product) return <div className="mx-auto max-w-3xl px-4 py-16"><EmptyState icon={PackageSearch} title="Product Not Found" message="Baka natanggal na o na-hide ng merchant ang item na ito." action={<Link to="/catalog" className="btn-primary">Back to Catalog</Link>} /></div>
+  if (!product) return <div className="mx-auto max-w-3xl px-4 py-16"><EmptyState icon={PackageSearch} title="Product Not Found" message="This item may have been removed or hidden by the Merchant." action={<Link to="/catalog" className="btn-primary">Back to Catalog</Link>} /></div>
 
-  const confirmAdd = (customer, sellingPrice) => { addItem(product, qty, customer, sellingPrice); setShowQuickAdd(false); toast.success(`Naidagdag sa cart: ${product.name}`) }
+  const confirmAdd = (customer, sellingPrice) => { addItem(product, qty, customer, sellingPrice); setShowQuickAdd(false); toast.success(`Added to cart: ${product.name}`) }
   const storeOpen = isStoreOpen(product.merchant_profiles)
 
   return <div className="min-h-screen bg-[#f5f8f5] py-6 sm:py-10"><div className="mx-auto max-w-6xl px-4 sm:px-6">

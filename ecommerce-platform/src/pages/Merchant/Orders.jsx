@@ -165,7 +165,7 @@ export default function Orders() {
 
                 {NEXT_STATUS[o.status] && (
                   <button onClick={() => advanceStatus(o)} className="btn-primary text-sm mt-3">
-                    Markahan bilang "{ORDER_STATUS_LABELS[NEXT_STATUS[o.status]]}"
+                    Mark as "{ORDER_STATUS_LABELS[NEXT_STATUS[o.status]]}"
                   </button>
                 )}
                 {o.status === 'shipped' && (

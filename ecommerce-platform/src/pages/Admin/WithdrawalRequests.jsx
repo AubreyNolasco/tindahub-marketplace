@@ -32,9 +32,9 @@ export default function WithdrawalRequests() {
     let admin_notes = null
     let scheduled_for = null
     if (!approve) {
-      admin_notes = window.prompt('Dahilan ng pag-reject (optional):') || null
+      admin_notes = window.prompt('Reason for rejection (optional):') || null
     } else {
-      const schedule = window.prompt('Kailan available ipadala? Halimbawa: 2026-07-23 14:00. Leave blank for as soon as available.')
+      const schedule = window.prompt('When can the transfer be sent? Example: 2026-07-23 14:00. Leave blank for as soon as available.')
       if (schedule) { const parsed = new Date(schedule); if (Number.isNaN(parsed.getTime())) return toast.error('Invalid processing schedule.'); scheduled_for = parsed.toISOString() }
     }
     const { error } = await supabase
@@ -52,7 +52,7 @@ export default function WithdrawalRequests() {
       toast.error(error.message)
       return
     }
-    toast.success(approve ? 'Approved and scheduled. Mark it Sent only after the actual transfer.' : 'Na-reject ang withdrawal at na-refund sa wallet.')
+    toast.success(approve ? 'Approved and scheduled. Mark it Sent only after the actual transfer.' : 'Withdrawal rejected and refunded to the wallet.')
     load()
   }
 
@@ -71,7 +71,7 @@ export default function WithdrawalRequests() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-      <h1 className="font-display font-bold text-2xl text-ink mb-6">Mga Withdrawal Request</h1>
+      <h1 className="font-display font-bold text-2xl text-ink mb-6">Withdrawal Requests</h1>
 
       <div className="flex gap-2 mb-6">
         {['pending', 'approved', 'rejected', 'all'].map((f) => (
@@ -88,7 +88,7 @@ export default function WithdrawalRequests() {
       </div>
 
       {filtered.length === 0 ? (
-        <EmptyState icon={Landmark} title="Walang withdrawal request" message="Walang request sa filter na ito." />
+        <EmptyState icon={Landmark} title="No withdrawal requests" message="No requests match this filter." />
       ) : (
         <div className="space-y-3">
           {filtered.map((r) => (
@@ -104,7 +104,7 @@ export default function WithdrawalRequests() {
                 {r.scheduled_for && !r.sent_at && <p className="mt-1 text-xs font-semibold text-mango-700">Planned send time: {new Date(r.scheduled_for).toLocaleString('en-PH',{dateStyle:'medium',timeStyle:'short'})}</p>}
                 {r.sent_at && <p className="mt-1 text-xs font-semibold text-teal-700">Sent {formatDate(r.sent_at)} · Ref {r.transfer_reference}</p>}
                 {r.status === 'rejected' && r.admin_notes && (
-                  <p className="text-xs text-coral-600 mt-1">Dahilan: {r.admin_notes}</p>
+                  <p className="text-xs text-coral-600 mt-1">Reason: {r.admin_notes}</p>
                 )}
               </div>
               <div className="flex items-center gap-2">

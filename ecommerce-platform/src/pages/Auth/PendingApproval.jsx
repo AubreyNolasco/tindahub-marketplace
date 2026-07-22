@@ -20,10 +20,10 @@ export default function PendingApproval() {
         <h1 className="font-display font-bold text-2xl text-ink">{rejected ? 'Application needs attention' : 'Awaiting Admin Approval'}</h1>
         <p className="text-ink/60 mt-3">
           {rejected
-            ? 'Hindi na-approve ang payment application. Makipag-ugnayan sa Admin para sa detalye at muling pagsusumite.'
+            ? 'Your payment application was not approved. Contact Admin for details and resubmission instructions.'
             : role === 'merchant'
-              ? 'Sinusuri ng Admin ang subscription at payment screenshot mo. Magagamit ang Merchant account pagkatapos ma-approve.'
-              : 'Sinusuri ng Admin ang initial wallet top-up mo. Magagamit ang Reseller account at wallet pagkatapos ma-approve.'}
+              ? 'Admin is reviewing your subscription and payment screenshot. Your Merchant account will become available after approval.'
+              : 'Admin is reviewing your initial wallet top-up. Your Reseller account and wallet will become available after approval.'}
         </p>
         {role === 'merchant' && !rejected && <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center"><Link to="/merchant-permit" className="btn-primary">Submit Business Permit</Link><Link to="/choose-subscription" className="btn-secondary">Choose Subscription</Link></div>}
         <button onClick={signOut} className="btn-secondary mt-6">Sign out</button>

@@ -42,20 +42,20 @@ export default function Categories() {
       toast.error(error.message)
       return
     }
-    toast.success('Naidagdag ang category.')
+    toast.success('Category added successfully.')
     setName('')
     setShowForm(false)
     load()
   }
 
   const handleDelete = async (id) => {
-    if (!confirm('Sigurado ka bang gusto mo tanggalin ang category na ito? Mawawalan ng category ang mga produktong gumagamit nito.')) return
+    if (!confirm('Are you sure you want to delete this category? Products using it will become uncategorized.')) return
     const { error } = await supabase.from('categories').delete().eq('id', id)
     if (error) {
       toast.error(error.message)
       return
     }
-    toast.success('Natanggal ang category.')
+    toast.success('Category deleted successfully.')
     load()
   }
 
@@ -76,7 +76,7 @@ export default function Categories() {
           <input
             required
             className="input-field"
-            placeholder="Pangalan ng category"
+            placeholder="Category name"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />

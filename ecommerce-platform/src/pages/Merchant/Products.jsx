@@ -71,13 +71,13 @@ export default function Products({ admin = false }) {
   }
 
   const handleDelete = async (id) => {
-    if (!confirm('Sigurado ka bang gusto mo tanggalin ang produktong ito?')) return
+    if (!confirm('Are you sure you want to delete this product?')) return
     const { error } = await supabase.from('products').delete().eq('id', id)
     if (error) {
       toast.error(error.message)
       return
     }
-    toast.success('Natanggal ang produkto.')
+    toast.success('Product deleted successfully.')
     load()
   }
 
@@ -98,8 +98,8 @@ export default function Products({ admin = false }) {
         <EmptyState
           icon={Package}
           title="No products yet"
-          message="Idagdag ang unang produkto mo para makita ng mga reseller."
-          action={<Link to={admin ? '/admin/products/new' : '/merchant/products/new'} className="btn-primary">Magdagdag Ngayon</Link>}
+          message="Add your first product so Resellers can discover it."
+          action={<Link to={admin ? '/admin/products/new' : '/merchant/products/new'} className="btn-primary">Add Product</Link>}
         />
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

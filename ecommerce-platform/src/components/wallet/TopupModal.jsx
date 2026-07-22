@@ -36,7 +36,7 @@ export default function TopupModal({ open, onClose, onSubmitted }) {
     e.preventDefault()
     const numericAmount = Number(amount)
     if (!numericAmount || numericAmount <= 0) {
-      toast.error('Maglagay ng valid na amount.')
+      toast.error('Enter a valid amount.')
       return
     }
     const fileError = validateImage(proofFile)
@@ -141,7 +141,7 @@ export default function TopupModal({ open, onClose, onSubmitted }) {
 
           <button type="submit" disabled={submitting} className="btn-primary w-full flex items-center justify-center gap-2">
             {submitting && <Loader2 size={16} className="animate-spin" />}
-            {submitting ? 'Sinusubmit...' : 'Isumite ang Request'}
+            {submitting ? 'Submitting...' : 'Submit Request'}
           </button>
         </form>
       </div>

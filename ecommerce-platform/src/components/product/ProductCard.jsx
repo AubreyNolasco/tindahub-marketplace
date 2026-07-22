@@ -19,7 +19,7 @@ export default function ProductCard({ product }) {
 
   const handleAdd = (event) => {
     event.preventDefault()
-    if (!inStock) return toast.error('Ubos na ang stock.')
+    if (!inStock) return toast.error('This product is out of stock.')
     setQuantity(product.min_order_qty || 1)
     setShowQuickAdd(true)
   }
@@ -27,7 +27,7 @@ export default function ProductCard({ product }) {
   const confirmAdd = (customer, sellingPrice) => {
     addItem(product, quantity, customer, sellingPrice)
     setShowQuickAdd(false)
-    toast.success(`Naidagdag sa cart: ${product.name}`)
+    toast.success(`Added to cart: ${product.name}`)
   }
 
   const handleMessage = (event) => {
@@ -46,12 +46,12 @@ export default function ProductCard({ product }) {
       <div className="flex flex-1 flex-col p-3 sm:p-4">
         <div className="flex items-center justify-between gap-2">
           <p className="flex min-w-0 items-center gap-1.5 truncate text-[10px] font-bold uppercase tracking-[0.1em] text-teal-700 sm:text-xs"><Store size={12} className="shrink-0" /><span className="truncate">{product.merchant_profiles?.business_name || 'Store'}</span></p>
-          {user && user.id !== product.merchant_id && (role === 'reseller' || role === 'merchant') && <button onClick={handleMessage} className="shrink-0 rounded-full p-1.5 text-ink/40 transition hover:bg-teal-50 hover:text-teal-600" title="I-message ang store"><MessageCircle size={15} /></button>}
+          {user && user.id !== product.merchant_id && (role === 'reseller' || role === 'merchant') && <button onClick={handleMessage} className="shrink-0 rounded-full p-1.5 text-ink/40 transition hover:bg-teal-50 hover:text-teal-600" title="Message the store"><MessageCircle size={15} /></button>}
         </div>
         <h3 className="mt-2 line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-5 text-ink sm:text-[15px]">{product.name}</h3>
         <div className="mt-auto flex items-end justify-between gap-2 pt-4">
           <div><span className="font-display text-base font-bold text-teal-700 sm:text-lg">{peso(role === 'reseller' ? getResellerProfitEstimate(product, Math.max(1, product.min_order_qty || 1)).buyingUnitPrice : product.price)}</span><p className="mt-1 flex items-center gap-1 text-[10px] text-ink/40 sm:text-xs"><PackageCheck size={12} />{inStock ? `${product.stock_quantity} available` : 'Unavailable'}</p></div>
-          {(role === 'reseller' || role === 'merchant') && <button onClick={handleAdd} disabled={!inStock} className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-teal-600 text-white shadow-sm transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:bg-black/15 sm:h-10 sm:w-10" title="Idagdag sa cart"><Plus size={17} /></button>}
+          {(role === 'reseller' || role === 'merchant') && <button onClick={handleAdd} disabled={!inStock} className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-teal-600 text-white shadow-sm transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:bg-black/15 sm:h-10 sm:w-10" title="Add to cart"><Plus size={17} /></button>}
         </div>
         {product.min_order_qty > 1 && <p className="mt-2 border-t border-black/[0.05] pt-2 text-[10px] text-ink/40 sm:text-xs">Minimum order: {product.min_order_qty}</p>}
         {role === 'reseller' && <div className="mt-2 rounded-xl bg-mango-100/60 px-3 py-2 text-[10px] leading-4"><p className="font-bold text-ink">Sell at {peso(getSuggestedCustomerPrice(product))}</p><p className="text-teal-700">Est. profit: {peso(getResellerProfitEstimate(product, Math.max(1, product.min_order_qty || 1)).estimatedProfit)} for {Math.max(1, product.min_order_qty || 1)} item{Number(product.min_order_qty || 1) === 1 ? '' : 's'}</p></div>}

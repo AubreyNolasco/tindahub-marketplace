@@ -30,7 +30,7 @@ export default function Cart() {
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
       <h1 className="font-display font-bold text-2xl text-ink mb-1">Cart</h1>
       <p className="text-ink/60 text-sm mb-6">
-        Hiwalay na order ang bawat merchant dahil isang checkout lang bawat tindahan.
+        Products from each Merchant are placed in separate orders because each checkout supports one store.
       </p>
 
       <div className="space-y-6">

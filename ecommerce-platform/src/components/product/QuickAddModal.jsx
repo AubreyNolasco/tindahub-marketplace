@@ -58,7 +58,7 @@ export default function QuickAddModal({ product, quantity, initialSellingPrice, 
         </div>
         {role === 'reseller' ? <div className="mt-4"><ResellerProfitPanel product={product} quantity={quantity} sellingPrice={sellingPrice} onSellingPriceChange={setSellingPrice} compact /></div> : <p className="text-right text-sm font-semibold text-ink mt-3">Subtotal: {peso(product.price * quantity)}</p>}
         <button onClick={() => onAdd(role === 'reseller' ? customers.find((customer) => customer.id === customerId) : null, Number(sellingPrice))} disabled={!canAdd || (role === 'reseller' && !customerId)} className="btn-primary w-full mt-5">
-          {canAdd ? 'Idagdag sa Cart' : 'Out of Stock'}
+          {canAdd ? 'Add to Cart' : 'Out of Stock'}
         </button>
       </div>
     </div>

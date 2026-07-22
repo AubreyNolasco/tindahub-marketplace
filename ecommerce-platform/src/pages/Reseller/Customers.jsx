@@ -40,7 +40,7 @@ export default function Customers() {
       toast.error(error.message)
       return
     }
-    toast.success('Naidagdag ang customer.')
+    toast.success('Customer added successfully.')
     setForm({ name: '', phone: '', address: '', notes: '' })
     setShowForm(false)
     load()
@@ -63,7 +63,7 @@ export default function Customers() {
 
       {showForm && (
         <form onSubmit={handleAdd} className="card p-5 mb-6 space-y-3">
-          <input required className="input-field" placeholder="Pangalan" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
+          <input required className="input-field" placeholder="Customer name" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
           <input className="input-field" placeholder="Phone number" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} />
           <div><label className="text-sm font-semibold text-ink/70">Complete Delivery Address</label><textarea required maxLength="500" rows={4} className="input-field mt-1 resize-none" placeholder="House/Unit No., Street, Barangay, City, Province, Postal Code, Landmark" value={form.address} onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))} /><p className="mt-1 text-[11px] leading-4 text-ink/45">{COMPLETE_ADDRESS_HELP}</p><div className={`mt-2 rounded-lg px-3 py-2 text-xs font-medium ${isCompleteAddress(form.address) ? 'bg-teal-50 text-teal-700' : 'bg-mango-100/60 text-ink/55'}`}>{isCompleteAddress(form.address) ? 'Complete delivery address' : 'Complete address required before saving'}</div></div>
           <textarea className="input-field" placeholder="Notes (optional)" rows={2} value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />

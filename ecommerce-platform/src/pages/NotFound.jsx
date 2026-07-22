@@ -10,7 +10,7 @@ export default function NotFound() {
       <p className="font-display font-extrabold text-6xl text-ink">404</p>
       <h1 className="font-display font-semibold text-xl text-ink mt-2">Page Not Found</h1>
       <p className="text-ink/60 mt-1 max-w-sm">
-        Baka mali ang link o na-move na ang page na ito. Balik tayo sa simula.
+        The link may be incorrect or this page may have moved. Let us return to the homepage.
       </p>
       <Link to="/" className="btn-primary mt-6">Back to Home</Link>
     </div>

@@ -50,7 +50,7 @@ export default function Chats() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
-      <h1 className="font-display font-bold text-2xl text-ink mb-6">Mga Usapan</h1>
+      <h1 className="font-display font-bold text-2xl text-ink mb-6">Conversations</h1>
 
       {threads.length > 0 && (
         <div className="relative mb-4">
@@ -65,9 +65,9 @@ export default function Chats() {
       )}
 
       {threads.length === 0 ? (
-        <EmptyState icon={MessageCircle} title="Wala pang usapan" message="Lalabas dito ang mga reseller na nag-message sa iyo." />
+        <EmptyState icon={MessageCircle} title="No conversations yet" message="Resellers who message you will appear here." />
       ) : filtered.length === 0 ? (
-        <EmptyState icon={Search} title="Walang nahanap" message="Subukan ang ibang pangalan." />
+        <EmptyState icon={Search} title="No results found" message="Try searching for another name." />
       ) : (
         <div className="space-y-2">
           {filtered.map((t) => (

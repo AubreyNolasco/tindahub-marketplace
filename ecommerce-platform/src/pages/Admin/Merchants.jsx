@@ -94,7 +94,7 @@ export default function Merchants() {
               <div className="min-w-0">
                 <p className="font-semibold text-ink">{m.business_name}</p>
                 <p className="text-sm text-ink/60">{m.profile_full_name} · {m.profile_phone}</p>
-                <p className="text-xs text-ink/40">Sumali noong {formatDate(m.created_at)}</p>
+                <p className="text-xs text-ink/40">Joined {formatDate(m.created_at)}</p>
                 <div className="mt-2 flex flex-wrap items-center gap-2"><span className={`badge capitalize ${m.business_permit_status === 'approved' ? 'bg-teal-100 text-teal-700' : m.business_permit_status === 'rejected' ? 'bg-coral-100 text-coral-600' : 'bg-mango-100 text-mango-700'}`}>Permit: {m.business_permit_status || 'missing'}</span>{!m.business_permit_url && <span className="flex items-center gap-1 text-xs text-coral-600"><FileWarning size={13} /> No attachment</span>}</div>
               </div>
               <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">

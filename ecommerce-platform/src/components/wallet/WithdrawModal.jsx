@@ -6,7 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 
 const ERROR_MESSAGES = {
   INSUFFICIENT_BALANCE: 'Your wallet balance is insufficient for this withdrawal.',
-  INVALID_AMOUNT: 'Maglagay ng valid na amount.'
+  INVALID_AMOUNT: 'Enter a valid amount.'
 }
 
 export default function WithdrawModal({ open, onClose, onSubmitted }) {
@@ -31,7 +31,7 @@ export default function WithdrawModal({ open, onClose, onSubmitted }) {
     e.preventDefault()
     const numericAmount = Number(amount)
     if (!numericAmount || numericAmount <= 0) {
-      toast.error('Maglagay ng valid na amount.')
+      toast.error('Enter a valid amount.')
       return
     }
 
@@ -116,7 +116,7 @@ export default function WithdrawModal({ open, onClose, onSubmitted }) {
 
           <button type="submit" disabled={submitting} className="btn-primary w-full flex items-center justify-center gap-2">
             {submitting && <Loader2 size={16} className="animate-spin" />}
-            {submitting ? 'Sinusubmit...' : 'Isumite ang Withdrawal'}
+            {submitting ? 'Submitting...' : 'Submit Withdrawal'}
           </button>
           <p className="rounded-xl bg-mango-100/60 p-3 text-xs leading-5 text-ink/55">The amount is held immediately. Admin will show the planned processing time based on availability. Funds are transferred only when marked <strong>Sent</strong>.</p>
         </form>
