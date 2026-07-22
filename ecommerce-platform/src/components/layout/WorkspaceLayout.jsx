@@ -1,0 +1,41 @@
+import { useEffect, useState } from 'react'
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
+import { AlertCircle, ChevronRight, Menu, PanelLeftClose, Store, X } from 'lucide-react'
+import { useAuth } from '../../contexts/AuthContext'
+import { isCompleteAddress } from '../../utils/address'
+
+export default function WorkspaceLayout({ title, subtitle, sections, children }) {
+  const [open, setOpen] = useState(false)
+  const [collapsed, setCollapsed] = useState(false)
+  const location = useLocation()
+  const { profile, role } = useAuth()
+  useEffect(() => { setOpen(false) }, [location.pathname])
+  const items = sections.flatMap((section) => section.items)
+  const current = items.find((item) => item.end ? location.pathname === item.to : location.pathname.startsWith(item.to))
+  const address = role === 'merchant' ? profile?.merchant_profiles?.business_address : profile?.address
+  const needsAddress = (role === 'merchant' || role === 'reseller') && !isCompleteAddress(address)
+
+  return <div className="min-h-[calc(100vh-4rem)] lg:flex">
+    {open && <button onClick={() => setOpen(false)} aria-label="Close navigation" className="fixed inset-x-0 bottom-0 top-16 z-40 bg-ink/40 backdrop-blur-sm lg:hidden" />}
+    <aside className={`fixed bottom-0 top-16 z-50 flex w-72 flex-col border-r border-black/10 bg-white shadow-2xl transition-all duration-300 lg:sticky lg:left-0 lg:z-20 lg:h-[calc(100vh-4rem)] lg:shrink-0 ${open ? 'left-0' : '-left-72'} ${collapsed ? 'lg:w-[84px]' : 'lg:w-64'}`}>
+      <div className={`flex h-[76px] items-center border-b border-black/5 bg-teal-50 ${collapsed ? 'justify-center px-3' : 'justify-between px-5'}`}>
+        {!collapsed && <div className="min-w-0"><div className="flex items-center gap-2 font-display font-bold text-teal-900"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-600 text-white"><Store size={17} /></span><span className="truncate">{title}</span></div><p className="ml-10 mt-0.5 text-xs text-ink/50">{subtitle}</p></div>}
+        <button onClick={() => setOpen(false)} className="rounded-xl p-2 text-ink/60 hover:bg-teal-100 lg:hidden"><X size={20} /></button>
+        <button onClick={() => setCollapsed((value) => !value)} className="hidden rounded-xl p-2 text-ink/60 hover:bg-teal-100 lg:block"><PanelLeftClose size={19} className={collapsed ? 'rotate-180' : ''} /></button>
+      </div>
+      <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-5">
+        {sections.map((section) => <div key={section.label}>
+          {!collapsed && <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-ink/40">{section.label}</p>}
+          <div className="space-y-1">{section.items.map(({ to, label, icon: Icon, end }) => <NavLink key={to} to={to} end={end} title={collapsed ? label : undefined} className={({ isActive }) => `group flex min-h-11 items-center rounded-xl text-sm font-semibold transition-all ${collapsed ? 'justify-center px-2' : 'gap-3 px-3'} ${isActive ? 'bg-teal-600 text-white shadow-md shadow-teal-900/10' : 'text-ink/70 hover:bg-teal-50 hover:text-teal-900'}`}>{({ isActive }) => <><Icon size={18} className={isActive ? 'text-white' : 'text-teal-600'} />{!collapsed && <><span className="flex-1 truncate">{label}</span>{isActive && <ChevronRight size={15} />}</>}</>}</NavLink>)}</div>
+        </div>)}
+      </nav>
+      {!collapsed && <div className="border-t border-black/5 p-4"><div className="rounded-xl bg-cream px-3 py-3 text-xs leading-5 text-ink/50">Secure workspace for your account activity and reports.</div></div>}
+    </aside>
+    <section className="min-w-0 flex-1 bg-[radial-gradient(circle_at_top_right,rgba(22,121,75,0.08),transparent_30%),#F7FAF7]">
+      <div className="sticky top-16 z-30 flex h-14 items-center justify-between border-b border-black/5 bg-white/90 px-4 backdrop-blur lg:hidden"><button onClick={() => setOpen(true)} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-teal-700 hover:bg-teal-50"><Menu size={19} /> Menu</button><p className="truncate text-sm font-semibold text-ink">{current?.label || title}</p><Store size={19} className="text-teal-500" /></div>
+      {needsAddress && <div className="mx-4 mt-4 flex flex-col gap-3 rounded-2xl border border-mango-300 bg-mango-100/70 p-4 text-sm sm:mx-6 sm:flex-row sm:items-center sm:justify-between lg:mx-8"><div className="flex items-start gap-3"><AlertCircle size={19} className="mt-0.5 shrink-0 text-mango-600" /><div><p className="font-semibold text-ink">Complete your address to unlock all features</p><p className="mt-0.5 text-xs leading-5 text-ink/55">A complete address is required for products, customers, and orders.</p></div></div><Link to={role === 'merchant' ? '/merchant/address' : '/reseller/address'} className="btn-secondary shrink-0 px-4 py-2 text-center text-xs">Complete address</Link></div>}
+      {children}
+      <main className="min-w-0"><Outlet /></main>
+    </section>
+  </div>
+}

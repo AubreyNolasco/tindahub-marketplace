@@ -1,0 +1,104 @@
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import { BadgeCheck, MessageCircle, Minus, Package, PackageSearch, Plus, ShieldCheck, Store } from 'lucide-react'
+import toast from 'react-hot-toast'
+import { supabase } from '../lib/supabase'
+import { useAuth } from '../contexts/AuthContext'
+import { useCart } from '../contexts/CartContext'
+import { peso } from '../utils/format'
+import Spinner from '../components/ui/Spinner'
+import EmptyState from '../components/ui/EmptyState'
+import QuickAddModal from '../components/product/QuickAddModal'
+import StarRating from '../components/product/StarRating'
+import { getUnitPrice, getResellerUnitPrice } from '../utils/pricing'
+import { applyCampaignDiscount, getActiveCampaignDiscounts } from '../utils/campaigns'
+
+export default function ProductDetail() {
+  const { id } = useParams()
+  const { user, role } = useAuth()
+  const { addItem } = useCart()
+  const [product, setProduct] = useState(null)
+  const [reviews, setReviews] = useState([])
+  const [eligibleOrder, setEligibleOrder] = useState(null)
+  const [myReview, setMyReview] = useState(null)
+  const [rating, setRating] = useState(5)
+  const [comment, setComment] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [qty, setQty] = useState(1)
+  const [showQuickAdd, setShowQuickAdd] = useState(false)
+
+  const loadReviews = async () => {
+    const { data, error } = await supabase.from('product_reviews').select('*').eq('product_id', id).order('created_at', { ascending: false })
+    if (!error) setReviews(data || [])
+  }
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true)
+      const { data, error } = await supabase.from('products').select('*, merchant_profiles(business_name)').eq('id', id).maybeSingle()
+      if (!error && data) { const discounts = await getActiveCampaignDiscounts(); setProduct(applyCampaignDiscount(data, discounts)); setQty(data.min_order_qty || 1) }
+      await loadReviews()
+      setLoading(false)
+    }
+    load()
+  }, [id])
+
+  useEffect(() => {
+    if (!user || role !== 'reseller') return
+    Promise.all([
+      supabase.from('orders').select('id, order_items!inner(product_id)').eq('reseller_id', user.id).eq('status', 'completed').eq('order_items.product_id', id).limit(1),
+      supabase.from('product_reviews').select('*').eq('product_id', id).eq('reseller_id', user.id).maybeSingle(),
+    ]).then(([orderResult, reviewResult]) => {
+      setEligibleOrder(orderResult.data?.[0] || null)
+      if (reviewResult.data) { setMyReview(reviewResult.data); setRating(reviewResult.data.rating); setComment(reviewResult.data.comment) }
+    })
+  }, [id, user?.id, role])
+
+  const average = useMemo(() => reviews.length ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length : 0, [reviews])
+  const submitReview = async (event) => {
+    event.preventDefault()
+    if (!eligibleOrder || comment.trim().length < 3) return toast.error('Please enter a helpful review.')
+    setSubmitting(true)
+    const payload = { product_id: id, reseller_id: user.id, order_id: eligibleOrder.id, rating, comment: comment.trim() }
+    const result = myReview ? await supabase.from('product_reviews').update({ rating, comment: payload.comment }).eq('id', myReview.id) : await supabase.from('product_reviews').insert(payload)
+    setSubmitting(false)
+    if (result.error) return toast.error(result.error.message)
+    toast.success(myReview ? 'Review updated.' : 'Thank you for your review!')
+    const { data } = await supabase.from('product_reviews').select('*').eq('product_id', id).eq('reseller_id', user.id).maybeSingle()
+    setMyReview(data)
+    loadReviews()
+  }
+
+  if (loading) return <div className="flex justify-center py-24"><Spinner /></div>
+  if (!product) return <div className="mx-auto max-w-3xl px-4 py-16"><EmptyState icon={PackageSearch} title="Product Not Found" message="Baka natanggal na o na-hide ng merchant ang item na ito." action={<Link to="/catalog" className="btn-primary">Back to Catalog</Link>} /></div>
+
+  const confirmAdd = (customer) => { addItem(product, qty, customer); setShowQuickAdd(false); toast.success(`Naidagdag sa cart: ${product.name}`) }
+
+  return <div className="min-h-screen bg-[#f5f8f5] py-6 sm:py-10"><div className="mx-auto max-w-6xl px-4 sm:px-6">
+    <div className="mb-5 text-sm text-ink/45"><Link to="/catalog" className="hover:text-teal-700">Products</Link><span className="mx-2">/</span><span className="text-ink/65">{product.name}</span></div>
+    <section className="grid overflow-hidden rounded-3xl border border-black/[0.06] bg-white shadow-soft md:grid-cols-2">
+      <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-gradient-to-br from-teal-50 to-white">{product.images?.[0] ? <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" /> : <Package className="text-teal-300" size={72} />}<span className={`absolute left-4 top-4 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm ${product.stock_quantity > 0 ? 'bg-white/90 text-teal-700' : 'bg-coral-500 text-white'}`}>{product.stock_quantity > 0 ? 'In stock' : 'Out of stock'}</span></div>
+      <div className="flex flex-col p-5 sm:p-8 lg:p-10"><div className="flex flex-wrap items-center gap-3"><Link to={`/merchant-store/${product.merchant_id}`} className="flex items-center gap-1.5 text-sm font-semibold text-teal-700 hover:text-teal-900"><Store size={15} />{product.merchant_profiles?.business_name}</Link>{user && user.id !== product.merchant_id && (role === 'reseller' || role === 'merchant') && <Link to={`/${role}/chats/${product.merchant_id}`} className="flex items-center gap-1.5 text-sm text-ink/45 hover:text-teal-600"><MessageCircle size={15} /> Message store</Link>}</div>
+        <h1 className="mt-4 font-display text-2xl font-bold leading-tight text-ink sm:text-3xl lg:text-4xl">{product.name}</h1>
+        <a href="#reviews" className="mt-3 flex w-fit items-center gap-2"><StarRating value={average} /><span className="text-sm font-semibold text-ink/55">{reviews.length ? `${average.toFixed(1)} (${reviews.length} review${reviews.length === 1 ? '' : 's'})` : 'No ratings yet'}</span></a>
+        <div className="mt-6 border-y border-black/[0.06] py-5"><p className="text-xs font-bold uppercase tracking-wide text-ink/40">{role === 'reseller' ? 'Your reseller buying price' : 'Retail price'}</p><p className="mt-1 font-display text-3xl font-bold text-teal-700">{peso(role === 'reseller' ? getResellerUnitPrice(product, 1) : product.price)}</p>{role === 'reseller' && product.suggested_retail_price && <div className="mt-3 rounded-xl bg-mango-100/60 p-3"><p className="text-sm font-semibold text-ink">Suggested customer price: {peso(product.suggested_retail_price)}</p><p className="mt-1 text-xs text-ink/55">Potential gross profit: {peso(Number(product.suggested_retail_price)-getResellerUnitPrice(product,1))} per item before the 1% system fee, delivery, marketing, returns, and taxes.</p></div>}{role !== 'reseller' && product.wholesale_price && <p className="mt-1 text-sm text-ink/45">Reseller wholesale price available from {peso(product.wholesale_price)}</p>}</div>
+        <div className="mt-5 grid grid-cols-2 gap-3"><div className="rounded-xl bg-cream p-3"><p className="text-xs text-ink/40">Available stock</p><p className="mt-1 font-semibold text-ink">{product.stock_quantity} items</p></div><div className="rounded-xl bg-cream p-3"><p className="text-xs text-ink/40">Minimum order</p><p className="mt-1 font-semibold text-ink">{product.min_order_qty} item{product.min_order_qty === 1 ? '' : 's'}</p></div></div>
+        {product.campaign_discount_percent > 0 ? <div className="mt-4 rounded-2xl border border-mango-300 bg-gradient-to-r from-mango-100 to-white p-4"><p className="text-xs font-bold uppercase tracking-wide text-mango-600">Marketplace campaign</p><div className="mt-2 flex items-center justify-between"><span className="font-display text-xl font-bold text-ink">{product.campaign_discount_percent}% OFF</span><span className="font-bold text-teal-700">{peso(getUnitPrice(product, qty))} each</span></div><p className="mt-2 text-xs text-ink/50">Campaign price applies to every quantity. Store quantity discounts are paused.</p></div> : product.discount_tiers?.length > 0 && <div className="mt-4 rounded-2xl border border-mango-300/50 bg-mango-100/40 p-4"><p className="text-xs font-bold uppercase tracking-wide text-mango-600">Reseller quantity discounts</p><div className="mt-2 space-y-2">{product.discount_tiers.map((tier) => { const percent = Number(tier.discount_percent) || Number(((1 - Number(tier.price) / Number(product.price)) * 100).toFixed(2)); return <div key={tier.min_qty} className="flex items-center justify-between gap-3 text-sm"><span className="text-ink/60">Buy {tier.min_qty}+ items</span><span className="text-right"><strong className="text-mango-600">{percent}% OFF</strong><span className="ml-2 font-bold text-teal-700">{peso(tier.price)} each</span></span></div> })}</div></div>}
+        {getUnitPrice(product, qty) < Number(product.price) && <div className="mt-3 rounded-xl bg-teal-50 px-3 py-2 text-sm text-teal-700"><strong>Your price: {peso(getUnitPrice(product, qty))} each</strong><span className="ml-2">You save {peso((Number(product.price) - getUnitPrice(product, qty)) * qty)}</span></div>}
+        {(role === 'reseller' || role === 'merchant') && <div className="mt-auto flex items-center gap-3 pt-7"><div className="flex items-center overflow-hidden rounded-xl border border-black/10"><button onClick={() => setQty((value) => Math.max(product.min_order_qty, value - 1))} className="p-3 hover:bg-teal-50"><Minus size={16} /></button><span className="min-w-10 text-center font-semibold">{qty}</span><button onClick={() => setQty((value) => Math.min(product.stock_quantity, value + 1))} className="p-3 hover:bg-teal-50"><Plus size={16} /></button></div><button onClick={() => setShowQuickAdd(true)} className="btn-primary flex-1 py-3" disabled={product.stock_quantity < product.min_order_qty}>{product.stock_quantity < product.min_order_qty ? 'Out of Stock' : 'Add to Cart'}</button></div>}
+        {!role && <div className="mt-6 rounded-xl bg-teal-50 p-4 text-sm text-teal-700"><Link to="/login" className="font-semibold underline">Log in</Link> as a reseller to purchase.</div>}
+      </div>
+    </section>
+
+    <section className="mt-6 rounded-3xl border border-black/[0.06] bg-white p-5 shadow-soft sm:p-8"><p className="text-xs font-bold uppercase tracking-[0.15em] text-teal-600">Product information</p><h2 className="mt-2 font-display text-2xl font-bold text-ink">Description</h2><p className="mt-4 whitespace-pre-line text-sm leading-7 text-ink/65 sm:text-base">{product.description || 'No additional product description is available.'}</p></section>
+
+    <section id="reviews" className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
+      <div className="rounded-3xl border border-black/[0.06] bg-white p-5 shadow-soft sm:p-8"><div className="flex items-end justify-between"><div><p className="text-xs font-bold uppercase tracking-[0.15em] text-teal-600">Verified feedback</p><h2 className="mt-2 font-display text-2xl font-bold text-ink">Reseller Reviews</h2></div><div className="text-right"><p className="font-display text-3xl font-bold text-ink">{average ? average.toFixed(1) : '—'}</p><StarRating value={average} size={14} /></div></div>
+        {reviews.length === 0 ? <div className="mt-6 rounded-2xl bg-cream p-8 text-center"><p className="font-semibold text-ink">No reviews yet</p><p className="mt-1 text-sm text-ink/45">The first verified reseller review will appear here.</p></div> : <div className="mt-6 divide-y divide-black/[0.06]">{reviews.map((review) => <article key={review.id} className="py-5 first:pt-0"><div className="flex items-start justify-between gap-3"><div><p className="font-semibold text-ink">{review.reviewer_name}</p><p className="mt-1 flex items-center gap-1 text-xs font-semibold text-teal-700"><BadgeCheck size={14} /> Verified purchase</p></div><div className="text-right"><StarRating value={review.rating} size={14} /><p className="mt-1 text-[11px] text-ink/35">{new Date(review.created_at).toLocaleDateString()}</p></div></div><p className="mt-3 text-sm leading-6 text-ink/65">{review.comment}</p></article>)}</div>}
+      </div>
+      <aside>{role === 'reseller' && eligibleOrder ? <form onSubmit={submitReview} className="sticky top-24 rounded-3xl border border-black/[0.06] bg-white p-5 shadow-soft"><h3 className="font-display font-bold text-ink">{myReview ? 'Update your review' : 'Rate this product'}</h3><p className="mt-1 text-xs text-ink/45">Your review will be marked as verified.</p><div className="mt-4"><StarRating value={rating} onChange={setRating} size={24} /></div><textarea value={comment} onChange={(event) => setComment(event.target.value.slice(0, 1000))} rows="5" className="input-field mt-4 resize-none text-sm" placeholder="Share your experience with this product..." required minLength="3" /><div className="mt-1 text-right text-[10px] text-ink/35">{comment.length}/1000</div><button disabled={submitting} className="btn-primary mt-3 w-full">{submitting ? 'Saving...' : myReview ? 'Update review' : 'Submit review'}</button></form> : <div className="rounded-3xl border border-black/[0.06] bg-teal-50 p-5"><ShieldCheck className="text-teal-600" size={24} /><h3 className="mt-3 font-display font-bold text-teal-900">Verified reviews only</h3><p className="mt-2 text-sm leading-6 text-ink/55">Resellers can leave a rating after their order for this product is completed.</p></div>}</aside>
+    </section>
+    {showQuickAdd && <QuickAddModal product={product} quantity={qty} onQuantityChange={setQty} onClose={() => setShowQuickAdd(false)} onAdd={confirmAdd} />}
+  </div></div>
+}
