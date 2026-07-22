@@ -1,21 +1,50 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Pencil, Trash2, Package, EyeOff } from 'lucide-react'
+import { Plus, Pencil, Trash2, Package, EyeOff, Sparkles } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { peso } from '../../utils/format'
 import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
+import { SAMPLE_PRODUCTS } from '../../config/sampleProducts'
 
 export default function Products({ admin = false }) {
   const { user } = useAuth()
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [merchants, setMerchants] = useState([])
+  const [sampleMerchantId, setSampleMerchantId] = useState('')
+  const [seeding, setSeeding] = useState(false)
 
   useEffect(() => {
     load()
+    if (admin) loadMerchants()
   }, [])
+
+  const loadMerchants = async () => {
+    const { data, error } = await supabase.rpc('get_admin_merchant_profiles')
+    if (error) return toast.error(error.message)
+    const approved = (data || []).filter((merchant) => merchant.status === 'approved')
+    setMerchants(approved)
+    if (approved.length === 1) setSampleMerchantId(approved[0].id)
+  }
+
+  const seedSamples = async () => {
+    if (!sampleMerchantId) return toast.error('Choose an approved Merchant first.')
+    setSeeding(true)
+    const sampleSkus = SAMPLE_PRODUCTS.map((product) => product.sku)
+    const { data: existing, error: checkError } = await supabase.from('products').select('sku').eq('merchant_id', sampleMerchantId).in('sku', sampleSkus)
+    if (checkError) { setSeeding(false); return toast.error(checkError.message) }
+    const existingSkus = new Set((existing || []).map((product) => product.sku))
+    const missing = SAMPLE_PRODUCTS.filter((product) => !existingSkus.has(product.sku)).map((product) => ({ ...product, merchant_id: sampleMerchantId }))
+    if (!missing.length) { setSeeding(false); return toast.success('All sample products are already in this store.') }
+    const { error } = await supabase.from('products').insert(missing)
+    setSeeding(false)
+    if (error) return toast.error(error.message)
+    toast.success(`${missing.length} sample products added by Admin.`)
+    load()
+  }
 
   const load = async () => {
     setLoading(true)
@@ -54,6 +83,8 @@ export default function Products({ admin = false }) {
           <Plus size={16} /> Add Product
         </Link>
       </div>
+
+      {admin && <section className="mb-6 rounded-2xl border border-mango-300 bg-mango-100/50 p-4 sm:flex sm:items-center sm:justify-between sm:gap-4"><div><p className="flex items-center gap-2 font-display font-bold text-ink"><Sparkles size={18} className="text-mango-700" /> Ready-made sample catalog</p><p className="mt-1 text-xs leading-5 text-ink/55">Adds four complete sample products with illustrations, pricing, stock, discounts, and shipping details. Existing sample SKUs are skipped.</p></div><div className="mt-3 flex flex-col gap-2 sm:mt-0 sm:w-72"><select value={sampleMerchantId} onChange={(event) => setSampleMerchantId(event.target.value)} className="input-field py-2.5 text-sm"><option value="">Choose approved Merchant</option>{merchants.map((merchant) => <option key={merchant.id} value={merchant.id}>{merchant.business_name}</option>)}</select><button type="button" onClick={seedSamples} disabled={seeding || !sampleMerchantId} className="btn-accent flex items-center justify-center gap-2 py-2.5 text-sm"><Sparkles size={15} /> {seeding ? 'Adding samples...' : 'Add Sample Products'}</button></div></section>}
 
       {loading ? (
         <div className="flex justify-center py-16"><Spinner /></div>
