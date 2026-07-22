@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { MAX_IMAGE_BYTES, cleanText, containsAddressInfo, containsContactInfo, safeUploadPath, validateImage } from '../src/utils/security.js'
+import { MAX_IMAGE_BYTES, cleanText, containsAddressInfo, containsContactInfo, normalizePaymentReference, safeUploadPath, validateImage, validatePaymentReference } from '../src/utils/security.js'
 import { isCompleteAddress } from '../src/utils/address.js'
 import { PAYMENT_DESTINATION } from '../src/config/payment.js'
 
@@ -33,4 +33,11 @@ test('keeps the reusable InstaPay destination intact', () => {
   assert.match(PAYMENT_DESTINATION.emvcoPayload, /^000201/)
   assert.match(PAYMENT_DESTINATION.emvcoPayload, /6304[0-9A-F]{4}$/)
   assert.equal(cleanText('  JOM HUB  ', 20), 'JOM HUB')
+})
+
+test('normalizes payment references to prevent formatting-based reuse', () => {
+  assert.equal(normalizePaymentReference('  ABC-123 456 '), 'abc123456')
+  assert.equal(normalizePaymentReference('abc 123-456'), 'abc123456')
+  assert.match(validatePaymentReference('123'), /at least 6/i)
+  assert.equal(validatePaymentReference('ABC-123456'), null)
 })

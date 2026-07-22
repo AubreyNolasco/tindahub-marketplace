@@ -20,6 +20,18 @@ export function cleanText(value, maxLength) {
   return String(value ?? '').trim().slice(0, maxLength)
 }
 
+export function normalizePaymentReference(value) {
+  return String(value ?? '').trim().toLowerCase().replace(/[^a-z0-9]/g, '')
+}
+
+export function validatePaymentReference(value) {
+  const normalized = normalizePaymentReference(value)
+  if (!normalized) return 'Payment reference number is required.'
+  if (normalized.length < 6) return 'Payment reference number must contain at least 6 letters or numbers.'
+  if (String(value).trim().length > 120) return 'Payment reference number is too long.'
+  return null
+}
+
 export function containsContactInfo(value) {
   const text = String(value ?? '').toLowerCase()
   const patterns = [

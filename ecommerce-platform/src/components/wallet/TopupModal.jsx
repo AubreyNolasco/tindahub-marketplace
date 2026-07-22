@@ -3,8 +3,9 @@ import { Loader2, Upload, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
-import { cleanText, safeUploadPath, validateImage } from '../../utils/security'
+import { cleanText, safeUploadPath, validateImage, validatePaymentReference } from '../../utils/security'
 import BankTransferQr from '../payment/BankTransferQr'
+import { ensurePaymentReferenceAvailable, paymentReferenceErrorMessage } from '../../lib/paymentReference'
 
 export default function TopupModal({ open, onClose, onSubmitted }) {
   const { user } = useAuth()
@@ -40,9 +41,12 @@ export default function TopupModal({ open, onClose, onSubmitted }) {
     }
     const fileError = validateImage(proofFile)
     if (fileError) return toast.error(fileError)
+    const referenceError = validatePaymentReference(refNumber)
+    if (referenceError) return toast.error(referenceError)
 
     setSubmitting(true)
     try {
+      await ensurePaymentReferenceAvailable(refNumber)
       const path = safeUploadPath(user.id, 'topup', proofFile)
       const { error: uploadErr } = await supabase.storage
         .from('payment-proofs')
@@ -64,7 +68,7 @@ export default function TopupModal({ open, onClose, onSubmitted }) {
       onSubmitted?.()
       onClose()
     } catch (err) {
-      toast.error(err.message || 'An error occurred while submitting the top-up.')
+      toast.error(paymentReferenceErrorMessage(err) || 'An error occurred while submitting the top-up.')
     } finally {
       setSubmitting(false)
     }
@@ -109,11 +113,15 @@ export default function TopupModal({ open, onClose, onSubmitted }) {
           <div>
             <label className="text-sm font-medium text-ink/70">Reference Number</label>
             <input
+              required
+              minLength={6}
+              maxLength={120}
               className="input-field mt-1"
               placeholder="Reference number ng transaction"
               value={refNumber}
               onChange={(e) => setRefNumber(e.target.value)}
             />
+            <p className="mt-1 text-[11px] leading-4 text-ink/45">For security, every transaction reference can only be submitted once—even with different spaces or dashes.</p>
           </div>
 
           <div>

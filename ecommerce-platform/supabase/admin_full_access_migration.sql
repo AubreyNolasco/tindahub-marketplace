@@ -76,7 +76,7 @@ begin
   insert into wallet_transactions(wallet_id,amount,type,description)
   values(v_wallet_id,p_amount,'credit','Admin manual top-up' || case when nullif(trim(p_note),'') is null then '' else ': '||left(trim(p_note),500) end);
   insert into topup_requests(owner_id,amount,method,reference_number,status,admin_notes,reviewed_by,reviewed_at)
-  values(p_owner_id,p_amount,'bank_transfer','ADMIN-'||to_char(now(),'YYYYMMDDHH24MISS'),'approved',left(p_note,1000),auth.uid(),now()) returning id into v_request_id;
+  values(p_owner_id,p_amount,'bank_transfer','ADMIN-'||upper(replace(gen_random_uuid()::text,'-','')),'approved',left(p_note,1000),auth.uid(),now()) returning id into v_request_id;
   return v_request_id;
 end; $$;
 

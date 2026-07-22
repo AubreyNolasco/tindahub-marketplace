@@ -4,8 +4,9 @@ import { Check, Database, Loader2, ShieldCheck, Upload } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../lib/supabase";
-import { cleanText, safeUploadPath, validateImage } from "../../utils/security";
+import { cleanText, safeUploadPath, validateImage, validatePaymentReference } from "../../utils/security";
 import BankTransferQr from "../../components/payment/BankTransferQr";
+import { ensurePaymentReferenceAvailable, paymentReferenceErrorMessage } from "../../lib/paymentReference";
 
 const DEFAULT_PLANS = [
   { months: 6, label: "Starter · 6 Months", amount: 1599, monthly: 267 },
@@ -59,8 +60,11 @@ export default function ChooseSubscription() {
     event.preventDefault();
     const fileError = validateImage(proof);
     if (fileError) return toast.error(fileError);
+    const referenceError = validatePaymentReference(reference);
+    if (referenceError) return toast.error(referenceError);
     setSubmitting(true);
     try {
+      await ensurePaymentReferenceAvailable(reference);
       const plan = PLANS.find((item) => item.months === planMonths);
       const path = safeUploadPath(user.id, "subscription", proof);
       const { error: uploadError } = await supabase.storage
@@ -81,7 +85,7 @@ export default function ChooseSubscription() {
       toast.success("Subscription payment submitted for Admin approval.");
       navigate("/pending-approval");
     } catch (error) {
-      toast.error(error.message);
+      toast.error(paymentReferenceErrorMessage(error));
     } finally {
       setSubmitting(false);
     }
@@ -166,10 +170,14 @@ export default function ChooseSubscription() {
             <label className="text-sm font-medium">
               Reference Number
               <input
+                required
+                minLength={6}
+                maxLength={120}
                 className="input-field mt-1"
                 value={reference}
                 onChange={(e) => setReference(e.target.value)}
               />
+              <span className="mt-1 block text-[11px] leading-4 text-ink/45">A payment reference can only be used once across subscriptions and wallet top-ups.</span>
             </label>
           </div>
           <BankTransferQr />

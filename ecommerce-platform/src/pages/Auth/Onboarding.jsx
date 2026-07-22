@@ -4,11 +4,12 @@ import { BadgeCheck, Loader2, Store, Upload, Users } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../lib/supabase";
-import { cleanText, safeUploadPath, validateImage } from "../../utils/security";
+import { cleanText, safeUploadPath, validateImage, validatePaymentReference } from "../../utils/security";
 import { COMPLETE_ADDRESS_HELP, isCompleteAddress } from "../../utils/address";
 import Spinner from "../../components/ui/Spinner";
 import ProfileLoadError from "../../components/auth/ProfileLoadError";
 import BankTransferQr from "../../components/payment/BankTransferQr";
+import { ensurePaymentReferenceAvailable, paymentReferenceErrorMessage } from "../../lib/paymentReference";
 
 export default function Onboarding() {
   const { user, profile, loading, profileError, refreshProfile, signOut } =
@@ -52,11 +53,14 @@ export default function Onboarding() {
         return toast.error("Enter your initial wallet top-up amount.");
       const fileError = validateImage(proofFile);
       if (fileError) return toast.error(fileError);
+      const referenceError = validatePaymentReference(referenceNumber);
+      if (referenceError) return toast.error(referenceError);
     }
     setSaving(true);
     try {
       let proofPath = null;
       if (role === "reseller") {
+        await ensurePaymentReferenceAvailable(referenceNumber);
         proofPath = safeUploadPath(
           user.id,
           "email-onboarding-reseller",
@@ -86,7 +90,7 @@ export default function Onboarding() {
         replace: true,
       });
     } catch (error) {
-      toast.error(error.message);
+      toast.error(paymentReferenceErrorMessage(error));
     } finally {
       setSaving(false);
     }
@@ -210,11 +214,14 @@ export default function Onboarding() {
               <label className="block text-sm font-semibold text-ink/70">
                 Reference number
                 <input
+                  required
+                  minLength="6"
                   value={referenceNumber}
                   onChange={(event) => setReferenceNumber(event.target.value)}
                   className="input-field mt-1.5"
                   maxLength="120"
                 />
+                <span className="mt-1 block text-[11px] font-normal leading-4 text-ink/45">This reference can only be used once across all JOM HUB payment requests.</span>
               </label>
               <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-teal-200 p-5 hover:bg-teal-50">
                 <Upload size={20} className="text-teal-600" />
