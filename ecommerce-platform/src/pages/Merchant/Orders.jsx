@@ -10,6 +10,7 @@ import DeliveryProcessGuide from '../../components/order/DeliveryProcessGuide'
 import DeliveryModal from '../../components/order/DeliveryModal'
 import OrderTimeline from '../../components/order/OrderTimeline'
 import OrderCaseModal from '../../components/order/OrderCaseModal'
+import ShippingFeeModal from '../../components/order/ShippingFeeModal'
 
 // Merchant can advance an order up to 'shipped'. Only the buyer's "Confirm
 // Received" action (or an admin) can mark it 'completed' — that's what
@@ -30,6 +31,7 @@ export default function Orders() {
   const [proofUrls, setProofUrls] = useState({})
   const [deliveryOrder,setDeliveryOrder]=useState(null)
   const [caseOrder,setCaseOrder]=useState(null)
+  const [shippingFeeOrder,setShippingFeeOrder]=useState(null)
 
   useEffect(() => {
     load()
@@ -177,7 +179,7 @@ export default function Orders() {
                     Mark as "{ORDER_STATUS_LABELS[NEXT_STATUS[o.status]]}"
                   </button>
                 )}
-                {o.status==='processing'&&<button onClick={()=>setDeliveryOrder(o)} className="btn-primary mt-3 flex items-center gap-1.5 text-sm"><Truck size={16}/> Enter delivery details</button>}
+                {o.status==='processing'&&<div className="mt-3 rounded-xl border border-mango-200 bg-mango-50 p-3 text-xs text-ink/65">{!o.shipping_fee_confirmation_status&&<><p className="font-semibold text-ink">Packaging step: enter the actual shipping fee for Reseller approval.</p><button onClick={()=>setShippingFeeOrder(o)} className="btn-primary mt-2 flex items-center gap-1.5 text-sm"><Truck size={16}/> Submit shipping fee</button></>}{o.shipping_fee_confirmation_status==='pending'&&<p className="font-semibold text-mango-700">Waiting for the Reseller to confirm the {peso(o.proposed_shipping_fee)} shipping fee. Dispatch is locked.</p>}{o.shipping_fee_confirmation_status==='declined'&&<><p className="font-semibold text-coral-700">Reseller will not accept this fee.</p><p className="mt-1">Note: {o.shipping_fee_reseller_note}</p><button onClick={()=>setShippingFeeOrder(o)} className="btn-secondary mt-2 text-sm">Submit a revised shipping fee</button></>}{o.shipping_fee_confirmation_status==='accepted'&&<><p className="font-semibold text-teal-800">Reseller accepted {peso(o.proposed_shipping_fee)}. You may now dispatch the order.</p><button onClick={()=>setDeliveryOrder(o)} className="btn-primary mt-2 flex items-center gap-1.5 text-sm"><Truck size={16}/> Enter delivery details</button></>}</div>}
                 {!['completed','cancelled'].includes(o.status)&&<button onClick={()=>setCaseOrder(o)} className="ml-2 mt-3 inline-flex items-center gap-1.5 rounded-xl bg-coral-100 px-3 py-2 text-xs font-semibold text-coral-700"><ShieldAlert size={15}/> Request help</button>}
                 {o.status === 'shipped' && (
                   <p className="text-xs text-ink/50 mt-3">
@@ -190,6 +192,7 @@ export default function Orders() {
         </div>
       )}
       <DeliveryModal order={deliveryOrder} open={Boolean(deliveryOrder)} onClose={()=>setDeliveryOrder(null)} onSaved={load}/>
+      <ShippingFeeModal order={shippingFeeOrder} open={Boolean(shippingFeeOrder)} onClose={()=>setShippingFeeOrder(null)} onSaved={load}/>
       <OrderCaseModal order={caseOrder} open={Boolean(caseOrder)} onClose={()=>setCaseOrder(null)} onSaved={load}/>
     </div>
   )

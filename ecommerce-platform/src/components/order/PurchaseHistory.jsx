@@ -11,6 +11,7 @@ import CustomerPaymentModal from './CustomerPaymentModal'
 import { realizedResellerMargin } from '../../utils/orderProcess'
 import { printReceipt } from '../../utils/receipt'
 import OrderTimeline from './OrderTimeline'
+import ShippingDecisionModal from './ShippingDecisionModal'
 
 export default function PurchaseHistory() {
   const { user } = useAuth()
@@ -19,6 +20,7 @@ export default function PurchaseHistory() {
   const [confirming, setConfirming] = useState(null)
   const [caseOrder,setCaseOrder]=useState(null)
   const [paymentOrder,setPaymentOrder]=useState(null)
+  const [shippingDecisionOrder,setShippingDecisionOrder]=useState(null)
 
   useEffect(() => {
     load()
@@ -78,6 +80,9 @@ export default function PurchaseHistory() {
                 <span>Total</span><span>{peso(o.total)}</span>
               </div>
               {o.delivery_provider&&<div className="mt-3 rounded-xl bg-teal-50 p-3 text-xs text-teal-900"><strong>{o.delivery_provider}</strong> · Tracking {o.tracking_number}{o.estimated_delivery_at&&<span className="block mt-1">Estimated delivery: {new Date(o.estimated_delivery_at).toLocaleString('en-PH')}</span>}{o.actual_shipping_fee!=null&&<span className="block mt-1">Actual courier fee: {peso(o.actual_shipping_fee)}</span>}{o.dispatch_proof_url&&<button onClick={()=>viewDispatchProof(o)} className="mt-2 font-bold underline">View dispatch proof</button>}</div>}
+              {o.status==='processing'&&o.shipping_fee_confirmation_status==='pending'&&<div className="mt-3 rounded-xl border border-mango-200 bg-mango-50 p-4"><p className="text-sm font-bold text-ink">Shipping fee confirmation required</p><p className="mt-1 text-xs leading-5 text-ink/60">The Merchant packaged this order and submitted a courier fee of <strong>{peso(o.proposed_shipping_fee)}</strong>. Accept it to continue dispatch, or decline and explain why you will not take the product.</p><button onClick={()=>setShippingDecisionOrder(o)} className="btn-primary mt-3 text-sm">Review shipping fee</button></div>}
+              {o.status==='processing'&&o.shipping_fee_confirmation_status==='accepted'&&<p className="mt-3 rounded-xl bg-teal-50 p-3 text-xs font-semibold text-teal-800">You accepted the {peso(o.proposed_shipping_fee)} shipping fee. Waiting for Merchant dispatch.</p>}
+              {o.status==='processing'&&o.shipping_fee_confirmation_status==='declined'&&<p className="mt-3 rounded-xl bg-coral-50 p-3 text-xs text-coral-800"><strong>You declined the shipping fee.</strong> The Merchant may submit a revision. Note: {o.shipping_fee_reseller_note}</p>}
               {o.order_cases?.filter(c=>['open','merchant_review','admin_review'].includes(c.status)).map(c=><p key={c.id} className="mt-3 rounded-xl bg-coral-100 p-3 text-xs font-semibold text-coral-700">Open {c.case_type} request · {c.status.replace('_',' ')}</p>)}
               {o.customer_payment_records?.[0]&&<div className="mt-3 rounded-xl bg-mango-100/60 p-3 text-xs text-ink/65"><p>Customer payment: <strong className="capitalize">{o.customer_payment_records[0].status.replace('_',' ')}</strong> · Received {peso(o.customer_payment_records[0].received_amount)} of {peso(o.customer_payment_records[0].expected_amount)}</p>{o.customer_payment_records[0].status==='refunded'?<p className="mt-1 font-bold text-coral-700">Customer-side payment was recorded as refunded.</p>:<p className="mt-1 font-bold text-teal-800">{o.customer_payment_records[0].status==='paid'?'Realized':'Collected'} margin: {peso(realizedResellerMargin(o.customer_payment_records[0].received_amount,o.total))}</p>}</div>}
               {(() => {
@@ -109,6 +114,7 @@ export default function PurchaseHistory() {
       )}
       <OrderCaseModal order={caseOrder} open={Boolean(caseOrder)} onClose={()=>setCaseOrder(null)} onSaved={load}/>
       <CustomerPaymentModal order={paymentOrder} open={Boolean(paymentOrder)} onClose={()=>setPaymentOrder(null)} onSaved={load}/>
+      <ShippingDecisionModal order={shippingDecisionOrder} open={Boolean(shippingDecisionOrder)} onClose={()=>setShippingDecisionOrder(null)} onSaved={load}/>
     </div>
   )
 }

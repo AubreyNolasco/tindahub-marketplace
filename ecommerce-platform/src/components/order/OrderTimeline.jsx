@@ -2,7 +2,7 @@ import { Check, Clock3 } from 'lucide-react'
 
 const stages=['confirmed','processing','shipped','completed']
 const labels={confirmed:'Confirmed',processing:'Processing',shipped:'Shipped',completed:'Completed'}
-const owners={confirmed:'Merchant reviews',processing:'Merchant prepares',shipped:'Reseller tracks',completed:'Transaction closed'}
+const owners={confirmed:'Merchant reviews',processing:'Package + fee approval',shipped:'Reseller tracks',completed:'Transaction closed'}
 
 export default function OrderTimeline({status}){
   if(status==='cancelled')return <div className="mt-4 rounded-xl border border-coral-200 bg-coral-50 p-3 text-sm font-bold text-coral-700">Order cancelled · Review the case and wallet record.</div>
