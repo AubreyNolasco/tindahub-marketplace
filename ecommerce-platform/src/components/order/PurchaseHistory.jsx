@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CircleDollarSign, ClipboardList, PackageCheck, ShieldAlert } from 'lucide-react'
+import { CircleDollarSign, ClipboardList, PackageCheck, Printer, ShieldAlert } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
@@ -9,6 +9,7 @@ import Spinner from '../ui/Spinner'
 import OrderCaseModal from './OrderCaseModal'
 import CustomerPaymentModal from './CustomerPaymentModal'
 import { realizedResellerMargin } from '../../utils/orderProcess'
+import { printReceipt } from '../../utils/receipt'
 
 export default function PurchaseHistory() {
   const { user } = useAuth()
@@ -99,7 +100,7 @@ export default function PurchaseHistory() {
                   <PackageCheck size={16} /> {confirming === o.id ? 'Confirming...' : 'Confirm Delivery'}
                 </button>
               )}
-              {!['cancelled'].includes(o.status)&&<div className="mt-3 flex flex-wrap gap-2"><button onClick={()=>setPaymentOrder(o)} className="btn-secondary flex items-center gap-1.5 text-xs"><CircleDollarSign size={15}/> Record customer payment</button>{o.status!=='completed'&&<button onClick={()=>setCaseOrder(o)} className="flex items-center gap-1.5 rounded-xl bg-coral-100 px-3 py-2 text-xs font-semibold text-coral-700"><ShieldAlert size={15}/> Request cancellation / help</button>}</div>}
+              <div className="mt-3 flex flex-wrap gap-2"><button type="button" onClick={()=>printReceipt({title:'Marketplace Order',reference:o.order_number,status:o.status,date:formatDate(o.created_at),rows:[{label:'Merchant',value:o.merchant_profiles?.business_name},{label:'Products subtotal',value:peso(o.subtotal)},{label:'Reseller system fee',value:peso(o.reseller_operation_fee||0)},{label:'Wallet total',value:peso(o.total)},{label:'Delivery provider',value:o.delivery_provider||'Not dispatched'},{label:'Tracking number',value:o.tracking_number||'Not available'}],note:'Shipping may be paid separately to the rider when the order uses receiver-pays-on-delivery.'})} className="btn-secondary flex items-center gap-1.5 text-xs"><Printer size={15}/> Print receipt</button>{!['cancelled'].includes(o.status)&&<><button onClick={()=>setPaymentOrder(o)} className="btn-secondary flex items-center gap-1.5 text-xs"><CircleDollarSign size={15}/> Record customer payment</button>{o.status!=='completed'&&<button onClick={()=>setCaseOrder(o)} className="flex items-center gap-1.5 rounded-xl bg-coral-100 px-3 py-2 text-xs font-semibold text-coral-700"><ShieldAlert size={15}/> Request cancellation / help</button>}</>}</div>
             </div>
           ))}
         </div>

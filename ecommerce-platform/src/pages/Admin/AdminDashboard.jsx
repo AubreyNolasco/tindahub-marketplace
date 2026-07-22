@@ -8,6 +8,7 @@ import {
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { peso } from '../../utils/format'
+import NextActionCard from '../../components/dashboard/NextActionCard'
 
 const initialStats = { merchants: 0, approvedMerchants: 0, pendingMerchants: 0, resellers: 0, orders: 0, gmv: 0, pendingTopups: 0, pendingWithdrawals: 0, pendingSubscriptions: 0, pendingRegistrations: 0, platformWallet: 0 }
 
@@ -61,6 +62,12 @@ export default function AdminDashboard() {
     { label: 'Withdrawals', value: stats.pendingWithdrawals, icon: Landmark, link: '/admin/withdrawals', color: 'text-ink/70 bg-black/5' }
     ,{ label: 'Schedule registrations', value: stats.pendingRegistrations, icon: CalendarDays, link: '/admin/registrations', color: 'text-teal-700 bg-teal-50' }
   ]
+  const nextAction = stats.pendingMerchants > 0 ? {title:'Review Merchant applications',description:`${stats.pendingMerchants} Merchant application${stats.pendingMerchants===1?'':'s'} require verification.`,to:'/admin/approval-center',action:'Open approvals'}
+    : stats.pendingSubscriptions > 0 ? {title:'Verify subscription payments',description:`${stats.pendingSubscriptions} subscription payment${stats.pendingSubscriptions===1?'':'s'} are waiting for review.`,to:'/admin/subscriptions',action:'Review payments'}
+    : stats.pendingTopups > 0 ? {title:'Verify wallet top-ups',description:`${stats.pendingTopups} top-up request${stats.pendingTopups===1?'':'s'} require payment matching.`,to:'/admin/topups',action:'Review top-ups'}
+    : stats.pendingWithdrawals > 0 ? {title:'Schedule withdrawal payouts',description:`${stats.pendingWithdrawals} withdrawal request${stats.pendingWithdrawals===1?'':'s'} require review or scheduling.`,to:'/admin/withdrawals',action:'Open withdrawals'}
+    : stats.pendingRegistrations > 0 ? {title:'Confirm registration schedules',description:`${stats.pendingRegistrations} appointment request${stats.pendingRegistrations===1?'':'s'} need confirmation.`,to:'/admin/registrations',action:'Open calendar'}
+    : {title:'Review platform activity',description:'All approval queues are clear. Review the latest protected system changes.',to:'/admin/activity-log',action:'Open audit log',complete:true}
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
@@ -77,7 +84,7 @@ export default function AdminDashboard() {
         </div>
       </section>
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {!loading&&<NextActionCard {...nextAction}/>}<div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {metrics.map(({ label, value, detail, icon: Icon, tone, link }) => (
           <Link key={label} to={link} className="group rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card transition duration-200 hover:-translate-y-0.5 hover:border-teal-100 hover:shadow-soft">
             <div className="flex items-start justify-between"><span className={`flex h-11 w-11 items-center justify-center rounded-xl ${tone}`}><Icon size={21} /></span><ArrowRight size={17} className="text-ink/20 transition group-hover:translate-x-0.5 group-hover:text-teal-600" /></div>

@@ -85,6 +85,7 @@ import AdminPermissionRoute from './components/auth/AdminPermissionRoute'
 import AdminFullAccess from './pages/Admin/FullAccess'
 import ApprovalCenter from './pages/Admin/ApprovalCenter'
 import OrderCases from './pages/Admin/OrderCases'
+import ActivityLog from './pages/Admin/ActivityLog'
 
 export default function App() {
   return (
@@ -176,6 +177,7 @@ export default function App() {
                   <Route path="full-access" element={<AdminPermissionRoute adminOnly><AdminFullAccess /></AdminPermissionRoute>} />
                   <Route path="approval-center" element={<AdminPermissionRoute adminOnly><ApprovalCenter /></AdminPermissionRoute>} />
                   <Route path="order-cases" element={<AdminPermissionRoute adminOnly><OrderCases /></AdminPermissionRoute>} />
+                  <Route path="activity-log" element={<AdminPermissionRoute adminOnly><ActivityLog /></AdminPermissionRoute>} />
                   <Route path="products" element={<AdminPermissionRoute adminOnly><Products admin /></AdminPermissionRoute>} />
                   <Route path="products/new" element={<AdminPermissionRoute adminOnly><ProductForm admin /></AdminPermissionRoute>} />
                   <Route path="products/:id/edit" element={<AdminPermissionRoute adminOnly><ProductForm admin /></AdminPermissionRoute>} />

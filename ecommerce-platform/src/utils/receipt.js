@@ -1,0 +1,10 @@
+const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' })[character])
+
+export function printReceipt({ title, reference, status, date, rows = [], note = '' }) {
+  const receipt = window.open('', '_blank', 'width=760,height=840')
+  if (!receipt) return false
+  const details = rows.filter((row) => row?.label && row.value !== undefined && row.value !== null).map((row) => `<tr><th>${escapeHtml(row.label)}</th><td>${escapeHtml(row.value)}</td></tr>`).join('')
+  receipt.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(title)} receipt</title><style>body{font-family:Arial,sans-serif;color:#142019;margin:0;padding:36px;background:#f7faf7}.sheet{max-width:680px;margin:auto;background:white;border:1px solid #dbe9df;border-radius:20px;padding:30px}.brand{color:#16794b;font-size:24px;font-weight:800}.muted{color:#65756c;font-size:13px}h1{font-size:22px;margin:28px 0 6px}table{width:100%;border-collapse:collapse;margin-top:24px}th,td{padding:12px 0;border-bottom:1px solid #edf2ee;text-align:left;font-size:14px}th{color:#65756c;width:42%;font-weight:600}td{text-align:right;font-weight:700}.status{display:inline-block;margin-top:12px;background:#e8f6ed;color:#0b6038;border-radius:999px;padding:7px 12px;font-weight:700;text-transform:capitalize}.note{margin-top:24px;padding:14px;background:#fff6df;border-radius:12px;font-size:12px;line-height:1.6}@media print{body{background:white;padding:0}.sheet{border:0}}</style></head><body><main class="sheet"><div class="brand">JOM HUB</div><div class="muted">Official system-generated transaction record</div><h1>${escapeHtml(title)}</h1><div class="muted">Reference: ${escapeHtml(reference || 'Not available')}<br>${escapeHtml(date || '')}</div><span class="status">${escapeHtml(status || 'recorded')}</span><table>${details}</table>${note ? `<div class="note">${escapeHtml(note)}</div>` : ''}</main><script>window.onload=()=>window.print()</script></body></html>`)
+  receipt.document.close()
+  return true
+}

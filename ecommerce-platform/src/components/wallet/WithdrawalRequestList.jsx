@@ -1,8 +1,9 @@
-import { Landmark } from 'lucide-react'
+import { Landmark, Printer } from 'lucide-react'
 import { peso, formatDate, TOPUP_STATUS_STYLES, TOPUP_STATUS_LABELS } from '../../utils/format'
 import EmptyState from '../ui/EmptyState'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
+import { printReceipt } from '../../utils/receipt'
 
 export default function WithdrawalRequestList({ requests }) {
   if (requests.length === 0) {
@@ -23,7 +24,7 @@ export default function WithdrawalRequestList({ requests }) {
               <p className="text-xs text-coral-600 mt-1">{r.admin_notes}</p>
             )}
           </div>
-          <span className={`badge ${r.sent_at?'bg-teal-100 text-teal-800':TOPUP_STATUS_STYLES[r.status]}`}>{r.sent_at?'Sent':r.status==='approved'?'Scheduled / Approved':TOPUP_STATUS_LABELS[r.status]}</span>
+          <div className="flex items-center gap-2"><button type="button" onClick={()=>printReceipt({title:'Wallet Withdrawal',reference:r.transfer_reference||r.id,status:r.sent_at?'sent':r.status,date:formatDate(r.created_at),rows:[{label:'Amount',value:peso(r.amount)},{label:'Bank',value:r.bank_name},{label:'Account name',value:r.bank_account_name},{label:'Account number',value:r.bank_account_number},{label:'Scheduled for',value:r.scheduled_for?formatDate(r.scheduled_for):'Not scheduled'},{label:'Sent at',value:r.sent_at?formatDate(r.sent_at):'Not sent'}],note:'Verify the destination account and transfer reference before relying on this record.'})} className="grid h-10 w-10 place-items-center rounded-xl border border-teal-100 text-teal-700 hover:bg-teal-50" title="Print receipt" aria-label="Print withdrawal receipt"><Printer size={16}/></button><span className={`badge ${r.sent_at?'bg-teal-100 text-teal-800':TOPUP_STATUS_STYLES[r.status]}`}>{r.sent_at?'Sent':r.status==='approved'?'Scheduled / Approved':TOPUP_STATUS_LABELS[r.status]}</span></div>
         </div>
       ))}
     </div>
