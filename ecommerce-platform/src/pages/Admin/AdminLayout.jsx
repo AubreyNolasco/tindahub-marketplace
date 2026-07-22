@@ -54,7 +54,7 @@ const sections = [
   }
 ]
 
-function Sidebar({ open, collapsed, onClose, onToggleCollapse, visibleSections }) {
+function Sidebar({ open, collapsed, onClose, onToggleCollapse, visibleSections, currentPath }) {
   return (
     <>
       {open && <button type="button" aria-label="Close admin navigation" onClick={onClose} className="fixed inset-x-0 bottom-0 top-16 z-40 bg-ink/40 backdrop-blur-sm lg:hidden" />}
@@ -69,7 +69,7 @@ function Sidebar({ open, collapsed, onClose, onToggleCollapse, visibleSections }
           {visibleSections.map((section) => <div key={section.label}>
             {!collapsed && <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-ink/45">{section.label}</p>}
             <div className="space-y-1">{section.items.map(({ to, label, icon: Icon, end }) =>
-              <NavLink key={to} to={to} end={end} onClick={onClose} title={collapsed ? label : undefined}
+              <NavLink key={to} to={to} end={end} onClick={onClose} title={collapsed ? label : undefined} data-guide-current-nav={currentPath === to || (!end && currentPath.startsWith(to)) ? 'true' : undefined}
                 className={({ isActive }) => `group relative flex min-h-11 items-center rounded-xl text-sm font-semibold transition-all ${collapsed ? 'justify-center px-2' : 'gap-3 px-3'} ${isActive ? 'bg-teal-600 text-white shadow-md shadow-teal-900/10' : 'text-ink/70 hover:bg-teal-50 hover:text-teal-900'}`}>
                 {({ isActive }) => <><Icon size={18} className={`shrink-0 ${isActive ? 'text-white' : 'text-teal-600 group-hover:text-teal-700'}`} />{!collapsed && <><span className="flex-1 truncate">{label}</span>{isActive && <ChevronRight size={15} className="text-white" />}</>}</>}
               </NavLink>
@@ -93,14 +93,14 @@ export default function AdminLayout() {
   const currentItem = visibleSections.flatMap((section) => section.items).find((item) => item.end ? location.pathname === item.to : location.pathname.startsWith(item.to))
   return (
     <div className="min-h-[calc(100vh-4rem)] lg:flex">
-      <Sidebar open={menuOpen} collapsed={collapsed} onClose={() => setMenuOpen(false)} onToggleCollapse={() => setCollapsed((value) => !value)} visibleSections={visibleSections} />
+      <Sidebar open={menuOpen} collapsed={collapsed} onClose={() => setMenuOpen(false)} onToggleCollapse={() => setCollapsed((value) => !value)} visibleSections={visibleSections} currentPath={location.pathname} />
       <section className="min-w-0 flex-1 bg-[radial-gradient(circle_at_top_right,rgba(22,121,75,0.08),transparent_30%),#F7FAF7]">
         <div className="sticky top-16 z-30 flex h-14 items-center justify-between gap-3 border-b border-black/5 bg-white/90 px-3 backdrop-blur sm:px-5 lg:px-8">
           <button onClick={() => setMenuOpen(true)} className="flex shrink-0 items-center gap-2 rounded-xl px-2 py-2 text-sm font-semibold text-teal-700 hover:bg-teal-50 lg:hidden"><Menu size={19} /><span className="hidden sm:inline">Menu</span></button>
           <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-ink">{currentItem?.label || 'Admin'}</p><p className="hidden text-[11px] text-ink/40 lg:block">Admin Center</p></div>
           <div className="flex shrink-0 items-center gap-2"><PageWalkthroughGuide /><AdminNotifications /></div>
         </div>
-        <main className="min-w-0"><Outlet /></main>
+        <main className="min-w-0" data-guide-main><Outlet /></main>
       </section>
     </div>
   )

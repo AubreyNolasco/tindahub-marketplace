@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { BookOpenCheck, ChevronRight, X } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
@@ -56,11 +56,41 @@ export default function PageWalkthroughGuide() {
   const { pathname } = useLocation()
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState(0)
+  const [targetLabel, setTargetLabel] = useState('Current page')
   const guide = useMemo(() => (guides[role] || []).find(([path]) => path === `/${role}` ? pathname === path : pathname.startsWith(path)) || [pathname, 'Page walkthrough', ['Review the information shown on this page.', 'Use the primary action to continue.', 'Confirm all details before saving or submitting.', 'Return to the workspace menu when finished.']], [pathname, role])
   const [, title, steps] = guide
   const start = () => { setStep(0); setOpen(true) }
+
+  useEffect(() => {
+    if (!open) return
+    const instruction = steps[step] || ''
+    const keywords = instruction.toLowerCase().split(/[^a-z0-9]+/).filter(word => word.length >= 4 && !['before','after','every','correct','review','confirm','check','current','complete'].includes(word))
+    const candidates = [...document.querySelectorAll('[data-guide-current-nav], main button, main a, main input, main select, main textarea, main h1, main h2, main section, main .card, [data-guide-notifications]')]
+      .filter(element => element.offsetParent !== null && !element.closest('[data-guide-walkthrough]'))
+    const score = element => {
+      const text = `${element.textContent || ''} ${element.getAttribute('aria-label') || ''} ${element.getAttribute('placeholder') || ''} ${element.getAttribute('title') || ''}`.toLowerCase()
+      return keywords.reduce((total, word) => total + (text.includes(word) ? 3 : 0), 0) + (element.matches('.btn-primary') ? 1 : 0)
+    }
+    let target
+    if (step === 0) target = candidates.find(element => element.matches('[data-guide-current-nav]')) || candidates.find(element => element.matches('main h1'))
+    if (!target) target = candidates.sort((a,b) => score(b)-score(a))[0]
+    if (!target || score(target) === 0) target = step === steps.length - 1 ? candidates.find(element => element.matches('main .btn-primary, main button')) : candidates.find(element => element.matches('main h1, main h2, main section'))
+    if (!target) return
+    const previous = { outline:target.style.outline, outlineOffset:target.style.outlineOffset, boxShadow:target.style.boxShadow, position:target.style.position, zIndex:target.style.zIndex, borderRadius:target.style.borderRadius }
+    target.style.outline = '4px solid #F2A93B'
+    target.style.outlineOffset = '5px'
+    target.style.boxShadow = '0 0 0 10px rgba(242,169,59,.18), 0 18px 45px rgba(4,59,37,.22)'
+    if (getComputedStyle(target).position === 'static') target.style.position = 'relative'
+    target.style.zIndex = '75'
+    target.style.borderRadius = target.style.borderRadius || '12px'
+    target.scrollIntoView({ behavior:'smooth', block:'center', inline:'center' })
+    const label = target.getAttribute('aria-label') || target.getAttribute('placeholder') || target.textContent?.trim().replace(/\s+/g,' ').slice(0,70) || target.tagName.toLowerCase()
+    setTargetLabel(label)
+    return () => Object.assign(target.style, previous)
+  }, [open, step, pathname, steps])
+
   return <>
     <button type="button" onClick={start} className="flex h-10 items-center gap-2 rounded-xl border border-black/[.06] bg-white px-3 text-sm font-bold text-teal-700 shadow-sm transition hover:bg-teal-50" aria-label="Open page walkthrough"><BookOpenCheck size={18}/><span className="hidden sm:inline">Guide</span></button>
-    {open && <div className="fixed inset-0 z-[90] flex items-center justify-center bg-ink/55 p-3 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="walkthrough-title"><div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl"><header className="relative bg-gradient-to-br from-teal-950 to-teal-700 p-6 text-white"><button onClick={()=>setOpen(false)} className="absolute right-4 top-4 rounded-xl bg-white/10 p-2 hover:bg-white/20" aria-label="Close guide"><X size={18}/></button><BookOpenCheck className="text-mango-300"/><p className="mt-4 text-xs font-bold uppercase tracking-[.16em] text-mango-300">Step {step+1} of {steps.length}</p><h2 id="walkthrough-title" className="mt-1 pr-10 font-display text-2xl font-bold">{title}</h2></header><div className="p-6"><div className="mb-5 flex gap-1.5">{steps.map((_,index)=><span key={index} className={`h-1.5 flex-1 rounded-full ${index <= step ? 'bg-teal-600' : 'bg-black/10'}`}/>)}</div><div className="flex gap-4 rounded-2xl bg-cream p-5"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-teal-600 text-sm font-bold text-white">{step+1}</span><p className="text-sm leading-7 text-ink/70">{steps[step]}</p></div><div className="mt-6 flex gap-3">{step > 0 && <button onClick={()=>setStep(value=>value-1)} className="btn-secondary flex-1">Back</button>}<button onClick={()=>step === steps.length-1 ? setOpen(false) : setStep(value=>value+1)} className="btn-primary flex flex-1 items-center justify-center gap-2">{step === steps.length-1 ? 'Finish' : 'Next'}{step < steps.length-1 && <ChevronRight size={16}/>}</button></div></div></div></div>}
+    {open && <div data-guide-walkthrough className="fixed inset-x-3 bottom-3 z-[95] mx-auto w-auto max-w-md overflow-hidden rounded-3xl border border-white/20 bg-white shadow-2xl sm:bottom-5 sm:right-5 sm:mx-0 sm:w-[27rem]" role="dialog" aria-labelledby="walkthrough-title"><header className="relative bg-gradient-to-br from-teal-950 to-teal-700 px-5 py-4 text-white"><button onClick={()=>setOpen(false)} className="absolute right-3 top-3 rounded-xl bg-white/10 p-2 hover:bg-white/20" aria-label="Close guide"><X size={18}/></button><p className="text-[10px] font-bold uppercase tracking-[.16em] text-mango-300">Interactive guide · Step {step+1} of {steps.length}</p><h2 id="walkthrough-title" className="mt-1 pr-10 font-display text-lg font-bold">{title}</h2></header><div className="p-4"><div className="mb-3 flex gap-1.5">{steps.map((_,index)=><span key={index} className={`h-1.5 flex-1 rounded-full ${index <= step ? 'bg-teal-600' : 'bg-black/10'}`}/>)}</div><div className="flex gap-3 rounded-2xl bg-cream p-4"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-teal-600 text-xs font-bold text-white">{step+1}</span><div><p className="text-sm leading-6 text-ink/70">{steps[step]}</p><p className="mt-2 text-[11px] font-bold text-mango-700">Highlighted: {targetLabel}</p><p className="mt-0.5 text-[10px] text-ink/45">Click the highlighted control when needed, or press Next.</p></div></div><div className="mt-4 flex gap-2">{step > 0 && <button onClick={()=>setStep(value=>value-1)} className="btn-secondary flex-1 py-2">Back</button>}<button onClick={()=>step === steps.length-1 ? setOpen(false) : setStep(value=>value+1)} className="btn-primary flex flex-1 items-center justify-center gap-2 py-2">{step === steps.length-1 ? 'Finish' : 'Next'}{step < steps.length-1 && <ChevronRight size={16}/>}</button></div></div></div>}
   </>
 }

@@ -70,7 +70,7 @@ export default function RoleNotifications() {
   }
   const act = item => { setOpen(false); navigate(item.to) }
 
-  return <div className="relative" ref={panelRef}>
+  return <div className="relative" ref={panelRef} data-guide-notifications>
     <button type="button" onClick={toggle} className="relative grid h-10 w-10 place-items-center rounded-xl border border-black/[.06] bg-white text-teal-700 shadow-sm transition hover:bg-teal-50" aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`} aria-expanded={open}>
       <Bell size={19}/>{unread > 0 && <span className="absolute -right-1 -top-1 grid min-h-5 min-w-5 place-items-center rounded-full bg-coral-500 px-1 text-[10px] font-bold text-white">{Math.min(unread, 9)}{unread > 9 ? '+' : ''}</span>}
     </button>
