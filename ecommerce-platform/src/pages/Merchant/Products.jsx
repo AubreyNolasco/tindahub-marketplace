@@ -34,15 +34,21 @@ export default function Products({ admin = false }) {
     if (!sampleMerchantId) return toast.error('Choose an approved Merchant first.')
     setSeeding(true)
     const sampleSkus = SAMPLE_PRODUCTS.map((product) => product.sku)
-    const { data: existing, error: checkError } = await supabase.from('products').select('sku').eq('merchant_id', sampleMerchantId).in('sku', sampleSkus)
+    const { data: existing, error: checkError } = await supabase.from('products').select('id, sku').eq('merchant_id', sampleMerchantId).in('sku', sampleSkus)
     if (checkError) { setSeeding(false); return toast.error(checkError.message) }
     const existingSkus = new Set((existing || []).map((product) => product.sku))
     const missing = SAMPLE_PRODUCTS.filter((product) => !existingSkus.has(product.sku)).map((product) => ({ ...product, merchant_id: sampleMerchantId }))
-    if (!missing.length) { setSeeding(false); return toast.success('All sample products are already in this store.') }
-    const { error } = await supabase.from('products').insert(missing)
+    const updates = (existing || []).map((savedProduct) => {
+      const sample = SAMPLE_PRODUCTS.find((product) => product.sku === savedProduct.sku)
+      return supabase.from('products').update(sample).eq('id', savedProduct.id)
+    })
+    const updateResults = await Promise.all(updates)
+    const updateError = updateResults.find((result) => result.error)?.error
+    if (updateError) { setSeeding(false); return toast.error(updateError.message) }
+    const { error } = missing.length ? await supabase.from('products').insert(missing) : { error: null }
     setSeeding(false)
     if (error) return toast.error(error.message)
-    toast.success(`${missing.length} sample products added by Admin.`)
+    toast.success(missing.length ? `${missing.length} sample products added and sample photos refreshed.` : 'Sample products and photos refreshed.')
     load()
   }
 
@@ -84,7 +90,7 @@ export default function Products({ admin = false }) {
         </Link>
       </div>
 
-      {admin && <section className="mb-6 rounded-2xl border border-mango-300 bg-mango-100/50 p-4 sm:flex sm:items-center sm:justify-between sm:gap-4"><div><p className="flex items-center gap-2 font-display font-bold text-ink"><Sparkles size={18} className="text-mango-700" /> Ready-made sample catalog</p><p className="mt-1 text-xs leading-5 text-ink/55">Adds four complete sample products with illustrations, pricing, stock, discounts, and shipping details. Existing sample SKUs are skipped.</p></div><div className="mt-3 flex flex-col gap-2 sm:mt-0 sm:w-72"><select value={sampleMerchantId} onChange={(event) => setSampleMerchantId(event.target.value)} className="input-field py-2.5 text-sm"><option value="">Choose approved Merchant</option>{merchants.map((merchant) => <option key={merchant.id} value={merchant.id}>{merchant.business_name}</option>)}</select><button type="button" onClick={seedSamples} disabled={seeding || !sampleMerchantId} className="btn-accent flex items-center justify-center gap-2 py-2.5 text-sm"><Sparkles size={15} /> {seeding ? 'Adding samples...' : 'Add Sample Products'}</button></div></section>}
+      {admin && <section className="mb-6 rounded-2xl border border-mango-300 bg-mango-100/50 p-4 sm:flex sm:items-center sm:justify-between sm:gap-4"><div><p className="flex items-center gap-2 font-display font-bold text-ink"><Sparkles size={18} className="text-mango-700" /> Ready-made sample catalog</p><p className="mt-1 text-xs leading-5 text-ink/55">Adds or refreshes four complete sample products with realistic photos, pricing, stock, discounts, and shipping details.</p></div><div className="mt-3 flex flex-col gap-2 sm:mt-0 sm:w-72"><select value={sampleMerchantId} onChange={(event) => setSampleMerchantId(event.target.value)} className="input-field py-2.5 text-sm"><option value="">Choose approved Merchant</option>{merchants.map((merchant) => <option key={merchant.id} value={merchant.id}>{merchant.business_name}</option>)}</select><button type="button" onClick={seedSamples} disabled={seeding || !sampleMerchantId} className="btn-accent flex items-center justify-center gap-2 py-2.5 text-sm"><Sparkles size={15} /> {seeding ? 'Updating samples...' : 'Add / Refresh Samples'}</button></div></section>}
 
       {loading ? (
         <div className="flex justify-center py-16"><Spinner /></div>
