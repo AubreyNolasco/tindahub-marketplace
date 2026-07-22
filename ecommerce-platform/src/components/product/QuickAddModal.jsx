@@ -6,12 +6,15 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import toast from 'react-hot-toast'
 import { isCompleteAddress } from '../../utils/address'
+import { getResellerUnitPrice, getSuggestedCustomerPrice } from '../../utils/pricing'
+import ResellerProfitPanel from './ResellerProfitPanel'
 
-export default function QuickAddModal({ product, quantity, onQuantityChange, onClose, onAdd }) {
+export default function QuickAddModal({ product, quantity, initialSellingPrice, onQuantityChange, onClose, onAdd }) {
   const { user, role } = useAuth()
   const [customers, setCustomers] = useState([])
   const [customerId, setCustomerId] = useState('')
   const [loadingCustomers, setLoadingCustomers] = useState(role === 'reseller')
+  const [sellingPrice, setSellingPrice] = useState(() => initialSellingPrice ?? getSuggestedCustomerPrice(product))
   useEffect(() => {
     if (role !== 'reseller' || !user) return
     supabase.from('customers').select('id,name,phone,address').eq('reseller_id', user.id).order('name').then(({ data, error }) => {
@@ -36,7 +39,7 @@ export default function QuickAddModal({ product, quantity, onQuantityChange, onC
           </div>
           <div>
             <h2 className="font-display font-bold text-xl text-ink">{product.name}</h2>
-            <p className="font-semibold text-teal-700 mt-1">{peso(product.price)}</p>
+            <p className="font-semibold text-teal-700 mt-1">{peso(role === 'reseller' ? getResellerUnitPrice(product, quantity) : product.price)} {role === 'reseller' && <span className="text-[10px] font-normal text-ink/45">buying price</span>}</p>
             <p className="text-xs text-ink/50 mt-1">{product.stock_quantity} available - Min. order: {minimum}</p>
           </div>
         </div>
@@ -53,8 +56,8 @@ export default function QuickAddModal({ product, quantity, onQuantityChange, onC
             <button onClick={() => onQuantityChange(Math.min(product.stock_quantity, quantity + 1))} className="p-2.5 hover:bg-teal-50" aria-label="Increase quantity"><Plus size={16} /></button>
           </div>
         </div>
-        <p className="text-right text-sm font-semibold text-ink mt-3">Subtotal: {peso(product.price * quantity)}</p>
-        <button onClick={() => onAdd(role === 'reseller' ? customers.find((customer) => customer.id === customerId) : null)} disabled={!canAdd || (role === 'reseller' && !customerId)} className="btn-primary w-full mt-5">
+        {role === 'reseller' ? <div className="mt-4"><ResellerProfitPanel product={product} quantity={quantity} sellingPrice={sellingPrice} onSellingPriceChange={setSellingPrice} compact /></div> : <p className="text-right text-sm font-semibold text-ink mt-3">Subtotal: {peso(product.price * quantity)}</p>}
+        <button onClick={() => onAdd(role === 'reseller' ? customers.find((customer) => customer.id === customerId) : null, Number(sellingPrice))} disabled={!canAdd || (role === 'reseller' && !customerId)} className="btn-primary w-full mt-5">
           {canAdd ? 'Idagdag sa Cart' : 'Out of Stock'}
         </button>
       </div>

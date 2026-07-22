@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useCart } from '../../contexts/CartContext'
 import toast from 'react-hot-toast'
 import QuickAddModal from './QuickAddModal'
+import { getResellerProfitEstimate, getSuggestedCustomerPrice } from '../../utils/pricing'
 
 export default function ProductCard({ product }) {
   const { user, role } = useAuth()
@@ -23,8 +24,8 @@ export default function ProductCard({ product }) {
     setShowQuickAdd(true)
   }
 
-  const confirmAdd = (customer) => {
-    addItem(product, quantity, customer)
+  const confirmAdd = (customer, sellingPrice) => {
+    addItem(product, quantity, customer, sellingPrice)
     setShowQuickAdd(false)
     toast.success(`Naidagdag sa cart: ${product.name}`)
   }
@@ -49,10 +50,11 @@ export default function ProductCard({ product }) {
         </div>
         <h3 className="mt-2 line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-5 text-ink sm:text-[15px]">{product.name}</h3>
         <div className="mt-auto flex items-end justify-between gap-2 pt-4">
-          <div><span className="font-display text-base font-bold text-teal-700 sm:text-lg">{peso(product.price)}</span><p className="mt-1 flex items-center gap-1 text-[10px] text-ink/40 sm:text-xs"><PackageCheck size={12} />{inStock ? `${product.stock_quantity} available` : 'Unavailable'}</p></div>
+          <div><span className="font-display text-base font-bold text-teal-700 sm:text-lg">{peso(role === 'reseller' ? getResellerProfitEstimate(product, Math.max(1, product.min_order_qty || 1)).buyingUnitPrice : product.price)}</span><p className="mt-1 flex items-center gap-1 text-[10px] text-ink/40 sm:text-xs"><PackageCheck size={12} />{inStock ? `${product.stock_quantity} available` : 'Unavailable'}</p></div>
           {(role === 'reseller' || role === 'merchant') && <button onClick={handleAdd} disabled={!inStock} className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-teal-600 text-white shadow-sm transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:bg-black/15 sm:h-10 sm:w-10" title="Idagdag sa cart"><Plus size={17} /></button>}
         </div>
         {product.min_order_qty > 1 && <p className="mt-2 border-t border-black/[0.05] pt-2 text-[10px] text-ink/40 sm:text-xs">Minimum order: {product.min_order_qty}</p>}
+        {role === 'reseller' && <div className="mt-2 rounded-xl bg-mango-100/60 px-3 py-2 text-[10px] leading-4"><p className="font-bold text-ink">Sell at {peso(getSuggestedCustomerPrice(product))}</p><p className="text-teal-700">Est. profit: {peso(getResellerProfitEstimate(product, Math.max(1, product.min_order_qty || 1)).estimatedProfit)} for {Math.max(1, product.min_order_qty || 1)} item{Number(product.min_order_qty || 1) === 1 ? '' : 's'}</p></div>}
       </div>
     </Link>
     {showQuickAdd && <QuickAddModal product={product} quantity={quantity} onQuantityChange={setQuantity} onClose={() => setShowQuickAdd(false)} onAdd={confirmAdd} />}

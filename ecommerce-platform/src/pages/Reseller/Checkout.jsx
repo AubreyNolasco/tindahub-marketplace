@@ -6,7 +6,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { useCart } from '../../contexts/CartContext'
 import { peso } from '../../utils/format'
-import { getUnitPrice, getResellerUnitPrice } from '../../utils/pricing'
+import { getSuggestedCustomerPrice, getUnitPrice, getResellerUnitPrice } from '../../utils/pricing'
 import EmptyState from '../../components/ui/EmptyState'
 import { isCompleteAddress } from '../../utils/address'
 
@@ -87,6 +87,8 @@ export default function Checkout() {
   const subtotal = quote ? Number(quote.subtotal) : localSubtotal
   const resellerOperationFee = quote ? Number(quote.reseller_fee) : role === 'reseller' ? Math.max(3, Math.min(50, Math.round(localSubtotal * 0.01 * 100) / 100)) : 0
   const total = quote ? Number(quote.total) : subtotal + resellerOperationFee
+  const customerRevenue = role === 'reseller' ? items.reduce((sum, item) => sum + Number(item.customer_selling_price ?? getSuggestedCustomerPrice(item)) * item.quantity, 0) : 0
+  const estimatedProfit = customerRevenue - subtotal - resellerOperationFee
   const balance = wallet?.balance || 0
   const insufficientBalance = balance < total
   const validateOrder = () => {
@@ -154,6 +156,7 @@ export default function Checkout() {
             <div className="flex justify-between border-t border-black/5 pt-3 font-display text-lg font-bold text-ink"><span>Final amount to pay</span><span className="text-teal-700">{peso(total)}</span></div>
           </div>
           {resellerOperationFee > 0 && <p className="mt-3 text-xs leading-5 text-ink/50">Server-verified wholesale amount plus the system fee will be charged. The fee is capped from {peso(quote?.reseller_fee_minimum || 3)} to {peso(quote?.reseller_fee_maximum || 50)} per order. Earnings are not guaranteed.</p>}
+          {role === 'reseller' && <div className={`mt-4 grid grid-cols-2 gap-3 rounded-xl p-4 ${estimatedProfit > 0 ? 'bg-mango-100/60' : 'bg-coral-50'}`}><div><p className="text-[10px] font-semibold uppercase tracking-wide text-ink/40">Your customer will pay</p><p className="mt-1 font-display text-lg font-bold text-ink">{peso(customerRevenue)}</p></div><div><p className="text-[10px] font-semibold uppercase tracking-wide text-ink/40">Estimated Reseller profit</p><p className={`mt-1 font-display text-lg font-bold ${estimatedProfit > 0 ? 'text-teal-700' : 'text-coral-600'}`}>{peso(estimatedProfit)}</p></div><p className="col-span-2 text-[10px] leading-4 text-ink/45">Cart estimate after the JOM HUB system fee, before delivery, marketing, returns, and taxes. The customer selling price is not charged by JOM HUB.</p></div>}
           <p className={`mt-2 text-xs font-semibold ${quote ? 'text-teal-700' : 'text-mango-700'}`}>{quoteLoading ? 'Verifying the latest secure price…' : quote ? 'Price verified by the secure checkout server.' : 'Price verification unavailable.'}</p>
         </div>
 

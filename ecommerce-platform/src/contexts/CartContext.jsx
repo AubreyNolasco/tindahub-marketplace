@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useMemo, useEffect } from 'react'
-import { getUnitPrice, getResellerUnitPrice } from '../utils/pricing'
+import { getSuggestedCustomerPrice, getUnitPrice, getResellerUnitPrice } from '../utils/pricing'
 import { useAuth } from './AuthContext'
 
 const CartContext = createContext(null)
@@ -54,13 +54,13 @@ export function CartProvider({ children }) {
     }
   }, [cart])
 
-  const addItem = (product, quantity = 1, customer = null) => {
+  const addItem = (product, quantity = 1, customer = null, customerSellingPrice = getSuggestedCustomerPrice(product)) => {
     const cartKey = `${product.id}:${customer?.id || 'self'}`
     setItems((prev) => {
       const existing = prev.find((i) => i.cart_key === cartKey)
       if (existing) {
         return prev.map((i) =>
-          i.cart_key === cartKey ? { ...i, quantity: Math.min(i.max_stock, i.quantity + quantity) } : i
+          i.cart_key === cartKey ? { ...i, quantity: Math.min(i.max_stock, i.quantity + quantity), customer_selling_price: Number(customerSellingPrice) || getSuggestedCustomerPrice(i) } : i
         )
       }
       return [
@@ -72,6 +72,7 @@ export function CartProvider({ children }) {
           price: product.price,
           wholesale_price: product.wholesale_price,
           suggested_retail_price: product.suggested_retail_price,
+          customer_selling_price: Number(customerSellingPrice) || getSuggestedCustomerPrice(product),
           discount_tiers: product.discount_tiers || [],
           campaign_discount_percent: product.campaign_discount_percent || 0,
           packed_weight_kg: product.packed_weight_kg,
@@ -86,6 +87,7 @@ export function CartProvider({ children }) {
           merchant_id: product.merchant_id,
           quantity,
           max_stock: product.stock_quantity,
+          min_order_qty: Number(product.min_order_qty) || 1,
           customer_id: customer?.id || null,
           customer_name: customer?.name || null,
           customer_phone: customer?.phone || null,
@@ -100,11 +102,16 @@ export function CartProvider({ children }) {
       removeItem(cartKey)
       return
     }
-    setItems((prev) => prev.map((i) => (i.cart_key === cartKey ? { ...i, quantity: Math.min(i.max_stock, quantity) } : i)))
+    setItems((prev) => prev.map((i) => (i.cart_key === cartKey ? { ...i, quantity: Math.max(Number(i.min_order_qty) || 1, Math.min(i.max_stock, quantity)) } : i)))
   }
 
   const removeItem = (cartKey) => {
     setItems((prev) => prev.filter((i) => i.cart_key !== cartKey))
+  }
+
+  const updateSellingPrice = (cartKey, price) => {
+    const normalized = Math.max(0, Number(price) || 0)
+    setItems((prev) => prev.map((item) => item.cart_key === cartKey ? { ...item, customer_selling_price: normalized } : item))
   }
 
   const clearCart = () => setItems([])
@@ -144,6 +151,7 @@ export function CartProvider({ children }) {
     items,
     addItem,
     updateQuantity,
+    updateSellingPrice,
     removeItem,
     clearCart,
     clearMerchantItems,
