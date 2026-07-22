@@ -43,7 +43,7 @@ export default function RegistrationCalendar() {
     })
     setSaving(false)
     if (error) {
-      toast.error(error.message.includes('registration_appointments') ? 'Registration calendar is not yet enabled. Please contact RM Hub.' : error.message)
+      toast.error(error.message.includes('registration_appointments') ? 'Registration calendar is not yet enabled. Please contact JOM HUB.' : error.message)
       return
     }
     setSubmitted(true)

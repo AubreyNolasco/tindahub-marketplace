@@ -1,4 +1,4 @@
--- Keep Merchant/Reseller conversations inside RM Hub.
+-- Keep Merchant/Reseller conversations inside JOM HUB.
 create or replace function public.chat_contains_contact_info(p_message text)
 returns boolean language plpgsql immutable set search_path = public as $$
 declare v text := lower(coalesce(p_message, ''));

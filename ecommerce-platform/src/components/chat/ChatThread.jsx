@@ -70,7 +70,7 @@ export default function ChatThread({ merchantId, resellerId, title, subtitle, on
     const message = cleanText(text, 2000)
     if (!message) return
     if (containsContactInfo(message) || containsAddressInfo(message)) {
-      toast.error('Contact details and addresses are not allowed in chat. Keep transactions inside RM Hub.')
+      toast.error('Contact details and addresses are not allowed in chat. Keep transactions inside JOM HUB.')
       return
     }
     setSending(true)
@@ -87,7 +87,7 @@ export default function ChatThread({ merchantId, resellerId, title, subtitle, on
     setSending(false)
     if (error) {
       toast.error(['CONTACT_INFO_NOT_ALLOWED_IN_CHAT', 'ADDRESS_NOT_ALLOWED_IN_CHAT'].includes(error.message)
-        ? 'Contact details and addresses are not allowed in chat. Keep transactions inside RM Hub.'
+        ? 'Contact details and addresses are not allowed in chat. Keep transactions inside JOM HUB.'
         : error.message)
       return
     }

@@ -1,4 +1,4 @@
--- Quantity-based unit prices. Run after the current RM Hub schema/migrations.
+-- Quantity-based unit prices. Run after the current JOM HUB schema/migrations.
 alter table public.products add column if not exists discount_tiers jsonb not null default '[]'::jsonb;
 
 create or replace function public.validate_discount_tiers()

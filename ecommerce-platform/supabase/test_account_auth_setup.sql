@@ -45,7 +45,7 @@ begin
       subscription_active, subscription_expires_at,
       business_permit_status, business_permit_notes, business_permit_reviewed_at
     ) values (
-      new.id, 'RM HUB Test Merchant', 'Internal test merchant account',
+      new.id, 'JOM HUB Test Merchant', 'Internal test merchant account',
       'Internal test address - not for real deliveries', 'approved', true,
       now() + interval '100 years', 'approved',
       'Internal test account exemption', now()

@@ -9,15 +9,16 @@ import {
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import RegistrationCalendar from '../components/registration/RegistrationCalendar'
+import { applyCurrentBrand } from '../utils/brand'
 import GrowthSection from '../components/home/GrowthSection'
 
 const fallback = {
   eyebrow: 'Built for growing Filipino businesses',
   title: 'Grow your wholesale business in one trusted marketplace.',
-  description: 'RM Hub brings merchants and resellers together with product sourcing, secure wallet payments, order tracking, business reports, and direct communication.',
+  description: 'JOM HUB brings merchants and resellers together with product sourcing, secure wallet payments, order tracking, business reports, and direct communication.',
   hero_image: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1400&q=85',
   hero_button: 'Start your business', hero_border: 'rounded', hero_accent: '#16794B',
-  announcement: { enabled: true, text: 'Welcome to RM Hub — Built for growing Filipino businesses', link_text: 'Join now', link_url: '/signup', background: '#0B4D30', color: '#FFFFFF' },
+  announcement: { enabled: true, text: 'Welcome to JOM HUB — Built for growing Filipino businesses', link_text: 'Join now', link_url: '/signup', background: '#0B4D30', color: '#FFFFFF' },
   banners: [], sections: { benefits: true, process: true, subscription: true, topup: true, final_cta: true }
 }
 
@@ -50,7 +51,7 @@ export default function Home() {
   const { user } = useAuth()
   const [content, setContent] = useState(fallback)
   const [subscriptionPopup, setSubscriptionPopup] = useState(false)
-  useEffect(() => { supabase.from('site_settings').select('value').eq('key', 'home').maybeSingle().then(({ data }) => { if (data?.value) setContent({ ...fallback, ...data.value, announcement: { ...fallback.announcement, ...data.value.announcement }, sections: { ...fallback.sections, ...data.value.sections }, banners: data.value.banners || [] }) }) }, [])
+  useEffect(() => { supabase.from('site_settings').select('value').eq('key', 'home').maybeSingle().then(({ data }) => { if (data?.value) { const value = applyCurrentBrand(data.value); setContent({ ...fallback, ...value, announcement: { ...fallback.announcement, ...value.announcement }, sections: { ...fallback.sections, ...value.sections }, banners: value.banners || [] }) } }) }, [])
   useEffect(() => {
     if (user) return
     let seen = false
@@ -67,12 +68,12 @@ export default function Home() {
 
   const heroRadius = content.hero_border === 'square' ? 'rounded-none' : content.hero_border === 'soft' ? 'rounded-xl' : 'rounded-[1.75rem]'
   return <div className="overflow-hidden bg-cream">
-    {subscriptionPopup && <div className="fixed inset-0 z-[95] flex items-center justify-center bg-ink/65 p-2 backdrop-blur-sm sm:p-4" role="dialog" aria-modal="true" aria-label="Join RM Hub">
+    {subscriptionPopup && <div className="fixed inset-0 z-[95] flex items-center justify-center bg-ink/65 p-2 backdrop-blur-sm sm:p-4" role="dialog" aria-modal="true" aria-label="Join JOM HUB">
       <div className="max-h-[calc(100dvh-1rem)] w-full max-w-xl overflow-y-auto rounded-2xl bg-white shadow-2xl sm:max-h-[92vh] sm:rounded-3xl">
         <div className="relative overflow-hidden bg-gradient-to-br from-teal-950 via-teal-800 to-teal-600 px-4 py-5 text-white sm:px-7 sm:py-6">
           <div className="absolute -right-12 -top-16 h-52 w-52 rounded-full bg-mango-400/20 blur-2xl" />
           <button type="button" onClick={closeSubscriptionPopup} className="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white/80 transition hover:bg-white/20 hover:text-white sm:right-4 sm:top-4" aria-label="Close"><X size={19} /></button>
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-mango-200"><Sparkles size={14} /> Grow with RM Hub</span>
+          <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-mango-200"><Sparkles size={14} /> Grow with JOM HUB</span>
           <h2 className="mt-3 max-w-lg pr-6 font-display text-2xl font-extrabold leading-tight sm:text-3xl">Turn your products and connections into a growing business.</h2>
           <p className="mt-3 max-w-xl text-sm leading-6 text-teal-50/75">Join a trusted marketplace built for Filipino Merchants and Resellers—with organized orders, secure workflows, wallets, reports, campaigns, and direct in-system communication.</p>
         </div>
@@ -82,7 +83,7 @@ export default function Home() {
             <div className="rounded-2xl border border-mango-300 bg-mango-100/45 p-5"><span className="grid h-11 w-11 place-items-center rounded-xl bg-mango-500 text-ink"><UsersRound size={21} /></span><h3 className="mt-4 font-display text-lg font-bold text-ink">For Resellers</h3><p className="mt-2 text-sm leading-6 text-ink/60">Find trusted suppliers, access quantity discounts, manage customers, place organized orders, and monitor your growing sales activity.</p></div>
           </div>
           <div className="mt-3 rounded-xl border border-black/[0.06] p-3"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-teal-700 sm:text-xs">Merchant subscription options</p><div className="mt-2 grid grid-cols-3 gap-1.5 text-center">{plans.map((plan) => <div key={plan.duration} className={`rounded-lg px-1 py-2 ${plan.featured ? 'bg-teal-700 text-white' : 'bg-cream text-ink'}`}><p className="text-[9px] font-semibold opacity-70 sm:text-[11px]">{plan.duration}</p><p className="mt-0.5 whitespace-nowrap font-display text-sm font-bold sm:text-base">{plan.price}</p></div>)}</div><p className="mt-2 text-center text-[10px] leading-4 text-ink/45 sm:text-xs">Submit your payment screenshot and wait for Admin approval before activation.</p></div>
-          <div className="mt-4 flex flex-col gap-2 sm:flex-row"><Link to="/signup" onClick={closeSubscriptionPopup} className="btn-primary flex flex-1 items-center justify-center gap-2 py-2.5 text-sm">Join RM Hub today <ArrowRight size={16} /></Link><button type="button" onClick={closeSubscriptionPopup} className="btn-secondary flex-1 py-2.5 text-sm">Explore the homepage</button></div>
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row"><Link to="/signup" onClick={closeSubscriptionPopup} className="btn-primary flex flex-1 items-center justify-center gap-2 py-2.5 text-sm">Join JOM HUB today <ArrowRight size={16} /></Link><button type="button" onClick={closeSubscriptionPopup} className="btn-secondary flex-1 py-2.5 text-sm">Explore the homepage</button></div>
         </div>
       </div>
     </div>}
@@ -106,7 +107,7 @@ export default function Home() {
         </div>
         <div className="relative mx-auto w-full max-w-2xl lg:max-w-none">
           <div className="absolute -inset-3 rotate-2 rounded-[2rem] bg-teal-100/80" />
-          <img src={safeImageUrl(content.hero_image, fallback.hero_image)} alt="Business owners using RM Hub" className={`relative aspect-[4/3] w-full object-cover shadow-2xl shadow-teal-900/20 ${heroRadius}`} />
+          <img src={safeImageUrl(content.hero_image, fallback.hero_image)} alt="Business owners using JOM HUB" className={`relative aspect-[4/3] w-full object-cover shadow-2xl shadow-teal-900/20 ${heroRadius}`} />
           <div className="absolute -bottom-5 left-3 flex items-center gap-3 rounded-2xl border border-black/5 bg-white p-4 shadow-xl sm:left-6"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-mango-100 text-mango-600"><TrendingUp size={20} /></span><div><p className="text-xs font-medium text-ink/45">Built to support</p><p className="font-display font-bold text-ink">Business growth</p></div></div>
           <div className="absolute -right-2 top-5 hidden rounded-2xl border border-white/20 bg-teal-900/90 p-4 text-white shadow-xl backdrop-blur sm:block"><p className="flex items-center gap-2 text-sm font-semibold"><ShieldCheck size={18} className="text-mango-300" /> Secure workflows</p><p className="mt-1 text-xs text-white/55">From signup to payout</p></div>
         </div>
@@ -133,8 +134,8 @@ export default function Home() {
         <div className="grid lg:grid-cols-[1.05fr_0.95fr]">
           <div className="relative p-6 sm:p-10 lg:p-14">
             <span className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-teal-700"><ShieldCheck size={15} /> Account protection</span>
-            <h2 id="email-security-title" className="mt-5 max-w-xl font-display text-3xl font-extrabold leading-tight text-ink sm:text-4xl">Your RM Hub access is fully secured by your email.</h2>
-            <p className="mt-4 max-w-xl text-sm leading-7 text-ink/60 sm:text-base">No password to remember or reuse. RM Hub sends a secure, one-time link to your inbox so only someone with access to your email can continue.</p>
+            <h2 id="email-security-title" className="mt-5 max-w-xl font-display text-3xl font-extrabold leading-tight text-ink sm:text-4xl">Your JOM HUB access is fully secured by your email.</h2>
+            <p className="mt-4 max-w-xl text-sm leading-7 text-ink/60 sm:text-base">No password to remember or reuse. JOM HUB sends a secure, one-time link to your inbox so only someone with access to your email can continue.</p>
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
               {[{ icon: MailCheck, title: 'Email verified', text: 'The sign-in link is delivered directly to your inbox.' }, { icon: LockKeyhole, title: 'One-time use', text: 'Each secure link can only be used once.' }, { icon: Clock3, title: 'Expires shortly', text: 'Old links automatically stop working.' }].map(({ icon: Icon, title, text }) => <div key={title} className="rounded-2xl border border-black/[0.06] bg-cream/70 p-4"><Icon size={20} className="text-teal-700" /><h3 className="mt-3 text-sm font-bold text-ink">{title}</h3><p className="mt-1 text-xs leading-5 text-ink/50">{text}</p></div>)}
             </div>
@@ -142,7 +143,7 @@ export default function Home() {
           <div className="relative flex min-h-[330px] items-center justify-center overflow-hidden bg-gradient-to-br from-teal-950 via-teal-800 to-teal-600 p-6 sm:p-10">
             <div className="absolute inset-0 opacity-20 [background-image:radial-gradient(circle_at_center,white_1px,transparent_1px)] [background-size:22px_22px]" />
             <div className="relative w-full max-w-sm rounded-[1.75rem] border border-white/15 bg-white/10 p-5 shadow-2xl backdrop-blur-md sm:p-6">
-              <div className="flex items-center justify-between"><div className="flex items-center gap-3"><span className="grid h-11 w-11 place-items-center rounded-xl bg-mango-400 text-ink"><MailCheck size={22} /></span><div><p className="text-xs text-white/55">RM HUB SECURITY</p><p className="font-bold text-white">Check your inbox</p></div></div><span className="h-2.5 w-2.5 rounded-full bg-emerald-300 shadow-[0_0_14px_rgba(110,231,183,0.9)]" /></div>
+              <div className="flex items-center justify-between"><div className="flex items-center gap-3"><span className="grid h-11 w-11 place-items-center rounded-xl bg-mango-400 text-ink"><MailCheck size={22} /></span><div><p className="text-xs text-white/55">JOM HUB SECURITY</p><p className="font-bold text-white">Check your inbox</p></div></div><span className="h-2.5 w-2.5 rounded-full bg-emerald-300 shadow-[0_0_14px_rgba(110,231,183,0.9)]" /></div>
               <div className="mt-6 rounded-2xl bg-white p-5"><p className="text-xs font-semibold text-teal-700">Your secure sign-in link is ready</p><p className="mt-2 text-sm leading-6 text-ink/55">Use the link sent to your verified email to continue to your business workspace.</p><span className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-teal-700 px-4 py-3 text-sm font-bold text-white">Sign in securely <ArrowRight size={16} /></span></div>
               <p className="mt-4 flex items-center justify-center gap-2 text-xs text-white/60"><Smartphone size={14} /> Works securely on mobile and desktop</p>
             </div>
@@ -158,12 +159,12 @@ export default function Home() {
     <RegistrationCalendar />
 
     {content.sections?.benefits !== false && <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
-      <div className="mx-auto max-w-3xl text-center"><p className="text-xs font-bold uppercase tracking-[0.2em] text-teal-600">Made for real business operations</p><h2 className="mt-3 font-display text-3xl font-bold text-ink sm:text-4xl">Everything you need to buy, sell, and operate with confidence.</h2><p className="mt-4 text-ink/60">RM Hub replaces scattered chats, manual records, and disconnected payment tracking with one organized workspace.</p></div>
+      <div className="mx-auto max-w-3xl text-center"><p className="text-xs font-bold uppercase tracking-[0.2em] text-teal-600">Made for real business operations</p><h2 className="mt-3 font-display text-3xl font-bold text-ink sm:text-4xl">Everything you need to buy, sell, and operate with confidence.</h2><p className="mt-4 text-ink/60">JOM HUB replaces scattered chats, manual records, and disconnected payment tracking with one organized workspace.</p></div>
       <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{benefits.map(({ icon: Icon, title, text }) => <div key={title} className="group rounded-2xl border border-black/[0.06] bg-white p-6 shadow-card transition hover:-translate-y-1 hover:border-teal-100 hover:shadow-soft"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-teal-50 text-teal-700 transition group-hover:bg-teal-600 group-hover:text-white"><Icon size={21} /></span><h3 className="mt-5 font-display text-lg font-bold text-ink">{title}</h3><p className="mt-2 text-sm leading-6 text-ink/60">{text}</p></div>)}</div>
     </section>}
 
     {content.sections?.process !== false && <section className="bg-teal-950 py-16 text-white sm:py-20">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6"><div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div className="max-w-2xl"><p className="text-xs font-bold uppercase tracking-[0.2em] text-mango-300">How RM Hub works</p><h2 className="mt-3 font-display text-3xl font-bold sm:text-4xl">A clearer path from product discovery to payout.</h2></div><Link to="/catalog" className="inline-flex items-center gap-2 text-sm font-semibold text-mango-300">View marketplace <ArrowRight size={16} /></Link></div>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6"><div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div className="max-w-2xl"><p className="text-xs font-bold uppercase tracking-[0.2em] text-mango-300">How JOM HUB works</p><h2 className="mt-3 font-display text-3xl font-bold sm:text-4xl">A clearer path from product discovery to payout.</h2></div><Link to="/catalog" className="inline-flex items-center gap-2 text-sm font-semibold text-mango-300">View marketplace <ArrowRight size={16} /></Link></div>
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{transactionSteps.map(({ icon: Icon, title, text }, index) => <div key={title} className="relative rounded-2xl border border-white/10 bg-white/[0.07] p-5"><span className="absolute right-4 top-4 font-display text-3xl font-bold text-white/[0.08]">0{index + 1}</span><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-mango-500 text-ink"><Icon size={21} /></span><h3 className="mt-5 text-lg font-bold">{title}</h3><p className="mt-2 text-sm leading-6 text-white/60">{text}</p></div>)}</div>
       </div>
     </section>}
@@ -180,6 +181,6 @@ export default function Home() {
         <div><span className="inline-flex items-center gap-2 rounded-full bg-mango-100 px-3 py-1.5 text-xs font-bold text-mango-600"><Wallet size={14} /> For Resellers</span><h2 className="mt-4 font-display text-3xl font-bold text-ink sm:text-4xl">How wallet top-up works</h2><p className="mt-4 leading-7 text-ink/60">A Reseller submits an initial top-up during signup. The account remains protected until the Admin verifies the payment screenshot and approves the request.</p><div className="mt-6 rounded-2xl border border-teal-100 bg-teal-50 p-5"><p className="font-semibold text-teal-900">After account approval</p><p className="mt-1 text-sm leading-6 text-ink/60">Open Wallet, choose Top Up, enter the amount and reference, upload a screenshot, then monitor its approval status from your reports.</p></div><Link to="/signup" className="mt-7 inline-flex items-center gap-2 font-semibold text-teal-700">Register as a Reseller <ArrowRight size={17} /></Link></div>
       </div></section>}
 
-    {content.sections?.final_cta !== false && <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20"><div className="relative overflow-hidden rounded-[2rem] bg-teal-900 px-6 py-10 text-center text-white shadow-xl sm:px-12 sm:py-14"><div className="absolute left-1/2 top-0 h-48 w-96 -translate-x-1/2 rounded-full bg-teal-500/25 blur-3xl" /><div className="relative mx-auto max-w-2xl"><h2 className="font-display text-3xl font-bold sm:text-4xl">Ready to build a more organized business?</h2><p className="mt-4 text-sm leading-6 text-white/60 sm:text-base">Join RM Hub as a Merchant or Reseller and manage your marketplace activity in one professional workspace.</p><div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row"><Link to="/signup" className="inline-flex items-center justify-center gap-2 rounded-xl bg-mango-500 px-6 py-3 font-bold text-ink hover:bg-mango-600">Create an account <ArrowRight size={17} /></Link><Link to="/catalog" className="inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/10 px-6 py-3 font-semibold hover:bg-white/15">Browse products</Link></div></div></div></section>}
+    {content.sections?.final_cta !== false && <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20"><div className="relative overflow-hidden rounded-[2rem] bg-teal-900 px-6 py-10 text-center text-white shadow-xl sm:px-12 sm:py-14"><div className="absolute left-1/2 top-0 h-48 w-96 -translate-x-1/2 rounded-full bg-teal-500/25 blur-3xl" /><div className="relative mx-auto max-w-2xl"><h2 className="font-display text-3xl font-bold sm:text-4xl">Ready to build a more organized business?</h2><p className="mt-4 text-sm leading-6 text-white/60 sm:text-base">Join JOM HUB as a Merchant or Reseller and manage your marketplace activity in one professional workspace.</p><div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row"><Link to="/signup" className="inline-flex items-center justify-center gap-2 rounded-xl bg-mango-500 px-6 py-3 font-bold text-ink hover:bg-mango-600">Create an account <ArrowRight size={17} /></Link><Link to="/catalog" className="inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/10 px-6 py-3 font-semibold hover:bg-white/15">Browse products</Link></div></div></div></section>}
   </div>
 }

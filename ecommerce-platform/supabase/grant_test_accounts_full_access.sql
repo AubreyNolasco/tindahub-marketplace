@@ -43,7 +43,7 @@ begin
     business_permit_status, business_permit_notes, business_permit_reviewed_at
   ) values (
     v_merchant_id,
-    'RM HUB Test Merchant',
+    'JOM HUB Test Merchant',
     'Internal test merchant account',
     'Internal test address - not for real deliveries',
     'approved',

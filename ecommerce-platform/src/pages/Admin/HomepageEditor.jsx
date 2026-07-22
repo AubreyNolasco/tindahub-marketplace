@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react'
 import { ArrowDown, ArrowUp, Eye, EyeOff, Image, LayoutTemplate, Loader2, Monitor, Plus, Save, Smartphone, Trash2, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
+import { applyCurrentBrand } from '../../utils/brand'
 
 const defaults = {
   eyebrow: 'Built for growing Filipino businesses', title: 'Grow your wholesale business in one trusted marketplace.',
-  description: 'RM Hub brings merchants and resellers together with product sourcing, secure wallet payments, order tracking, business reports, and direct communication.',
+  description: 'JOM HUB brings merchants and resellers together with product sourcing, secure wallet payments, order tracking, business reports, and direct communication.',
   hero_image: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1400&q=85',
   hero_button: 'Start your business', hero_border: 'rounded', hero_accent: '#16794B',
-  announcement: { enabled: true, text: 'Welcome to RM Hub — Built for growing Filipino businesses', link_text: 'Join now', link_url: '/signup', background: '#0B4D30', color: '#FFFFFF' },
+  announcement: { enabled: true, text: 'Welcome to JOM HUB — Built for growing Filipino businesses', link_text: 'Join now', link_url: '/signup', background: '#0B4D30', color: '#FFFFFF' },
   banners: [],
   sections: { benefits: true, process: true, subscription: true, topup: true, final_cta: true }
 }
@@ -29,7 +30,7 @@ export default function HomepageEditor() {
   const [mobilePreview, setMobilePreview] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
 
-  useEffect(() => { supabase.from('site_settings').select('value').eq('key', 'home').maybeSingle().then(({ data }) => { if (data?.value) setForm({ ...defaults, ...data.value, announcement: { ...defaults.announcement, ...data.value.announcement }, sections: { ...defaults.sections, ...data.value.sections }, banners: data.value.banners || [] }) }) }, [])
+  useEffect(() => { supabase.from('site_settings').select('value').eq('key', 'home').maybeSingle().then(({ data }) => { if (data?.value) { const value = applyCurrentBrand(data.value); setForm({ ...defaults, ...value, announcement: { ...defaults.announcement, ...value.announcement }, sections: { ...defaults.sections, ...value.sections }, banners: value.banners || [] }) } }) }, [])
   const update = (key, value) => setForm((current) => ({ ...current, [key]: value }))
   const updateAnnouncement = (key, value) => setForm((current) => ({ ...current, announcement: { ...current.announcement, [key]: value } }))
   const updateBanner = (id, key, value) => setForm((current) => ({ ...current, banners: current.banners.map((banner) => banner.id === id ? { ...banner, [key]: value } : banner) }))

@@ -1,4 +1,4 @@
--- RM Hub sustainable three-sided revenue model (2026-07-21).
+-- JOM HUB sustainable three-sided revenue model (2026-07-21).
 -- Run after schema.sql, admin_platform_wallet_migration.sql, quantity_discount_migration.sql.
 -- Existing orders/balances are preserved. New rates apply only to new orders.
 

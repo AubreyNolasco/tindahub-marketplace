@@ -1,4 +1,4 @@
--- Promote the verified Google account below to RM HUB Admin.
+-- Promote the verified Google account below to JOM HUB Admin.
 -- The user must first click "Continue with Google" in the app at least once.
 do $$
 declare
@@ -11,7 +11,7 @@ begin
   limit 1;
 
   if v_user.id is null then
-    raise exception 'GOOGLE_ACCOUNT_NOT_FOUND: Sign in with Google in RM HUB first, then run this SQL again.';
+    raise exception 'GOOGLE_ACCOUNT_NOT_FOUND: Sign in with Google in JOM HUB first, then run this SQL again.';
   end if;
 
   v_user_id := v_user.id;

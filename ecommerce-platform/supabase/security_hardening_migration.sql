@@ -1,4 +1,4 @@
--- RM Hub defense-in-depth hardening. Run after signup_approval_migration.sql.
+-- JOM HUB defense-in-depth hardening. Run after signup_approval_migration.sql.
 -- Protects privileged columns, state transitions, RPC access, and file storage.
 
 create or replace function public.is_approved_account()

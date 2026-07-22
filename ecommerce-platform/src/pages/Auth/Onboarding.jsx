@@ -101,7 +101,7 @@ export default function Onboarding() {
             verified
           </span>
           <h1 className="mt-4 font-display text-2xl font-bold sm:text-3xl">
-            Complete your RM HUB profile
+            Complete your JOM HUB profile
           </h1>
           <div className="mt-4 flex items-center gap-3">
             <img
