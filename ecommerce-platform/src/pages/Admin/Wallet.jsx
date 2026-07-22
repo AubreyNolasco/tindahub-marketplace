@@ -31,7 +31,7 @@ export default function Wallet() {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
       <h1 className="font-display font-bold text-2xl text-ink mb-1">Admin Wallet</h1>
-      <p className="text-ink/60 mb-6">5% deductions collected from reseller checkouts and merchant processing fees.</p>
+      <p className="text-ink/60 mb-6">JOM HUB revenue from the capped 1% Reseller system fee, 3% Merchant success fee, and approved subscriptions.</p>
 
       <div className="card p-6 bg-teal-500 text-white mb-6">
         <div className="flex items-center gap-2 text-teal-100 mb-2"><WalletIcon size={18} /> <span className="text-sm">Available Platform Balance</span></div>
@@ -40,7 +40,7 @@ export default function Wallet() {
 
       <h2 className="font-semibold text-ink mb-3">Fee Transaction History</h2>
       {transactions.length === 0 ? (
-        <EmptyState icon={WalletIcon} title="No fee transactions yet" message="Reseller and merchant 5% deductions will appear here." />
+        <EmptyState icon={WalletIcon} title="No revenue transactions yet" message="Reseller fees, completed-order Merchant fees, and approved subscriptions will appear here." />
       ) : (
         <div className="space-y-2">
           {transactions.map((transaction) => (

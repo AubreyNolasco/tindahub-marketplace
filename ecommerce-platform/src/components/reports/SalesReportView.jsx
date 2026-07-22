@@ -32,7 +32,7 @@ function downloadExcel(role, orders, startDate, endDate) {
     ? ['Order No.', 'Order Date', 'Status', 'Reseller', 'Reseller Phone', 'Payment Method', 'Payment Ref.', 'Payment Status', 'Product', 'Unit Price', 'Quantity', 'Line Total', 'Subtotal', 'Shipping Fee', 'Vehicle', 'Road Distance KM', 'Merchant 3% Fee', 'Order Total', 'Shipping Address', 'Notes']
     : role === 'admin'
       ? ['Order No.', 'Order Date', 'Status', 'Merchant', 'Reseller', 'Payment Method', 'Payment Status', 'Product', 'Unit Price', 'Quantity', 'Line Total', 'Subtotal', 'Shipping Fee', 'Vehicle', 'Road Distance KM', 'Platform Fee', 'Order Total', 'Shipping Address', 'Notes']
-      : ['Order No.', 'Order Date', 'Status', 'Merchant', 'Customer', 'Customer Phone', 'Customer Address', 'Product', 'Unit Price', 'Quantity', 'Line Total', 'Subtotal', 'Shipping Fee', 'Vehicle', 'Road Distance KM', 'Reseller 5% Fee', 'Order Total', 'Shipping Address', 'Notes']
+      : ['Order No.', 'Order Date', 'Status', 'Merchant', 'Customer', 'Customer Phone', 'Customer Address', 'Product', 'Unit Price', 'Quantity', 'Line Total', 'Subtotal', 'Shipping Fee', 'Vehicle', 'Road Distance KM', 'Reseller System Fee', 'Order Total', 'Shipping Address', 'Notes']
   exportExcel(`tindahub-${role}-sales-${startDate}-to-${endDate}.xls`, 'Sales Report', headers, rows)
 }
 
