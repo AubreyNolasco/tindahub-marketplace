@@ -79,7 +79,7 @@ function SubscriptionModal({ profile, onClose, onSaved }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-ink/40 backdrop-blur-sm">
-      <div className="w-full max-w-lg card p-6 max-h-[90vh] overflow-y-auto">
+      <div className="card max-h-[calc(100dvh-1.5rem)] w-full max-w-lg overflow-y-auto p-4 sm:p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-display font-bold text-xl text-ink">Manage Subscription</h2>
           <button onClick={onClose} className="p-1.5 rounded-full hover:bg-teal-50 text-ink/50 hover:text-ink/80 transition-colors">
@@ -93,7 +93,7 @@ function SubscriptionModal({ profile, onClose, onSaved }) {
         <form onSubmit={handleSave} className="space-y-4">
           <div>
             <label className="text-sm font-medium text-ink/70">Choose Subscription Plan</label>
-            <div className="grid grid-cols-3 gap-2 mt-2">
+            <div className="mt-2 grid gap-3 sm:grid-cols-3">
               {SUBSCRIPTION_PLANS.map((plan) => (
                 <button key={plan.months} type="button" onClick={() => setPlanMonths(plan.months)}
                   className={`relative rounded-xl border-2 p-3 text-center transition ${planMonths === plan.months ? 'border-teal-500 bg-teal-50 shadow-sm' : 'border-black/10 hover:border-teal-200'}`}>

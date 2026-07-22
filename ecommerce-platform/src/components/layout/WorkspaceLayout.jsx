@@ -17,7 +17,7 @@ export default function WorkspaceLayout({ title, subtitle, sections, children })
 
   return <div className="min-h-[calc(100vh-4rem)] lg:flex">
     {open && <button onClick={() => setOpen(false)} aria-label="Close navigation" className="fixed inset-x-0 bottom-0 top-16 z-40 bg-ink/40 backdrop-blur-sm lg:hidden" />}
-    <aside className={`fixed bottom-0 top-16 z-50 flex w-72 flex-col border-r border-black/10 bg-white shadow-2xl transition-all duration-300 lg:sticky lg:left-0 lg:z-20 lg:h-[calc(100vh-4rem)] lg:shrink-0 ${open ? 'left-0' : '-left-72'} ${collapsed ? 'lg:w-[84px]' : 'lg:w-64'}`}>
+    <aside className={`fixed bottom-0 left-0 top-16 z-50 flex w-[min(19rem,calc(100vw-1.5rem))] flex-col border-r border-black/10 bg-white shadow-2xl transition-transform duration-300 lg:sticky lg:z-20 lg:h-[calc(100vh-4rem)] lg:shrink-0 lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'} ${collapsed ? 'lg:w-[84px]' : 'lg:w-64'}`}>
       <div className={`flex h-[76px] items-center border-b border-black/5 bg-teal-50 ${collapsed ? 'justify-center px-3' : 'justify-between px-5'}`}>
         {!collapsed && <div className="min-w-0"><div className="flex items-center gap-2 font-display font-bold text-teal-900"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-600 text-white"><Store size={17} /></span><span className="truncate">{title}</span></div><p className="ml-10 mt-0.5 text-xs text-ink/50">{subtitle}</p></div>}
         <button onClick={() => setOpen(false)} className="rounded-xl p-2 text-ink/60 hover:bg-teal-100 lg:hidden"><X size={20} /></button>

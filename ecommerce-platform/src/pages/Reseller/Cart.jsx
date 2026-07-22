@@ -40,12 +40,12 @@ export default function Cart() {
           const unitPrice = (item) => role === 'reseller' ? getResellerUnitPrice(item, item.quantity) : getUnitPrice(item, item.quantity)
           const subtotal = items.reduce((s, i) => s + unitPrice(i) * i.quantity, 0)
           return (
-            <div key={orderKey} className="card p-5">
+            <div key={orderKey} className="card p-4 sm:p-5">
               {customerId && <div className="mb-4 flex items-start gap-3 rounded-xl bg-teal-50 p-3"><UserRound size={18} className="mt-0.5 shrink-0 text-teal-600" /><div><p className="text-xs font-semibold uppercase tracking-wide text-ink/40">Customer</p><p className="font-semibold text-ink">{group.customerName}</p><p className="text-xs text-ink/55">{group.customerPhone || 'No phone'} · {group.customerAddress || 'No address'}</p></div></div>}
               <div className="space-y-4">
                 {items.map((item) => (
-                  <div key={item.cart_key} className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-teal-50 rounded-lg flex-shrink-0 overflow-hidden">
+                  <div key={item.cart_key} className="grid grid-cols-[3.5rem_1fr_auto] items-center gap-3 sm:flex sm:gap-4">
+                    <div className="h-14 w-14 overflow-hidden rounded-lg bg-teal-50 sm:h-16 sm:w-16 sm:flex-shrink-0">
                       {item.image && <img src={item.image} alt={item.name} className="w-full h-full object-cover" />}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -53,7 +53,7 @@ export default function Cart() {
                       <p className="text-sm text-teal-700 font-semibold">{peso(unitPrice(item))} each {role === 'reseller' && '· reseller price'}</p>
                       {role === 'reseller' && Number(item.suggested_retail_price) > unitPrice(item) && <p className="text-[11px] font-semibold text-mango-600">Potential gross margin: {peso((Number(item.suggested_retail_price) - unitPrice(item)) * item.quantity)} before fees and expenses</p>}
                     </div>
-                    <div className="flex items-center border border-black/10 rounded-lg">
+                    <div className="col-start-2 flex w-fit items-center rounded-lg border border-black/10 sm:col-auto">
                       <button onClick={() => updateQuantity(item.cart_key, item.quantity - 1)} className="p-1.5 hover:bg-teal-50">
                         <Minus size={14} />
                       </button>
@@ -62,17 +62,17 @@ export default function Cart() {
                         <Plus size={14} />
                       </button>
                     </div>
-                    <button onClick={() => removeItem(item.cart_key)} className="p-2 text-ink/40 hover:text-coral-500">
+                    <button onClick={() => removeItem(item.cart_key)} className="col-start-3 row-start-1 grid h-10 w-10 place-items-center rounded-lg text-ink/40 hover:bg-coral-50 hover:text-coral-500 sm:col-auto sm:row-auto">
                       <Trash2 size={16} />
                     </button>
                   </div>
                 ))}
               </div>
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-black/5">
+              <div className="mt-4 flex flex-col gap-3 border-t border-black/5 pt-4 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-sm text-ink/60">Subtotal: <span className="font-semibold text-ink">{peso(subtotal)}</span></span>
                 <button
                   onClick={() => navigate(`/checkout/${merchantId}${customerId ? `?customer=${customerId}` : ''}`)}
-                  className="btn-primary text-sm px-4 py-2"
+                  className="btn-primary w-full px-4 py-2 text-sm sm:w-auto"
                 >
                   Check Out
                 </button>

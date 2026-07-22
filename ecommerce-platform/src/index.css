@@ -36,7 +36,12 @@ p, h1, h2, h3, h4, a, button, label, td, th {
 
   .card {
     max-width: 100%;
+    border-radius: 1rem;
   }
+
+  .btn-primary, .btn-secondary, .btn-accent { min-height: 44px; }
+  main { width: 100%; }
+  table th, table td { white-space: nowrap; }
 }
 
 button, a, input, select, textarea {

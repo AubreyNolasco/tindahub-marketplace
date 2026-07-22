@@ -79,7 +79,7 @@ export default function FullAccess() {
   }
 
   const field = 'input-field mt-1'
-  return <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+  return <div className="mx-auto max-w-6xl px-3 py-5 sm:px-6 sm:py-8">
     <div className="mb-7"><h1 className="font-display text-2xl font-bold text-ink">Admin Full Access</h1><p className="mt-1 text-sm text-ink/55">Perform audited actions on behalf of merchants and resellers.</p></div>
     <div className="grid gap-6 lg:grid-cols-2">
       <form onSubmit={submitInvite} className="card space-y-3 p-5"><h2 className="flex items-center gap-2 font-bold"><UserPlus className="text-teal-600" size={19}/> Create Merchant or Reseller</h2><div className="grid gap-3 sm:grid-cols-2"><input required className={field} placeholder="Full name" value={invite.full_name} onChange={(e)=>setInvite({...invite,full_name:e.target.value})}/><input required type="email" className={field} placeholder="Email" value={invite.email} onChange={(e)=>setInvite({...invite,email:e.target.value})}/><input className={field} placeholder="Phone" value={invite.phone} onChange={(e)=>setInvite({...invite,phone:e.target.value})}/><select className={field} value={invite.role} onChange={(e)=>setInvite({...invite,role:e.target.value})}><option value="reseller">Reseller</option><option value="merchant">Merchant</option></select></div>{invite.role==='merchant'&&<input required className={field} placeholder="Business name" value={invite.business_name} onChange={(e)=>setInvite({...invite,business_name:e.target.value})}/>}<button disabled={saving==='invite'} className="btn-primary w-full">{saving==='invite'?'Sending...':'Create & Send Login Link'}</button></form>
