@@ -97,7 +97,7 @@ export default function Onboarding() {
       <div className="mx-auto max-w-2xl overflow-hidden rounded-3xl border border-black/[0.06] bg-white shadow-xl">
         <div className="bg-gradient-to-br from-teal-950 to-teal-700 px-6 py-7 text-white sm:px-8">
           <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold">
-            <BadgeCheck size={14} className="text-mango-300" /> Google account
+            <BadgeCheck size={14} className="text-mango-300" /> Email verified by OTP
             verified
           </span>
           <h1 className="mt-4 font-display text-2xl font-bold sm:text-3xl">
@@ -120,7 +120,7 @@ export default function Onboarding() {
         </div>
         <form onSubmit={submit} className="space-y-5 p-6 sm:p-8">
           <p className="rounded-xl bg-teal-50 p-3 text-xs leading-5 text-teal-900">
-            Your name, email, and profile photo came directly from Google and
+            Your email was verified using the secure 6-digit code sent to your inbox and
             cannot be manually changed here.
           </p>
           <div className="grid grid-cols-2 gap-3">
