@@ -71,7 +71,7 @@ export default function AdminDashboard() {
           <div>
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/80"><Zap size={13} className="text-mango-300" /> Marketplace command center</div>
             <h1 className="font-display text-2xl font-bold sm:text-3xl">Good day, Administrator</h1>
-            <p className="mt-2 max-w-xl text-sm leading-6 text-white/60">Monitor operations, review account requests, and keep RM Hub running smoothly from one workspace.</p>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-white/60">Monitor operations, review account requests, and keep JOM HUB running smoothly from one workspace.</p>
           </div>
           <button onClick={load} disabled={loading} className="inline-flex w-fit items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15 disabled:opacity-50"><RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> Refresh data</button>
         </div>
