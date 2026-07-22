@@ -23,8 +23,8 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-40 border-b border-black/[0.06] bg-white/90 shadow-sm shadow-teal-950/[0.02] backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-3 sm:h-[68px] sm:px-6">
-        <Link to="/" className="block shrink-0" onClick={() => setMenuOpen(false)} aria-label="RM Hub home">
-          <img src="/rmhub-logo.svg" alt="RM HUB" className="h-9 w-auto sm:h-12" />
+        <Link to="/" className="block shrink-0" onClick={() => setMenuOpen(false)} aria-label="JOM HUB home">
+          <img src="/rmhub-logo.svg" alt="JOM HUB" className="h-9 w-auto sm:h-12" />
         </Link>
 
         <nav className="hidden md:flex items-center gap-1 rounded-full border border-black/[0.05] bg-cream/80 p-1.5 text-sm font-semibold text-ink/65">
