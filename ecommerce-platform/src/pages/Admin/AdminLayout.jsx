@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { canAccessAdmin } from '../../config/adminPermissions'
+import AdminNotifications from '../../components/notifications/AdminNotifications'
 
 const sections = [
   {
@@ -93,10 +94,10 @@ export default function AdminLayout() {
     <div className="min-h-[calc(100vh-4rem)] lg:flex">
       <Sidebar open={menuOpen} collapsed={collapsed} onClose={() => setMenuOpen(false)} onToggleCollapse={() => setCollapsed((value) => !value)} visibleSections={visibleSections} />
       <section className="min-w-0 flex-1 bg-[radial-gradient(circle_at_top_right,rgba(22,121,75,0.08),transparent_30%),#F7FAF7]">
-        <div className="sticky top-16 z-30 flex h-14 items-center justify-between border-b border-black/5 bg-white/90 px-4 backdrop-blur lg:hidden">
-          <button onClick={() => setMenuOpen(true)} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-teal-700 hover:bg-teal-50"><Menu size={19} /> Menu</button>
-          <p className="truncate text-sm font-semibold text-ink">{currentItem?.label || 'Admin'}</p>
-          <ShieldCheck size={20} className="text-teal-500" />
+        <div className="sticky top-16 z-30 flex h-14 items-center justify-between gap-3 border-b border-black/5 bg-white/90 px-3 backdrop-blur sm:px-5 lg:px-8">
+          <button onClick={() => setMenuOpen(true)} className="flex shrink-0 items-center gap-2 rounded-xl px-2 py-2 text-sm font-semibold text-teal-700 hover:bg-teal-50 lg:hidden"><Menu size={19} /><span className="hidden sm:inline">Menu</span></button>
+          <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-ink">{currentItem?.label || 'Admin'}</p><p className="hidden text-[11px] text-ink/40 lg:block">Admin Center</p></div>
+          <AdminNotifications />
         </div>
         <main className="min-w-0"><Outlet /></main>
       </section>
