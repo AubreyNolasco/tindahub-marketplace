@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { answerJomBits, getJomBitsSuggestions } from '../../config/jomBitsKnowledge'
 
-export default function JomBits({ publicMode = false }) {
+export default function JomBits({ publicMode = false, workspace = false }) {
   const { user, profile, role } = useAuth()
   const location = useLocation()
   const [open, setOpen] = useState(false)
@@ -40,7 +40,7 @@ export default function JomBits({ publicMode = false }) {
     setQuestion('')
   }
   const submit = (event) => { event.preventDefault(); ask(question) }
-  const suggestions = getJomBitsSuggestions(activeRole)
+  const suggestions = getJomBitsSuggestions(activeRole, location.pathname)
   const openRoute = (route, event) => {
     const anchor = route?.startsWith('/#') ? route.slice(2) : ''
     if (anchor && location.pathname === '/') {
@@ -53,8 +53,8 @@ export default function JomBits({ publicMode = false }) {
   }
 
   return <>
-    <button type="button" onClick={() => setOpen((value) => !value)} style={{ bottom: 'max(1rem, env(safe-area-inset-bottom))', right: 'max(1rem, env(safe-area-inset-right))' }} className="fixed z-[70] grid h-14 w-14 place-items-center rounded-full bg-teal-700 text-white shadow-2xl shadow-teal-950/30 transition hover:-translate-y-0.5 hover:bg-teal-800 sm:h-16 sm:w-16" aria-label={open ? 'Close JOM Bits assistant' : 'Open JOM Bits assistant'} aria-expanded={open}><Bot size={26}/><span className="absolute right-0 top-0 h-3.5 w-3.5 rounded-full border-2 border-white bg-mango-400"/></button>
-    {open && <section style={{ bottom: 'calc(max(1rem, env(safe-area-inset-bottom)) + 4.5rem)', right: 'max(.75rem, env(safe-area-inset-right))' }} className="fixed z-[69] flex h-[min(620px,calc(100dvh-6.5rem-env(safe-area-inset-bottom)))] w-[calc(100vw-1.5rem)] flex-col overflow-hidden rounded-3xl border border-black/10 bg-white shadow-2xl shadow-ink/25 sm:w-[390px]" role="dialog" aria-labelledby="jom-bits-title">
+    <button type="button" onClick={() => setOpen((value) => !value)} style={{ bottom: workspace ? 'calc(max(.5rem, env(safe-area-inset-bottom)) + 4rem)' : 'max(1rem, env(safe-area-inset-bottom))', right: 'max(1rem, env(safe-area-inset-right))' }} className="fixed z-[70] grid h-14 w-14 place-items-center rounded-full bg-teal-700 text-white shadow-2xl shadow-teal-950/30 transition hover:-translate-y-0.5 hover:bg-teal-800 sm:h-16 sm:w-16" aria-label={open ? 'Close JOM Bits assistant' : 'Open JOM Bits assistant'} aria-expanded={open}><Bot size={26}/><span className="absolute right-0 top-0 h-3.5 w-3.5 rounded-full border-2 border-white bg-mango-400"/></button>
+    {open && <section style={{ bottom: workspace ? 'calc(max(.5rem, env(safe-area-inset-bottom)) + 8.5rem)' : 'calc(max(1rem, env(safe-area-inset-bottom)) + 4.5rem)', right: 'max(.75rem, env(safe-area-inset-right))' }} className="fixed z-[69] flex h-[min(620px,calc(100dvh-10.5rem-env(safe-area-inset-bottom)))] w-[calc(100vw-1.5rem)] flex-col overflow-hidden rounded-3xl border border-black/10 bg-white shadow-2xl shadow-ink/25 sm:h-[min(620px,calc(100dvh-6.5rem-env(safe-area-inset-bottom)))] sm:w-[390px]" role="dialog" aria-labelledby="jom-bits-title">
         <header className="flex items-center gap-3 bg-gradient-to-br from-teal-950 to-teal-700 px-4 py-3.5 text-white"><span className="grid h-10 w-10 place-items-center rounded-full bg-white/10"><Sparkles size={19} className="text-mango-300"/></span><div className="min-w-0 flex-1"><h2 id="jom-bits-title" className="font-display text-base font-bold">JOM Bits</h2><p className="text-[11px] capitalize text-white/65">{activeRole} system assistant · Online</p></div><button type="button" onClick={() => setOpen(false)} className="rounded-full p-2 hover:bg-white/10" aria-label="Close JOM Bits"><X size={18}/></button></header>
         {publicMode && !['reseller','merchant'].includes(role) && <div className="grid grid-cols-2 gap-2 border-b border-black/5 bg-white p-3"><button type="button" onClick={() => { setAudience('reseller'); setMessages([]) }} className={`rounded-xl px-3 py-2 text-xs font-bold ${activeRole === 'reseller' ? 'bg-teal-700 text-white' : 'bg-teal-50 text-teal-800'}`}>I am a Reseller</button><button type="button" onClick={() => { setAudience('merchant'); setMessages([]) }} className={`rounded-xl px-3 py-2 text-xs font-bold ${activeRole === 'merchant' ? 'bg-teal-700 text-white' : 'bg-teal-50 text-teal-800'}`}>I am a Merchant</button></div>}
         <div className="border-b border-black/5 bg-teal-50 px-4 py-2 text-[11px] leading-4 text-teal-900">Private role-aware guidance. JOM Bits answers only from approved JOM HUB processes and does not send your data to a third party.</div>

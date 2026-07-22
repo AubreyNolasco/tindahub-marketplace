@@ -66,15 +66,9 @@ export default function RoleNotifications() {
 
   const unread = notifications.filter(item => !seen.includes(item.id)).length
   const toggle = () => {
-    const next = !open
-    setOpen(next)
-    if (next) {
-      const ids = notifications.map(item => item.id)
-      setSeen(ids)
-      try { localStorage.setItem(seenKey, JSON.stringify(ids.slice(0, 100))) } catch { /* restricted storage */ }
-    }
+    setOpen(value => !value)
   }
-  const act = item => { setOpen(false); navigate(item.to) }
+  const act = item => { const ids=[...new Set([...seen,item.id])].slice(-100);setSeen(ids);try{localStorage.setItem(seenKey,JSON.stringify(ids))}catch{/* restricted storage */}setOpen(false);navigate(item.to) }
 
   return <div className="relative" ref={panelRef} data-guide-notifications>
     <button type="button" onClick={toggle} className="relative grid h-10 w-10 place-items-center rounded-xl border border-black/[.06] bg-white text-teal-700 shadow-sm transition hover:bg-teal-50" aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`} aria-expanded={open}>

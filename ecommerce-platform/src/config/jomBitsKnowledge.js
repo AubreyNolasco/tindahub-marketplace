@@ -7,8 +7,10 @@ const shared = [
   { id: 'case', keywords: ['cancel','cancellation','dispute','return','replacement','refund','problem'], title: 'Order cases', answer: 'Open the affected order, select Request Cancellation / Help, choose the correct case type, explain the issue, and attach evidence when required. An open case pauses automatic completion while it is reviewed.' },
   { id: 'notification', keywords: ['notification','alert','bell'], title: 'Notifications', answer: 'Use the bell in the workspace header to review account-specific order, wallet, subscription, and case updates.' },
   { id: 'guide', keywords: ['guide','walkthrough','tutorial','how to use'], title: 'Page guide', answer: 'Select the guide icon beside the notification bell. It highlights the controls on your current page and explains each action step by step.' },
-  { id: 'next-action', keywords: ['next action','what next','what should i do','priority'], title: 'Recommended Next Action', answer: 'Open your dashboard and follow the Recommended Next Action card. It checks your role and current account activity, then links directly to the most important unfinished task.' },
+  { id: 'next-action', keywords: ['next action','what next','what should i do','priority','setup checklist','progress'], title: 'Setup checklist and Next Action', answer: 'Open your dashboard to see the five-step setup checklist and Recommended Next Action card. Each incomplete step links directly to the page where you can finish it.' },
   { id: 'receipt', keywords: ['receipt','print receipt','transaction record','proof of transaction'], title: 'Printable receipts', answer: 'Open the related order or Wallet request and select Print receipt. JOM HUB provides printable records for orders, top-ups, and withdrawals; always compare them with the official external payment record.' }
+  ,{ id: 'mobile-navigation', keywords: ['mobile menu','bottom navigation','phone navigation','mobile navigation'], title: 'Mobile workspace navigation', answer: 'On your phone, use the bottom bar for Home, Products, Orders, Wallet, and Account. The full side menu remains available for customers, reports, campaigns, messages, and other tools.' }
+  ,{ id: 'order-timeline', keywords: ['order timeline','order progress','order status steps'], title: 'Visual order timeline', answer: 'Each order shows Confirmed, Processing, Shipped, and Completed. The label under each step identifies whether the Merchant, Reseller, or system is responsible for the next action.' }
 ]
 
 const roleKnowledge = {
@@ -39,7 +41,10 @@ const roleKnowledge = {
 
 const normalize = (value = '') => value.toLowerCase().replace(/[^a-z0-9%₱\s-]/g, ' ').replace(/\s+/g, ' ').trim()
 
-export function getJomBitsSuggestions(role) {
+export function getJomBitsSuggestions(role, pathname = '') {
+  if (pathname.includes('/orders')) return role === 'merchant' ? ['What should I do with this order?', 'How do I ship an order?', 'How do order cases work?', 'Where is the tracking number?'] : ['How do I track delivery?', 'When should I confirm delivery?', 'How do I request help?', 'How do I print a receipt?']
+  if (pathname.includes('/wallet')) return ['How do top-ups work?', 'How do withdrawals work?', 'How do I print a receipt?', 'Why is my balance pending?']
+  if (pathname.includes('/products')) return role === 'merchant' ? ['How do I add a product?', 'What products are prohibited?', 'How should I set prices?', 'How do quantity offers work?'] : ['How do I choose a product?', 'How is my profit calculated?', 'Can I buy one piece?', 'How does bulk pricing work?']
   return role === 'merchant'
     ? ['How do I add a product?', 'How is Merchant profit calculated?', 'How do I ship an order?', 'How do withdrawals work?']
     : ['How do I place an order?', 'How is my profit calculated?', 'How do I track delivery?', 'How do withdrawals work?']

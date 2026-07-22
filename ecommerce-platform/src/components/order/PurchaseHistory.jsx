@@ -10,6 +10,7 @@ import OrderCaseModal from './OrderCaseModal'
 import CustomerPaymentModal from './CustomerPaymentModal'
 import { realizedResellerMargin } from '../../utils/orderProcess'
 import { printReceipt } from '../../utils/receipt'
+import OrderTimeline from './OrderTimeline'
 
 export default function PurchaseHistory() {
   const { user } = useAuth()
@@ -64,6 +65,7 @@ export default function PurchaseHistory() {
                 <span className={`badge ${ORDER_STATUS_STYLES[o.status]}`}>{ORDER_STATUS_LABELS[o.status]}</span>
               </div>
               <p className="text-sm text-ink/70">{o.merchant_profiles?.business_name} · {formatDate(o.created_at)}</p>
+              <OrderTimeline status={o.status}/>
               <div className="mt-3 space-y-1 text-sm text-ink/60">
                 {o.order_items?.map((it) => (
                   <div key={it.id} className="flex justify-between">

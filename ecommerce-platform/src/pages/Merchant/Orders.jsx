@@ -8,6 +8,7 @@ import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
 import DeliveryProcessGuide from '../../components/order/DeliveryProcessGuide'
 import DeliveryModal from '../../components/order/DeliveryModal'
+import OrderTimeline from '../../components/order/OrderTimeline'
 import OrderCaseModal from '../../components/order/OrderCaseModal'
 
 // Merchant can advance an order up to 'shipped'. Only the buyer's "Confirm
@@ -116,7 +117,7 @@ export default function Orders() {
                   <span className="font-mono text-sm text-ink/60">{o.order_number}</span>
                   <span className={`badge ${ORDER_STATUS_STYLES[o.status]}`}>{ORDER_STATUS_LABELS[o.status]}</span>
                 </div>
-                <p className="text-sm text-ink/60 mb-3">{formatDate(o.created_at)} · {o.shipping_address}</p>
+                <p className="text-sm text-ink/60 mb-3">{formatDate(o.created_at)} · {o.shipping_address}</p><OrderTimeline status={o.status}/>
                 {o.customers && <div className="mb-4 rounded-xl border border-teal-100 bg-teal-50 p-4"><p className="text-xs font-semibold uppercase tracking-wide text-ink/40">Customer details</p><p className="mt-1 font-semibold text-ink">{o.customers.name}</p><p className="text-sm text-ink/60">{o.customers.phone || 'No phone number'}</p><p className="text-sm text-ink/60">{o.customers.address || o.shipping_address}</p>{o.customers.notes && <p className="mt-1 text-xs text-ink/45">Note: {o.customers.notes}</p>}</div>}
 
                 <div className="space-y-1 text-sm text-ink/70 mb-3">
