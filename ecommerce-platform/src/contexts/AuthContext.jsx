@@ -92,11 +92,17 @@ export function AuthProvider({ children }) {
     return supabase.auth.signInWithPassword({ email: normalizedEmail, password })
   }
 
-  const requestEmailSignInLink = async (email) => {
+  const requestEmailOtp = async (email) => {
     const normalizedEmail = email.trim().toLowerCase()
     if (TEST_EMAILS.has(normalizedEmail)) return { error: new Error('Use your fixed password for this test account.') }
-    return supabase.auth.signInWithOtp({ email: normalizedEmail, options: { shouldCreateUser: true, emailRedirectTo: `${window.location.origin}/auth/callback` } })
+    return supabase.auth.signInWithOtp({ email: normalizedEmail, options: { shouldCreateUser: true } })
   }
+
+  const verifyEmailOtp = async (email, token) => supabase.auth.verifyOtp({
+    email: email.trim().toLowerCase(),
+    token: token.replace(/\D/g, ''),
+    type: 'email'
+  })
 
   const signOut = async () => {
     await supabase.auth.signOut({ scope: 'global' })
@@ -118,7 +124,8 @@ export function AuthProvider({ children }) {
     loading,
     signInWithGoogle,
     signInTestAccount,
-    requestEmailSignInLink,
+    requestEmailOtp,
+    verifyEmailOtp,
     signOut,
     refreshProfile
   }

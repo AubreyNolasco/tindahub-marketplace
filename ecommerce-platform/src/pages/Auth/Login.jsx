@@ -11,11 +11,13 @@ function GoogleIcon() {
 }
 
 export default function Login() {
-  const { user, profile, loading, signInTestAccount, requestEmailSignInLink } = useAuth()
+  const { user, profile, loading, signInTestAccount, requestEmailOtp, verifyEmailOtp } = useAuth()
   const [redirecting, setRedirecting] = useState(false)
   const [testEmail, setTestEmail] = useState('')
   const [testPassword, setTestPassword] = useState('')
   const [emailCooldown, setEmailCooldown] = useState(0)
+  const [otpSent, setOtpSent] = useState(false)
+  const [otp, setOtp] = useState('')
 
   useEffect(() => {
     if (emailCooldown <= 0) return undefined
@@ -27,24 +29,25 @@ export default function Login() {
 
   const submitEmailLogin = async (event) => {
     event.preventDefault()
-    if (!navigator.onLine) return toast.error('You are offline. Connect to the internet before requesting a sign-in link.')
+    if (!navigator.onLine) return toast.error('You are offline. Connect to the internet before requesting a verification code.')
     setRedirecting(true)
     try {
       const normalizedEmail = testEmail.trim().toLowerCase()
       const isTest = ['reseller@gmail.com', 'merchant@gmail.com'].includes(normalizedEmail)
       const result = isTest
         ? await signInTestAccount(normalizedEmail, testPassword)
-        : await requestEmailSignInLink(normalizedEmail)
+        : await requestEmailOtp(normalizedEmail)
       if (result.error) {
         const message = result.error.message || ''
         if (/failed to fetch|network|load failed/i.test(message)) toast.error('Cannot reach Supabase from this browser. Disable VPN/ad blocker, check your connection, then try again.')
         else if (/rate limit/i.test(message)) toast.error('Too many email requests. Please wait a few minutes before trying again.')
-        else if (/security purposes|request this after/i.test(message)) toast.error('Please wait a few seconds before requesting another sign-in link.')
+        else if (/security purposes|request this after/i.test(message)) toast.error('Please wait before requesting another verification code.')
         else if (/email.*disabled|signups.*disabled/i.test(message)) toast.error('Email sign-in is not enabled in Supabase Authentication settings.')
         else toast.error(message)
       } else if (!isTest) {
-        setEmailCooldown(10)
-        toast.success('We sent a secure sign-in link to your email.')
+        setOtpSent(true)
+        setEmailCooldown(60)
+        toast.success('We sent a 6-digit verification code to your email.')
       }
     } catch (error) {
       console.error('Email authentication request failed:', error)
@@ -54,7 +57,17 @@ export default function Login() {
     }
   }
 
+  const submitOtp = async (event) => {
+    event.preventDefault()
+    if (otp.length !== 6) return toast.error('Enter the complete 6-digit code.')
+    setRedirecting(true)
+    const { error } = await verifyEmailOtp(testEmail, otp)
+    setRedirecting(false)
+    if (error) return toast.error(/expired|invalid/i.test(error.message) ? 'Invalid or expired code. Request a new code and try again.' : error.message)
+    toast.success('Email verified. Signing you in...')
+  }
+
   const normalizedEmail = testEmail.trim().toLowerCase()
   const isTest = ['reseller@gmail.com', 'merchant@gmail.com'].includes(normalizedEmail)
-  return <AuthShell><div className="rounded-3xl border border-black/[0.06] bg-white p-6 shadow-xl shadow-teal-900/[0.06] sm:p-8"><span className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-teal-700"><ShieldCheck size={14} /> Secure email access</span><h1 className="mt-4 font-display text-3xl font-bold text-ink">Continue to JOM HUB</h1><p className="mt-2 text-sm leading-6 text-ink/55">Enter your email. We will send you a secure one-time sign-in link.</p><form onSubmit={submitEmailLogin} className="mt-7 space-y-3"><input type="email" required value={testEmail} onChange={(event) => setTestEmail(event.target.value)} placeholder="Email address" className="input-field" autoComplete="username" />{isTest ? <input type="password" required value={testPassword} onChange={(event) => setTestPassword(event.target.value)} placeholder="Password" className="input-field" autoComplete="current-password" /> : null}<button disabled={redirecting || (!isTest && emailCooldown > 0)} className="btn-primary flex w-full items-center justify-center gap-2">{redirecting ? <Loader2 size={18} className="animate-spin" /> : <MailCheck size={18} />}{isTest ? 'Sign in' : emailCooldown > 0 ? `Send again in ${emailCooldown}s` : 'Send sign-in link'}</button></form><div className="mt-6 rounded-2xl bg-cream p-4 text-xs leading-5 text-ink/50"><p className="font-semibold text-ink/70">Secure email sign-in</p><p className="mt-1">The link expires shortly and can only be used once.</p></div></div></AuthShell>
+  return <AuthShell><div className="rounded-3xl border border-black/[0.06] bg-white p-6 shadow-xl shadow-teal-900/[0.06] sm:p-8"><span className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-teal-700"><ShieldCheck size={14} /> Secure email OTP</span><h1 className="mt-4 font-display text-3xl font-bold text-ink">Continue to JOM HUB</h1><p className="mt-2 text-sm leading-6 text-ink/55">{otpSent && !isTest ? `Enter the 6-digit code sent to ${testEmail}.` : 'Enter your email and we will send a secure 6-digit verification code.'}</p>{otpSent && !isTest ? <form onSubmit={submitOtp} className="mt-7 space-y-3"><input inputMode="numeric" autoComplete="one-time-code" required maxLength={6} value={otp} onChange={(event) => setOtp(event.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="000000" className="input-field text-center font-display text-2xl font-bold tracking-[0.35em]" /><button disabled={redirecting || otp.length !== 6} className="btn-primary flex w-full items-center justify-center gap-2">{redirecting && <Loader2 size={18} className="animate-spin" />}Verify code</button><button type="button" disabled={redirecting || emailCooldown > 0} onClick={submitEmailLogin} className="btn-secondary w-full">{emailCooldown > 0 ? `Send again in ${emailCooldown}s` : 'Resend code'}</button><button type="button" onClick={() => { setOtpSent(false); setOtp('') }} className="w-full py-2 text-xs font-bold text-teal-700">Use a different email</button></form> : <form onSubmit={submitEmailLogin} className="mt-7 space-y-3"><input type="email" required value={testEmail} onChange={(event) => setTestEmail(event.target.value)} placeholder="Email address" className="input-field" autoComplete="username" />{isTest ? <input type="password" required value={testPassword} onChange={(event) => setTestPassword(event.target.value)} placeholder="Password" className="input-field" autoComplete="current-password" /> : null}<button disabled={redirecting} className="btn-primary flex w-full items-center justify-center gap-2">{redirecting ? <Loader2 size={18} className="animate-spin" /> : <MailCheck size={18} />}{isTest ? 'Sign in' : 'Send verification code'}</button></form>}<div className="mt-6 rounded-2xl bg-cream p-4 text-xs leading-5 text-ink/50"><p className="font-semibold text-ink/70">Secure one-time code</p><p className="mt-1">The code expires in 10 minutes and can only be used once. Never share it with anyone.</p></div></div></AuthShell>
 }
