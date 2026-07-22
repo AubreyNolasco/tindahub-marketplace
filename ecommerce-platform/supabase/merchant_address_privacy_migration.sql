@@ -22,7 +22,8 @@ grant execute on function public.get_my_merchant_address() to authenticated;
 revoke select on table public.merchant_profiles from anon, authenticated;
 grant select (
   id, business_name, business_description, status, trial_ends_at,
-  subscription_active, subscription_expires_at, created_at
+  subscription_active, subscription_expires_at, created_at,
+  store_open_time, store_close_time, auto_pause_outside_hours, store_timezone
 ) on table public.merchant_profiles to anon, authenticated;
 
 -- Detect address-like messages and fragments of the merchant's saved address.
