@@ -1,10 +1,14 @@
 const completeAddress = (address = '') => address.trim().length >= 20 && /\d/.test(address) && address.split(',').length >= 3
 const roundFive = (amount) => Math.ceil(amount / 5) * 5
+const validPackageNumber = (value) => Number.isFinite(Number(value)) && Number(value) > 0
+const validPackage = (item) => Number.isInteger(Number(item?.quantity)) && validPackageNumber(item.quantity) &&
+  validPackageNumber(item.weight_kg) && validPackageNumber(item.length_cm) &&
+  validPackageNumber(item.width_cm) && validPackageNumber(item.height_cm)
 
 export function calculateShipping({ merchantAddress, resellerAddress, packages, distanceKm }) {
   const output = { merchant_address: merchantAddress || '', reseller_address: resellerAddress || '', billing_distance_km: 0, total_actual_weight_kg: 0, packed_length_cm: 0, packed_width_cm: 0, packed_height_cm: 0, total_package_volume_cm3: 0, selected_vehicle: '', vehicle_selection_reason: '', base_fare: 0, distance_charge: 0, calculated_shipping_fee: 0, rounded_shipping_fee: 0, shipping_status: 'MANUAL_QUOTATION_REQUIRED', rate_type: 'Standard Estimated Shipping Fee', customer_message: '' }
   if (!completeAddress(merchantAddress) || !completeAddress(resellerAddress)) return { ...output, customer_message: 'Please complete the merchant and reseller addresses before calculating the shipping fee.' }
-  if (!packages?.length || packages.some((item) => !Number(item.quantity) || !Number(item.weight_kg) || !Number(item.length_cm) || !Number(item.width_cm) || !Number(item.height_cm))) return { ...output, customer_message: 'Please provide the final packed weight and dimensions so we can calculate the correct shipping fee.' }
+  if (!packages?.length || packages.some((item) => !validPackage(item))) return { ...output, customer_message: 'Please provide a positive whole-item quantity and positive packed weight and dimensions so we can calculate the correct shipping fee.' }
   const distance = Number(distanceKm)
   if (!Number.isFinite(distance) || distance <= 0) return { ...output, customer_message: 'Please enter the actual road or driving distance before calculating the shipping fee.' }
   const billingDistance = Math.ceil(distance)
