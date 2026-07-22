@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { isCompleteAddress } from '../../utils/address'
 import RoleNotifications from '../notifications/RoleNotifications'
 import InteractivePageGuide from '../onboarding/InteractivePageGuide'
+import JomBits from '../assistant/JomBits'
 
 export default function WorkspaceLayout({ title, subtitle, sections, children }) {
   const [open, setOpen] = useState(false)
@@ -38,6 +39,7 @@ export default function WorkspaceLayout({ title, subtitle, sections, children })
       {needsAddress && <div className="mx-4 mt-4 flex flex-col gap-3 rounded-2xl border border-mango-300 bg-mango-100/70 p-4 text-sm sm:mx-6 sm:flex-row sm:items-center sm:justify-between lg:mx-8"><div className="flex items-start gap-3"><AlertCircle size={19} className="mt-0.5 shrink-0 text-mango-600" /><div><p className="font-semibold text-ink">Complete your address to unlock all features</p><p className="mt-0.5 text-xs leading-5 text-ink/55">A complete address is required for products, customers, and orders.</p></div></div><Link to={role === 'merchant' ? '/merchant/address' : '/reseller/address'} className="btn-secondary shrink-0 px-4 py-2 text-center text-xs">Complete address</Link></div>}
       {children}
       <main className="min-w-0" data-guide-main><Outlet /></main>
+      <JomBits />
     </section>
   </div>
 }

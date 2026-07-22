@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import {
   ArrowRight, BadgeCheck, BarChart3, Check, CheckCircle2,
   CircleDollarSign, Clock3, FileImage, MessageCircle, PackageCheck,
@@ -11,6 +11,7 @@ import { useAuth } from '../contexts/AuthContext'
 import RegistrationCalendar from '../components/registration/RegistrationCalendar'
 import { applyCurrentBrand } from '../utils/brand'
 import GrowthSection from '../components/home/GrowthSection'
+import JomBits from '../components/assistant/JomBits'
 
 const fallback = {
   eyebrow: 'Built for growing Filipino businesses',
@@ -48,10 +49,16 @@ const safeInternalLink = (value, fallbackValue) => typeof value === 'string' && 
 const safeImageUrl = (value, fallbackValue = '') => typeof value === 'string' && (value.startsWith('/') || value.startsWith('https://')) ? value : fallbackValue
 
 export default function Home() {
+  const location = useLocation()
   const { user } = useAuth()
   const [content, setContent] = useState(fallback)
   const [subscriptionPopup, setSubscriptionPopup] = useState(false)
   useEffect(() => { supabase.from('site_settings').select('value').eq('key', 'home').maybeSingle().then(({ data }) => { if (data?.value) { const value = applyCurrentBrand(data.value); setContent({ ...fallback, ...value, announcement: { ...fallback.announcement, ...value.announcement }, sections: { ...fallback.sections, ...value.sections }, banners: value.banners || [] }) } }) }, [])
+  useEffect(() => {
+    if (!location.hash) return
+    const timer = window.setTimeout(() => document.getElementById(location.hash.slice(1))?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
+    return () => window.clearTimeout(timer)
+  }, [location.hash])
   useEffect(() => {
     if (user) return
     let seen = false
@@ -158,7 +165,7 @@ export default function Home() {
 
     <RegistrationCalendar />
 
-    {content.sections?.benefits !== false && <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
+    {content.sections?.benefits !== false && <section id="benefits" className="mx-auto max-w-7xl scroll-mt-20 px-4 py-16 sm:px-6 sm:py-20">
       <div className="mx-auto max-w-3xl text-center"><p className="text-xs font-bold uppercase tracking-[0.2em] text-teal-600">Made for real business operations</p><h2 className="mt-3 font-display text-3xl font-bold text-ink sm:text-4xl">Everything you need to buy, sell, and operate with confidence.</h2><p className="mt-4 text-ink/60">JOM HUB replaces scattered chats, manual records, and disconnected payment tracking with one organized workspace.</p></div>
       <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{benefits.map(({ icon: Icon, title, text }) => <div key={title} className="group rounded-2xl border border-black/[0.06] bg-white p-6 shadow-card transition hover:-translate-y-1 hover:border-teal-100 hover:shadow-soft"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-teal-50 text-teal-700 transition group-hover:bg-teal-600 group-hover:text-white"><Icon size={21} /></span><h3 className="mt-5 font-display text-lg font-bold text-ink">{title}</h3><p className="mt-2 text-sm leading-6 text-ink/60">{text}</p></div>)}</div>
     </section>}
@@ -182,5 +189,6 @@ export default function Home() {
       </div></section>}
 
     {content.sections?.final_cta !== false && <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20"><div className="relative overflow-hidden rounded-[2rem] bg-teal-900 px-6 py-10 text-center text-white shadow-xl sm:px-12 sm:py-14"><div className="absolute left-1/2 top-0 h-48 w-96 -translate-x-1/2 rounded-full bg-teal-500/25 blur-3xl" /><div className="relative mx-auto max-w-2xl"><h2 className="font-display text-3xl font-bold sm:text-4xl">Ready to build a more organized business?</h2><p className="mt-4 text-sm leading-6 text-white/60 sm:text-base">Join JOM HUB as a Merchant or Reseller and manage your marketplace activity in one professional workspace.</p><div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row"><Link to="/signup" className="inline-flex items-center justify-center gap-2 rounded-xl bg-mango-500 px-6 py-3 font-bold text-ink hover:bg-mango-600">Create an account <ArrowRight size={17} /></Link><Link to="/catalog" className="inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/10 px-6 py-3 font-semibold hover:bg-white/15">Browse products</Link></div></div></div></section>}
+    <JomBits publicMode />
   </div>
 }

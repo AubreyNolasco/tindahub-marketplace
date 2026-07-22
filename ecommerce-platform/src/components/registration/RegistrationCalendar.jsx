@@ -50,7 +50,7 @@ export default function RegistrationCalendar() {
     setForm(emptyForm)
   }
 
-  return <section id="registration-calendar" className="border-y border-black/5 bg-white py-14 sm:py-20">
+  return <section id="registration-calendar" className="scroll-mt-20 border-y border-black/5 bg-white py-14 sm:py-20">
     <div className="mx-auto max-w-7xl px-4 sm:px-6">
       <div className="mx-auto max-w-2xl text-center"><span className="inline-flex items-center gap-2 rounded-full bg-mango-100 px-3 py-1.5 text-xs font-bold text-mango-700"><CalendarDays size={14} /> Registration calendar</span><h2 className="mt-4 font-display text-3xl font-bold text-ink sm:text-4xl">Pick a date. Register in minutes.</h2><p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-ink/60 sm:text-base">Choose your preferred date below, select an available time, then leave your contact details for Admin confirmation.</p></div>
 
