@@ -1,6 +1,14 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { getResellerOperationFee, getResellerProfitEstimate, getResellerUnitPrice, getUnitPrice } from '../src/utils/pricing.js'
+import { isStoreOpen } from '../src/utils/storeHours.js'
+
+test('optional store hours allow 24/7 stores and pause closed stores', () => {
+  assert.equal(isStoreOpen({ auto_pause_outside_hours: false }), true)
+  const merchant = { auto_pause_outside_hours: true, store_open_time: '09:00', store_close_time: '18:00', store_timezone: 'Asia/Manila' }
+  assert.equal(isStoreOpen(merchant, new Date('2026-07-22T02:00:00Z')), true)
+  assert.equal(isStoreOpen(merchant, new Date('2026-07-22T14:00:00Z')), false)
+})
 
 test('retail pricing applies valid quantity tiers', () => {
   assert.equal(getUnitPrice({ price: 1000, discount_tiers: [{ min_qty: 10, price: 900 }] }, 10), 900)

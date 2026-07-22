@@ -74,6 +74,7 @@ import ReviewsManagement from './pages/ReviewsManagement'
 import AdminCampaigns from './pages/Admin/Campaigns'
 import MerchantCampaigns from './pages/Merchant/Campaigns'
 import ProfileAddress from './pages/ProfileAddress'
+import AccountSettings from './pages/AccountSettings'
 import AdminRegistrations from './pages/Admin/Registrations'
 import BusinessPermit from './pages/Merchant/BusinessPermit'
 import StaffManagement from './pages/Admin/StaffManagement'
@@ -135,6 +136,7 @@ export default function App() {
                   <Route path="chats/:merchantId" element={<ResellerChatDetail />} />
                   <Route path="wallet" element={<ResellerWallet />} />
                   <Route path="address" element={<ProfileAddress />} />
+                  <Route path="account" element={<AccountSettings />} />
                   <Route path="reports/sales" element={<ResellerSalesReport />} />
                   <Route path="reports/inventory" element={<ResellerInventoryReport />} />
                   <Route path="reports/topups" element={<ResellerTopupReport />} />
@@ -156,6 +158,7 @@ export default function App() {
                   <Route path="chats/:resellerId" element={<MerchantChatDetail />} />
                   <Route path="wallet" element={<WalletPage />} />
                   <Route path="address" element={<ProfileAddress merchant />} />
+                  <Route path="account" element={<AccountSettings merchant />} />
                   <Route path="reports/sales" element={<MerchantSalesReport />} />
                   <Route path="reports/inventory" element={<MerchantInventoryReport />} />
                   <Route path="reports/topups" element={<MerchantTopupReport />} />

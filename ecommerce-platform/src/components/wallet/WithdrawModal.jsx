@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Loader2, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../contexts/AuthContext'
 
 const ERROR_MESSAGES = {
   INSUFFICIENT_BALANCE: 'Your wallet balance is insufficient for this withdrawal.',
@@ -9,11 +10,13 @@ const ERROR_MESSAGES = {
 }
 
 export default function WithdrawModal({ open, onClose, onSubmitted }) {
+  const { profile } = useAuth()
   const [amount, setAmount] = useState('')
   const [bankName, setBankName] = useState('')
   const [accountName, setAccountName] = useState('')
   const [accountNumber, setAccountNumber] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  useEffect(()=>{if(open){setBankName(profile?.payout_provider||'');setAccountName(profile?.payout_account_name||profile?.full_name||'');setAccountNumber(profile?.payout_account_number||'')}},[open,profile])
 
   if (!open) return null
 
@@ -42,7 +45,7 @@ export default function WithdrawModal({ open, onClose, onSubmitted }) {
       })
       if (error) throw error
 
-      toast.success('Withdrawal request submitted! Your wallet is debited while awaiting admin approval.')
+      toast.success('Withdrawal submitted. Admin will schedule the transfer, then mark it Sent after payment.')
       reset()
       onSubmitted?.()
       onClose()
@@ -79,11 +82,11 @@ export default function WithdrawModal({ open, onClose, onSubmitted }) {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-ink/70">Bangko</label>
+            <label className="text-sm font-medium text-ink/70">Bank or e-wallet destination</label>
             <input
               required
               className="input-field mt-1"
-              placeholder="Hal. BDO, BPI, Metrobank"
+              placeholder="BPI, BDO, GCash, Maya"
               value={bankName}
               onChange={(e) => setBankName(e.target.value)}
             />
@@ -115,6 +118,7 @@ export default function WithdrawModal({ open, onClose, onSubmitted }) {
             {submitting && <Loader2 size={16} className="animate-spin" />}
             {submitting ? 'Sinusubmit...' : 'Isumite ang Withdrawal'}
           </button>
+          <p className="rounded-xl bg-mango-100/60 p-3 text-xs leading-5 text-ink/55">The amount is held immediately. Admin will show the planned processing time based on availability. Funds are transferred only when marked <strong>Sent</strong>.</p>
         </form>
       </div>
     </div>

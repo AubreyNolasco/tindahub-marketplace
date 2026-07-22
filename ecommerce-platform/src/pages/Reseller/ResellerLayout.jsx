@@ -1,4 +1,4 @@
-import { BarChart3, Boxes, ClipboardList, FileDown, FileUp, LayoutDashboard, MapPin, MessageSquare, Users, WalletCards } from 'lucide-react'
+import { BarChart3, Boxes, ClipboardList, FileDown, FileUp, LayoutDashboard, MapPin, MessageSquare, UserRound, Users, WalletCards } from 'lucide-react'
 import WorkspaceLayout from '../../components/layout/WorkspaceLayout'
 
 const sections = [
@@ -8,7 +8,8 @@ const sections = [
     { to: '/reseller/customers', label: 'Customers', icon: Users },
     { to: '/reseller/chats', label: 'Messages', icon: MessageSquare },
     { to: '/reseller/wallet', label: 'Wallet', icon: WalletCards },
-    { to: '/reseller/address', label: 'My Address', icon: MapPin }
+    { to: '/reseller/address', label: 'My Address', icon: MapPin },
+    { to: '/reseller/account', label: 'Update Account', icon: UserRound }
   ]},
   { label: 'Reports', items: [
     { to: '/reseller/reports/sales', label: 'Sales Report', icon: BarChart3 },

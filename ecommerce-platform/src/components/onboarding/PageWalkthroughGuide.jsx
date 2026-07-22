@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 const sharedReports = ['Set the date or available filters.', 'Review the summary and detailed records.', 'Export the report when you need an offline copy.', 'Compare totals with Wallet and order records before making financial decisions.']
 const guides = {
   reseller: [
+    ['/reseller/account', 'Update Account walkthrough', ['Review your name and phone number.', 'Enter the bank or e-wallet where approved withdrawals should be sent.', 'Verify the account name and number carefully.', 'Save the account settings before requesting a withdrawal.']],
     ['/reseller/orders', 'Orders walkthrough', ['Open an order to check its current status.', 'Verify the customer, items, quantity, and delivery information.', 'Track Confirmed → Processing → Shipped.', 'Confirm delivery only after the correct items are actually received.']],
     ['/reseller/customers', 'Customers walkthrough', ['Ask permission before recording customer information.', 'Add the correct name, phone, and complete address.', 'Review saved details before assigning the customer to an order.', 'Update incorrect information before checkout.']],
     ['/reseller/wallet', 'Wallet walkthrough', ['Check your available balance and transaction history.', 'Select Top Up when more buying funds are needed.', 'Pay using the displayed JOM HUB QR and upload proof with a one-use reference.', 'Wait for Admin approval before using pending funds.']],
@@ -15,6 +16,7 @@ const guides = {
     ['/reseller', 'Reseller overview walkthrough', ['Check wallet, orders, and quick business totals.', 'Browse approved products and choose one-piece or bulk quantity.', 'Adjust the customer price and review estimated profit after the capped system fee.', 'Add a customer, place the verified order, and track it until completion.']]
   ],
   merchant: [
+    ['/merchant/account', 'Update Account walkthrough', ['Review your personal and business information.', 'Enter the bank or e-wallet where approved withdrawals should be sent.', 'Optionally set daily opening and closing times.', 'Enable automatic product pause only if you do not accept orders outside store hours, then save.']],
     ['/merchant/products', 'Products walkthrough', ['Select Add Product to create a listing.', 'Upload a real image and enter truthful, allowed product information.', 'Set retail, wholesale, suggested customer price, stock, and quantity tiers.', 'Check the Reseller margin and package details before publishing.']],
     ['/merchant/orders', 'Orders walkthrough', ['Open each Confirmed order and verify items and stock.', 'Move the order to Processing only after accepting it.', 'Pack correctly and move Processing → Shipped after dispatch.', 'Wait for the Reseller to confirm receipt; net payout follows completion.']],
     ['/merchant/wallet', 'Wallet walkthrough', ['Review available balance and completed-order payouts.', 'Check every fee, top-up, and withdrawal ledger entry.', 'Use Top Up or Withdrawal and provide accurate payment details.', 'Wait for Admin review and retain your external transaction proof.']],

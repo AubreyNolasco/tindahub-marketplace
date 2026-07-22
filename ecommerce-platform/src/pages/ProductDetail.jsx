@@ -14,6 +14,7 @@ import { getUnitPrice, getResellerUnitPrice } from '../utils/pricing'
 import { applyCampaignDiscount, getActiveCampaignDiscounts } from '../utils/campaigns'
 import { getSuggestedCustomerPrice } from '../utils/pricing'
 import ResellerProfitPanel from '../components/product/ResellerProfitPanel'
+import { isStoreOpen } from '../utils/storeHours'
 
 export default function ProductDetail() {
   const { id } = useParams()
@@ -39,7 +40,7 @@ export default function ProductDetail() {
   useEffect(() => {
     const load = async () => {
       setLoading(true)
-      const { data, error } = await supabase.from('products').select('*, merchant_profiles(business_name)').eq('id', id).maybeSingle()
+      const { data, error } = await supabase.from('products').select('*, merchant_profiles(business_name,store_open_time,store_close_time,auto_pause_outside_hours,store_timezone)').eq('id', id).maybeSingle()
       if (!error && data) { const discounts = await getActiveCampaignDiscounts(); setProduct(applyCampaignDiscount(data, discounts)); setQty(data.min_order_qty || 1); setCustomerSellingPrice(getSuggestedCustomerPrice(data)) }
       await loadReviews()
       setLoading(false)
@@ -77,6 +78,7 @@ export default function ProductDetail() {
   if (!product) return <div className="mx-auto max-w-3xl px-4 py-16"><EmptyState icon={PackageSearch} title="Product Not Found" message="Baka natanggal na o na-hide ng merchant ang item na ito." action={<Link to="/catalog" className="btn-primary">Back to Catalog</Link>} /></div>
 
   const confirmAdd = (customer, sellingPrice) => { addItem(product, qty, customer, sellingPrice); setShowQuickAdd(false); toast.success(`Naidagdag sa cart: ${product.name}`) }
+  const storeOpen = isStoreOpen(product.merchant_profiles)
 
   return <div className="min-h-screen bg-[#f5f8f5] py-6 sm:py-10"><div className="mx-auto max-w-6xl px-4 sm:px-6">
     <div className="mb-5 text-sm text-ink/45"><Link to="/catalog" className="hover:text-teal-700">Products</Link><span className="mx-2">/</span><span className="text-ink/65">{product.name}</span></div>
@@ -90,7 +92,8 @@ export default function ProductDetail() {
         {product.campaign_discount_percent > 0 ? <div className="mt-4 rounded-2xl border border-mango-300 bg-gradient-to-r from-mango-100 to-white p-4"><p className="text-xs font-bold uppercase tracking-wide text-mango-600">Marketplace campaign</p><div className="mt-2 flex items-center justify-between"><span className="font-display text-xl font-bold text-ink">{product.campaign_discount_percent}% OFF</span><span className="font-bold text-teal-700">{peso(getUnitPrice(product, qty))} each</span></div><p className="mt-2 text-xs text-ink/50">Campaign price applies to every quantity. Store quantity discounts are paused.</p></div> : product.discount_tiers?.length > 0 && <div className="mt-4 rounded-2xl border border-mango-300/50 bg-mango-100/40 p-4"><p className="text-xs font-bold uppercase tracking-wide text-mango-600">Reseller quantity discounts</p><div className="mt-2 space-y-2">{product.discount_tiers.map((tier) => { const percent = Number(tier.discount_percent) || Number(((1 - Number(tier.price) / Number(product.price)) * 100).toFixed(2)); return <div key={tier.min_qty} className="flex items-center justify-between gap-3 text-sm"><span className="text-ink/60">Buy {tier.min_qty}+ items</span><span className="text-right"><strong className="text-mango-600">{percent}% OFF</strong><span className="ml-2 font-bold text-teal-700">{peso(tier.price)} each</span></span></div> })}</div></div>}
         {(role === 'reseller' ? getResellerUnitPrice(product, qty) : getUnitPrice(product, qty)) < Number(product.price) && <div className="mt-3 rounded-xl bg-teal-50 px-3 py-2 text-sm text-teal-700"><strong>Your buying price: {peso(role === 'reseller' ? getResellerUnitPrice(product, qty) : getUnitPrice(product, qty))} each</strong><span className="ml-2">Total product discount: {peso((Number(product.price) - (role === 'reseller' ? getResellerUnitPrice(product, qty) : getUnitPrice(product, qty))) * qty)}</span></div>}
         {role === 'reseller' && <div className="mt-4"><ResellerProfitPanel product={product} quantity={qty} sellingPrice={customerSellingPrice} onSellingPriceChange={setCustomerSellingPrice} /></div>}
-        {(role === 'reseller' || role === 'merchant') && <div className="mt-auto flex items-center gap-3 pt-7"><div className="flex items-center overflow-hidden rounded-xl border border-black/10"><button onClick={() => setQty((value) => Math.max(product.min_order_qty, value - 1))} className="p-3 hover:bg-teal-50"><Minus size={16} /></button><span className="min-w-10 text-center font-semibold">{qty}</span><button onClick={() => setQty((value) => Math.min(product.stock_quantity, value + 1))} className="p-3 hover:bg-teal-50"><Plus size={16} /></button></div><button onClick={() => setShowQuickAdd(true)} className="btn-primary flex-1 py-3" disabled={product.stock_quantity < product.min_order_qty}>{product.stock_quantity < product.min_order_qty ? 'Out of Stock' : 'Add to Cart'}</button></div>}
+        {!storeOpen && <div className="mt-4 rounded-xl bg-mango-100 p-3 text-sm font-semibold text-mango-700">Store is currently closed. Products will be available again during store hours.</div>}
+        {(role === 'reseller' || role === 'merchant') && <div className="mt-auto flex items-center gap-3 pt-7"><div className="flex items-center overflow-hidden rounded-xl border border-black/10"><button onClick={() => setQty((value) => Math.max(product.min_order_qty, value - 1))} className="p-3 hover:bg-teal-50"><Minus size={16} /></button><span className="min-w-10 text-center font-semibold">{qty}</span><button onClick={() => setQty((value) => Math.min(product.stock_quantity, value + 1))} className="p-3 hover:bg-teal-50"><Plus size={16} /></button></div><button onClick={() => setShowQuickAdd(true)} className="btn-primary flex-1 py-3" disabled={!storeOpen || product.stock_quantity < product.min_order_qty}>{!storeOpen ? 'Store Closed' : product.stock_quantity < product.min_order_qty ? 'Out of Stock' : 'Add to Cart'}</button></div>}
         {!role && <div className="mt-6 rounded-xl bg-teal-50 p-4 text-sm text-teal-700"><Link to="/login" className="font-semibold underline">Log in</Link> as a reseller to purchase.</div>}
       </div>
     </section>

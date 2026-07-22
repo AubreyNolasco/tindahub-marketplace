@@ -6,6 +6,7 @@ import ProductCard from '../components/product/ProductCard'
 import EmptyState from '../components/ui/EmptyState'
 import Spinner from '../components/ui/Spinner'
 import { applyCampaignDiscount, getActiveCampaignDiscounts } from '../utils/campaigns'
+import { isStoreOpen } from '../utils/storeHours'
 
 function FilterPanel({ categories, merchants, activeCategory, setActiveCategory, activeMerchant, setActiveMerchant, categorySearch, setCategorySearch, storeSearch, setStoreSearch, minPrice, setMinPrice, maxPrice, setMaxPrice, clearFilters, onClose }) {
   const visibleCategories = categories.filter((category) => category.name.toLowerCase().includes(categorySearch.toLowerCase()))
@@ -45,7 +46,7 @@ export default function Catalog() {
 
   const loadProducts = async () => {
     setLoading(true)
-    let query = supabase.from('products').select('*, merchant_profiles(business_name)').eq('is_active', true)
+    let query = supabase.from('products').select('*, merchant_profiles(business_name,store_open_time,store_close_time,auto_pause_outside_hours,store_timezone)').eq('is_active', true)
     if (activeCategory) query = query.eq('category_id', activeCategory)
     if (activeMerchant) query = query.eq('merchant_id', activeMerchant)
     if (debouncedSearch) {
@@ -74,7 +75,7 @@ export default function Catalog() {
     const { data, error } = await query.limit(200)
     if (error) toast.error(error.message)
     const campaignDiscounts = await getActiveCampaignDiscounts()
-    setProducts((data || []).map((product) => applyCampaignDiscount(product, campaignDiscounts)))
+    setProducts((data || []).filter(product => isStoreOpen(product.merchant_profiles)).map((product) => applyCampaignDiscount(product, campaignDiscounts)))
     setLoading(false)
   }
 

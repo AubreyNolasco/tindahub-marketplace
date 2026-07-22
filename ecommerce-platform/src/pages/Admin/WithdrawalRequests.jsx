@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Landmark, Check, X } from 'lucide-react'
+import { Landmark, Check, Send, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
@@ -30,8 +30,12 @@ export default function WithdrawalRequests() {
 
   const review = async (request, approve) => {
     let admin_notes = null
+    let scheduled_for = null
     if (!approve) {
       admin_notes = window.prompt('Dahilan ng pag-reject (optional):') || null
+    } else {
+      const schedule = window.prompt('Kailan available ipadala? Halimbawa: 2026-07-23 14:00. Leave blank for as soon as available.')
+      if (schedule) { const parsed = new Date(schedule); if (Number.isNaN(parsed.getTime())) return toast.error('Invalid processing schedule.'); scheduled_for = parsed.toISOString() }
     }
     const { error } = await supabase
       .from('withdrawal_requests')
@@ -39,7 +43,8 @@ export default function WithdrawalRequests() {
         status: approve ? 'approved' : 'rejected',
         admin_notes,
         reviewed_by: user.id,
-        reviewed_at: new Date().toISOString()
+        reviewed_at: new Date().toISOString(),
+        scheduled_for
       })
       .eq('id', request.id)
 
@@ -47,7 +52,16 @@ export default function WithdrawalRequests() {
       toast.error(error.message)
       return
     }
-    toast.success(approve ? 'Na-approve ang withdrawal. I-transfer na ang pera sa bank account nila.' : 'Na-reject ang withdrawal at na-refund sa wallet.')
+    toast.success(approve ? 'Approved and scheduled. Mark it Sent only after the actual transfer.' : 'Na-reject ang withdrawal at na-refund sa wallet.')
+    load()
+  }
+
+  const markSent = async (request) => {
+    const reference = window.prompt('Enter the bank or e-wallet transfer reference:')
+    if (!reference?.trim()) return
+    const { error } = await supabase.rpc('mark_withdrawal_sent', { p_request_id: request.id, p_transfer_reference: reference.trim() })
+    if (error) return toast.error(error.message)
+    toast.success('Withdrawal marked as Sent.')
     load()
   }
 
@@ -87,12 +101,14 @@ export default function WithdrawalRequests() {
                 <p className="text-sm text-ink/60">{peso(r.amount)} · {r.bank_name}</p>
                 <p className="text-sm text-ink/60">{r.bank_account_name} · {r.bank_account_number}</p>
                 <p className="text-xs text-ink/40">{formatDate(r.created_at)}</p>
+                {r.scheduled_for && !r.sent_at && <p className="mt-1 text-xs font-semibold text-mango-700">Planned send time: {new Date(r.scheduled_for).toLocaleString('en-PH',{dateStyle:'medium',timeStyle:'short'})}</p>}
+                {r.sent_at && <p className="mt-1 text-xs font-semibold text-teal-700">Sent {formatDate(r.sent_at)} · Ref {r.transfer_reference}</p>}
                 {r.status === 'rejected' && r.admin_notes && (
                   <p className="text-xs text-coral-600 mt-1">Dahilan: {r.admin_notes}</p>
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <span className={`badge capitalize ${TOPUP_STATUS_STYLES[r.status]}`}>{TOPUP_STATUS_LABELS[r.status]}</span>
+                <span className={`badge capitalize ${r.sent_at?'bg-teal-100 text-teal-800':TOPUP_STATUS_STYLES[r.status]}`}>{r.sent_at?'Sent':r.status==='approved'?'Scheduled / Approved':TOPUP_STATUS_LABELS[r.status]}</span>
                 {r.status === 'pending' && (
                   <>
                     <button onClick={() => review(r, true)} className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1">
@@ -103,6 +119,7 @@ export default function WithdrawalRequests() {
                     </button>
                   </>
                 )}
+                {r.status === 'approved' && !r.sent_at && <button onClick={() => markSent(r)} className="btn-primary flex items-center gap-1 px-3 py-1.5 text-xs"><Send size={13} /> Mark Sent</button>}
               </div>
             </div>
           ))}

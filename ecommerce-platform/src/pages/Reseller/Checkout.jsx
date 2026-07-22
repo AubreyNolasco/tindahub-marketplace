@@ -11,6 +11,7 @@ import EmptyState from '../../components/ui/EmptyState'
 import { isCompleteAddress } from '../../utils/address'
 
 const ERROR_MESSAGES = {
+  STORE_CLOSED: 'The Merchant store is currently closed. Try again during its published store hours.',
   INSUFFICIENT_BALANCE: 'Your wallet balance is insufficient for this order.',
   INSUFFICIENT_STOCK: 'An item is out of stock. Please refresh your cart.',
   BELOW_MIN_ORDER_QTY: 'An item does not meet the minimum order quantity.',
