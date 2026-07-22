@@ -12,6 +12,7 @@ export default function WithdrawalRequests() {
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('pending')
+  const [proofFiles,setProofFiles]=useState({})
 
   useEffect(() => {
     load()
@@ -57,9 +58,14 @@ export default function WithdrawalRequests() {
   }
 
   const markSent = async (request) => {
+    const proof=proofFiles[request.id]
+    if(!proof)return toast.error('Upload the transfer proof before marking this withdrawal Sent.')
     const reference = window.prompt('Enter the bank or e-wallet transfer reference:')
     if (!reference?.trim()) return
-    const { error } = await supabase.rpc('mark_withdrawal_sent', { p_request_id: request.id, p_transfer_reference: reference.trim() })
+    const ext=proof.name.split('.').pop()?.toLowerCase()||'jpg',path=`${user.id}/${request.id}/${Date.now()}.${ext}`
+    const upload=await supabase.storage.from('withdrawal-proofs').upload(path,proof,{contentType:proof.type,upsert:false})
+    if(upload.error)return toast.error(upload.error.message)
+    const { error } = await supabase.rpc('mark_withdrawal_sent_with_proof', { p_request_id: request.id, p_transfer_reference: reference.trim(),p_proof_url:path })
     if (error) return toast.error(error.message)
     toast.success('Withdrawal marked as Sent.')
     load()
@@ -119,7 +125,7 @@ export default function WithdrawalRequests() {
                     </button>
                   </>
                 )}
-                {r.status === 'approved' && !r.sent_at && <button onClick={() => markSent(r)} className="btn-primary flex items-center gap-1 px-3 py-1.5 text-xs"><Send size={13} /> Mark Sent</button>}
+                {r.status === 'approved' && !r.sent_at && <div className="flex flex-col gap-2"><input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={e=>setProofFiles(current=>({...current,[r.id]:e.target.files?.[0]||null}))} className="max-w-52 text-[10px]"/><button onClick={() => markSent(r)} className="btn-primary flex items-center gap-1 px-3 py-1.5 text-xs"><Send size={13} /> Mark Sent</button></div>}
               </div>
             </div>
           ))}

@@ -103,9 +103,9 @@ export default function Merchants() {
                 {m.business_permit_status === 'pending' && <><button onClick={() => reviewPermit(m, true)} className="btn-primary flex items-center gap-1 px-3 py-1.5 text-xs"><Check size={13} /> Permit valid</button><button onClick={() => reviewPermit(m, false)} className="flex items-center gap-1 rounded-xl bg-coral-100 px-3 py-1.5 text-xs font-semibold text-coral-600"><X size={13} /> Reject permit</button></>}
                 {m.status === 'pending' && m.business_permit_status === 'approved' && (
                   <>
-                    <button onClick={() => updateStatus(m.id, 'approved')} className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1">
-                      <Check size={13} /> Approve
-                    </button>
+                    <a href="/admin/approval-center" className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1">
+                      <Check size={13} /> Complete activation
+                    </a>
                     <button onClick={() => updateStatus(m.id, 'rejected')} className="text-xs px-3 py-1.5 rounded-xl bg-coral-100 text-coral-600 font-semibold flex items-center gap-1">
                       <X size={13} /> Reject
                     </button>

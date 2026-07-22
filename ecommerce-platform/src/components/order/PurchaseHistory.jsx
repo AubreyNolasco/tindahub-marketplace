@@ -1,17 +1,22 @@
 import { useEffect, useState } from 'react'
-import { ClipboardList, PackageCheck } from 'lucide-react'
+import { CircleDollarSign, ClipboardList, PackageCheck, ShieldAlert } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { peso, formatDate, ORDER_STATUS_STYLES, ORDER_STATUS_LABELS } from '../../utils/format'
 import EmptyState from '../ui/EmptyState'
 import Spinner from '../ui/Spinner'
+import OrderCaseModal from './OrderCaseModal'
+import CustomerPaymentModal from './CustomerPaymentModal'
+import { realizedResellerMargin } from '../../utils/orderProcess'
 
 export default function PurchaseHistory() {
   const { user } = useAuth()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [confirming, setConfirming] = useState(null)
+  const [caseOrder,setCaseOrder]=useState(null)
+  const [paymentOrder,setPaymentOrder]=useState(null)
 
   useEffect(() => {
     load()
@@ -21,7 +26,7 @@ export default function PurchaseHistory() {
     setLoading(true)
     const { data, error } = await supabase
       .from('orders')
-      .select('*, merchant_profiles(business_name), order_items(*)')
+      .select('*, merchant_profiles(business_name), order_items(*), order_cases(id,case_type,status,created_at), customer_payment_records(*)')
       .eq('reseller_id', user.id)
       .order('created_at', { ascending: false })
     if (error) toast.error(error.message)
@@ -31,7 +36,7 @@ export default function PurchaseHistory() {
 
   const confirmReceived = async (order) => {
     setConfirming(order.id)
-    const { error } = await supabase.from('orders').update({ status: 'completed' }).eq('id', order.id)
+    const { error } = await supabase.from('orders').update({ status: 'completed', delivered_at: new Date().toISOString() }).eq('id', order.id)
     setConfirming(null)
     if (error) {
       toast.error(error.message)
@@ -68,6 +73,9 @@ export default function PurchaseHistory() {
               <div className="flex justify-between font-semibold text-ink mt-3 pt-3 border-t border-black/5">
                 <span>Total</span><span>{peso(o.total)}</span>
               </div>
+              {o.delivery_provider&&<div className="mt-3 rounded-xl bg-teal-50 p-3 text-xs text-teal-900"><strong>{o.delivery_provider}</strong> · Tracking {o.tracking_number}{o.estimated_delivery_at&&<span className="block mt-1">Estimated delivery: {new Date(o.estimated_delivery_at).toLocaleString('en-PH')}</span>}</div>}
+              {o.order_cases?.filter(c=>['open','merchant_review','admin_review'].includes(c.status)).map(c=><p key={c.id} className="mt-3 rounded-xl bg-coral-100 p-3 text-xs font-semibold text-coral-700">Open {c.case_type} request · {c.status.replace('_',' ')}</p>)}
+              {o.customer_payment_records?.[0]&&<div className="mt-3 rounded-xl bg-mango-100/60 p-3 text-xs text-ink/65"><p>Customer payment: <strong className="capitalize">{o.customer_payment_records[0].status.replace('_',' ')}</strong> · Received {peso(o.customer_payment_records[0].received_amount)} of {peso(o.customer_payment_records[0].expected_amount)}</p><p className="mt-1 font-bold text-teal-800">{o.customer_payment_records[0].status==='paid'?'Realized':'Collected'} margin: {peso(realizedResellerMargin(o.customer_payment_records[0].received_amount,o.total))}</p></div>}
               {(() => {
                 const resellerFee = Number(o.reseller_operation_fee) || 0
                 return (
@@ -90,10 +98,13 @@ export default function PurchaseHistory() {
                   <PackageCheck size={16} /> {confirming === o.id ? 'Confirming...' : 'Confirm Delivery'}
                 </button>
               )}
+              {!['cancelled'].includes(o.status)&&<div className="mt-3 flex flex-wrap gap-2"><button onClick={()=>setPaymentOrder(o)} className="btn-secondary flex items-center gap-1.5 text-xs"><CircleDollarSign size={15}/> Record customer payment</button>{o.status!=='completed'&&<button onClick={()=>setCaseOrder(o)} className="flex items-center gap-1.5 rounded-xl bg-coral-100 px-3 py-2 text-xs font-semibold text-coral-700"><ShieldAlert size={15}/> Request cancellation / help</button>}</div>}
             </div>
           ))}
         </div>
       )}
+      <OrderCaseModal order={caseOrder} open={Boolean(caseOrder)} onClose={()=>setCaseOrder(null)} onSaved={load}/>
+      <CustomerPaymentModal order={paymentOrder} open={Boolean(paymentOrder)} onClose={()=>setPaymentOrder(null)} onSaved={load}/>
     </div>
   )
 }

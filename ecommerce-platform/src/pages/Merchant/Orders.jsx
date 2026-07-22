@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ClipboardList, Check, X, Eye } from 'lucide-react'
+import { ClipboardList, Check, X, Eye, ShieldAlert, Truck } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
@@ -7,13 +7,14 @@ import { peso, formatDate, ORDER_STATUS_STYLES, ORDER_STATUS_LABELS } from '../.
 import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
 import DeliveryProcessGuide from '../../components/order/DeliveryProcessGuide'
+import DeliveryModal from '../../components/order/DeliveryModal'
+import OrderCaseModal from '../../components/order/OrderCaseModal'
 
 // Merchant can advance an order up to 'shipped'. Only the buyer's "Confirm
 // Received" action (or an admin) can mark it 'completed' — that's what
 // releases the escrowed payout, so the merchant can't self-complete it.
 const NEXT_STATUS = {
-  confirmed: 'processing',
-  processing: 'shipped'
+  confirmed: 'processing'
 }
 
 const STATUS_ERRORS = {
@@ -26,6 +27,8 @@ export default function Orders() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [proofUrls, setProofUrls] = useState({})
+  const [deliveryOrder,setDeliveryOrder]=useState(null)
+  const [caseOrder,setCaseOrder]=useState(null)
 
   useEffect(() => {
     load()
@@ -35,7 +38,7 @@ export default function Orders() {
     setLoading(true)
     const { data, error } = await supabase
       .from('orders')
-      .select('*, order_items(*), payments(*), customers(name, phone, address, notes)')
+      .select('*, order_items(*), payments(*), customers(name, phone, address, notes), order_cases(*)')
       .eq('merchant_id', user.id)
       .order('created_at', { ascending: false })
     if (error) toast.error(error.message)
@@ -87,9 +90,11 @@ export default function Orders() {
       toast.error(STATUS_ERRORS[error.message] || error.message)
       return
     }
-    toast.success(`Order na-update sa: ${ORDER_STATUS_LABELS[next]}`)
+    toast.success(`Order updated to ${ORDER_STATUS_LABELS[next]}.`)
     load()
   }
+
+  const reviewCase=async(caseItem,approve)=>{const notes=window.prompt(approve?'Resolution notes:':'Reason for rejection:')||'';const{error}=await supabase.rpc('review_order_case',{p_case_id:caseItem.id,p_approve:approve,p_notes:notes});if(error)return toast.error(error.message);toast.success(approve?'Request approved.':'Request rejected.');load()}
 
   if (loading) return <div className="flex justify-center py-24"><Spinner /></div>
 
@@ -134,11 +139,12 @@ export default function Orders() {
                       <div className="flex justify-between"><span>Products subtotal</span><span>{peso(o.subtotal)}</span></div>
                       <div className="flex justify-between font-medium text-mango-600"><span>Shipping fee</span><span>{o.shipping_payment_method === 'receiver_pays_on_delivery' ? 'Receiver pays upon delivery' : peso(o.shipping_fee)}</span></div>
                       {o.shipping_distance_km && <div className="flex justify-between"><span>Billing road distance</span><span>{o.shipping_distance_km} km</span></div>}
-                      <div className="flex justify-between"><span>5% Merchant Operation Fee (charged on Processing)</span><span>{peso(merchantFee)}</span></div>
+                      <div className="flex justify-between"><span>3% Merchant Success Fee (withheld after completion)</span><span>{peso(merchantFee)}</span></div>
                       <div className="flex justify-between font-semibold text-ink/70"><span>Order payout to wallet</span><span>{peso(orderPayout)}</span></div>
                     </div>
                   )
                 })()}
+                {o.order_cases?.filter(c=>['open','merchant_review','admin_review'].includes(c.status)).map(c=><div key={c.id} className="mb-3 rounded-xl bg-coral-100 p-4 text-sm text-coral-800"><p className="font-bold capitalize">{c.case_type} request</p><p className="mt-1 text-xs leading-5">{c.reason}</p>{c.status==='merchant_review'&&<div className="mt-3 flex gap-2"><button onClick={()=>reviewCase(c,true)} className="btn-primary text-xs">Approve cancellation</button><button onClick={()=>reviewCase(c,false)} className="btn-secondary text-xs">Reject</button></div>}</div>)}
 
                 {payment && payment.status === 'submitted' && (
                   <div className="bg-mango-100 rounded-xl p-4">
@@ -154,10 +160,10 @@ export default function Orders() {
                     )}
                     <div className="flex gap-2">
                       <button onClick={() => verifyPayment(o, true)} className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1">
-                        <Check size={14} /> I-verify
+                        <Check size={14} /> Verify
                       </button>
                       <button onClick={() => verifyPayment(o, false)} className="text-xs px-3 py-1.5 rounded-xl bg-coral-100 text-coral-600 font-semibold flex items-center gap-1">
-                        <X size={14} /> I-reject
+                        <X size={14} /> Reject
                       </button>
                     </div>
                   </div>
@@ -168,6 +174,8 @@ export default function Orders() {
                     Mark as "{ORDER_STATUS_LABELS[NEXT_STATUS[o.status]]}"
                   </button>
                 )}
+                {o.status==='processing'&&<button onClick={()=>setDeliveryOrder(o)} className="btn-primary mt-3 flex items-center gap-1.5 text-sm"><Truck size={16}/> Enter delivery details</button>}
+                {!['completed','cancelled'].includes(o.status)&&<button onClick={()=>setCaseOrder(o)} className="ml-2 mt-3 inline-flex items-center gap-1.5 rounded-xl bg-coral-100 px-3 py-2 text-xs font-semibold text-coral-700"><ShieldAlert size={15}/> Request help</button>}
                 {o.status === 'shipped' && (
                   <p className="text-xs text-ink/50 mt-3">
                     Awaiting buyer confirmation — your payout will be released to your wallet after delivery is confirmed.
@@ -178,6 +186,8 @@ export default function Orders() {
           })}
         </div>
       )}
+      <DeliveryModal order={deliveryOrder} open={Boolean(deliveryOrder)} onClose={()=>setDeliveryOrder(null)} onSaved={load}/>
+      <OrderCaseModal order={caseOrder} open={Boolean(caseOrder)} onClose={()=>setCaseOrder(null)} onSaved={load}/>
     </div>
   )
 }

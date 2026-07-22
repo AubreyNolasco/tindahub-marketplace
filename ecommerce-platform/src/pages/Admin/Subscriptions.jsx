@@ -147,7 +147,7 @@ export default function Subscriptions() {
     setLoading(true)
     const [{ data, error }, { data: requestData, error: requestError }] = await Promise.all([
       supabase.from('profiles').select('*, merchant_profiles!merchant_profiles_id_fkey(business_name), subscriptions(*)').in('role', ['merchant', 'reseller']).order('created_at', { ascending: false }),
-      supabase.from('subscription_requests').select('*, profiles!subscription_requests_owner_id_fkey(full_name, merchant_profiles!merchant_profiles_id_fkey(business_name))').order('created_at', { ascending: false })
+      supabase.from('subscription_requests').select('*, profiles!subscription_requests_owner_id_fkey(full_name,role, merchant_profiles!merchant_profiles_id_fkey(business_name))').order('created_at', { ascending: false })
     ])
     if (error || requestError) toast.error(error?.message || requestError?.message)
     setProfiles(data || [])
@@ -166,12 +166,11 @@ export default function Subscriptions() {
   const review = async (request, approved) => {
     const adminNotes = approved ? null : window.prompt('Reason for rejection (optional):') || null
     const { data: { user } } = await supabase.auth.getUser()
-    const { error } = await supabase.from('subscription_requests').update({
-      status: approved ? 'approved' : 'rejected', admin_notes: adminNotes,
-      reviewed_by: user.id, reviewed_at: new Date().toISOString()
-    }).eq('id', request.id)
+    const { error } = approved && request.profiles?.role === 'merchant'
+      ? await supabase.rpc('activate_merchant_application', { p_merchant_id: request.owner_id, p_subscription_request_id: request.id })
+      : await supabase.from('subscription_requests').update({ status: approved ? 'approved' : 'rejected', admin_notes: adminNotes, reviewed_by: user.id, reviewed_at: new Date().toISOString() }).eq('id', request.id)
     if (error) return toast.error(error.message)
-    toast.success(approved ? 'Subscription and Merchant account approved.' : 'Subscription request rejected.')
+    toast.success(approved ? request.profiles?.role === 'merchant' ? 'Subscription approved and Merchant account activated.' : 'Subscription approved.' : 'Subscription request rejected.')
     load()
   }
 

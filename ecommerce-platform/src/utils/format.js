@@ -34,10 +34,10 @@ export const ORDER_STATUS_LABELS = {
   pending_payment: 'Awaiting Payment',
   payment_review: 'Payment Review',
   confirmed: 'Confirmed',
-  processing: 'Inihahanda',
-  shipped: 'Nai-ship na',
-  completed: 'Tapos na',
-  cancelled: 'Kinansela'
+  processing: 'Processing',
+  shipped: 'Shipped',
+  completed: 'Completed',
+  cancelled: 'Cancelled'
 }
 
 export const TOPUP_STATUS_STYLES = {

@@ -21,6 +21,7 @@ export default function RoleNotifications() {
   const load = useCallback(async () => {
     if (!user || !['merchant', 'reseller'].includes(role)) return
     const items = []
+    await supabase.rpc('run_operational_maintenance')
     const { data: wallet } = await supabase.from('wallets').select('id,balance,updated_at').eq('owner_id', user.id).maybeSingle()
     if (wallet) items.push({ id:`wallet:${wallet.id}:${wallet.updated_at}`, title:Number(wallet.balance) <= LOW_BALANCE_LIMIT ? 'Low wallet balance' : 'Current wallet balance', message:`Your available balance is ${peso(wallet.balance)}.`, to:`/${role}/wallet`, action:'Open wallet', icon:WalletCards, tone:Number(wallet.balance) <= LOW_BALANCE_LIMIT ? 'coral' : 'teal' })
 

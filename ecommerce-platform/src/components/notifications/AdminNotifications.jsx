@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Bell, CalendarDays, CircleDollarSign, CreditCard, X } from 'lucide-react'
+import { Bell, CalendarDays, CircleDollarSign, CreditCard, ShieldAlert, WalletCards, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
@@ -22,6 +22,8 @@ export default function AdminNotifications() {
     if (allowed('subscriptions')) requests.push(supabase.from('subscription_requests').select('id,amount,plan_months,reference_number,created_at').eq('status','pending').order('created_at',{ascending:false}).limit(20).then(({data}) => (data || []).map(row => ({ id:`subscription:${row.id}`, title:'New subscription payment', message:`${row.plan_months}-month plan · ${peso(row.amount)} · Ref ${row.reference_number || 'not provided'}`, to:'/admin/subscriptions', icon:CreditCard, tone:'teal', created_at:row.created_at }))))
     if (allowed('topups')) requests.push(supabase.from('topup_requests').select('id,amount,reference_number,created_at').eq('status','pending').order('created_at',{ascending:false}).limit(20).then(({data}) => (data || []).map(row => ({ id:`topup:${row.id}`, title:'New wallet top-up', message:`${peso(row.amount)} · Ref ${row.reference_number || 'not provided'}`, to:'/admin/topups', icon:CircleDollarSign, tone:'mango', created_at:row.created_at }))))
     if (allowed('registrations')) requests.push(supabase.from('registration_appointments').select('id,full_name,interested_role,preferred_date,preferred_time,created_at').eq('status','pending').order('created_at',{ascending:false}).limit(20).then(({data}) => (data || []).map(row => ({ id:`registration:${row.id}`, title:'New onboarding schedule', message:`${row.full_name} · ${row.interested_role} · ${new Date(`${row.preferred_date}T${row.preferred_time}`).toLocaleString('en-PH',{dateStyle:'medium',timeStyle:'short'})}`, to:'/admin/registrations', icon:CalendarDays, tone:'coral', created_at:row.created_at }))))
+    if (profile?.role==='admin') requests.push(supabase.from('order_cases').select('id,case_type,status,created_at').in('status',['open','admin_review']).order('created_at',{ascending:false}).limit(20).then(({data})=>(data||[]).map(row=>({id:`case:${row.id}:${row.status}`,title:'Order case needs review',message:`${row.case_type} request · ${row.status.replace('_',' ')}`,to:'/admin/order-cases',icon:ShieldAlert,tone:'coral',created_at:row.created_at}))))
+    if (allowed('withdrawals')) requests.push(supabase.from('withdrawal_requests').select('id,amount,created_at').eq('status','pending').order('created_at',{ascending:false}).limit(20).then(({data})=>(data||[]).map(row=>({id:`withdrawal:${row.id}`,title:'New withdrawal request',message:`${peso(row.amount)} waiting for review`,to:'/admin/withdrawals',icon:WalletCards,tone:'mango',created_at:row.created_at}))))
     const groups = await Promise.all(requests)
     setItems(groups.flat().sort((a,b) => new Date(b.created_at) - new Date(a.created_at)))
   }, [user?.id, profile, allowed])
@@ -33,6 +35,8 @@ export default function AdminNotifications() {
     if (allowed('subscriptions')) channel.on('postgres_changes',{event:'*',schema:'public',table:'subscription_requests'},load)
     if (allowed('topups')) channel.on('postgres_changes',{event:'*',schema:'public',table:'topup_requests'},load)
     if (allowed('registrations')) channel.on('postgres_changes',{event:'*',schema:'public',table:'registration_appointments'},load)
+    if (profile?.role==='admin') channel.on('postgres_changes',{event:'*',schema:'public',table:'order_cases'},load)
+    if (allowed('withdrawals')) channel.on('postgres_changes',{event:'*',schema:'public',table:'withdrawal_requests'},load)
     channel.subscribe()
     return () => { supabase.removeChannel(channel) }
   }, [user?.id, allowed, load])

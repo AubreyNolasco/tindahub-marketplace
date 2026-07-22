@@ -83,6 +83,8 @@ import LegalSettings from './pages/Admin/LegalSettings'
 import ProcessGuide from './pages/Admin/ProcessGuide'
 import AdminPermissionRoute from './components/auth/AdminPermissionRoute'
 import AdminFullAccess from './pages/Admin/FullAccess'
+import ApprovalCenter from './pages/Admin/ApprovalCenter'
+import OrderCases from './pages/Admin/OrderCases'
 
 export default function App() {
   return (
@@ -172,6 +174,8 @@ export default function App() {
                   <Route index element={<AdminPermissionRoute permission="overview"><AdminDashboard /></AdminPermissionRoute>} />
                   <Route path="staff" element={<AdminPermissionRoute adminOnly><StaffManagement /></AdminPermissionRoute>} />
                   <Route path="full-access" element={<AdminPermissionRoute adminOnly><AdminFullAccess /></AdminPermissionRoute>} />
+                  <Route path="approval-center" element={<AdminPermissionRoute adminOnly><ApprovalCenter /></AdminPermissionRoute>} />
+                  <Route path="order-cases" element={<AdminPermissionRoute adminOnly><OrderCases /></AdminPermissionRoute>} />
                   <Route path="products" element={<AdminPermissionRoute adminOnly><Products admin /></AdminPermissionRoute>} />
                   <Route path="products/new" element={<AdminPermissionRoute adminOnly><ProductForm admin /></AdminPermissionRoute>} />
                   <Route path="products/:id/edit" element={<AdminPermissionRoute adminOnly><ProductForm admin /></AdminPermissionRoute>} />

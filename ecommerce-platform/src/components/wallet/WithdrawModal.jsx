@@ -16,6 +16,7 @@ export default function WithdrawModal({ open, onClose, onSubmitted }) {
   const [accountName, setAccountName] = useState('')
   const [accountNumber, setAccountNumber] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [confirmed,setConfirmed]=useState(false)
   useEffect(()=>{if(open){setBankName(profile?.payout_provider||'');setAccountName(profile?.payout_account_name||profile?.full_name||'');setAccountNumber(profile?.payout_account_number||'')}},[open,profile])
 
   if (!open) return null
@@ -30,10 +31,11 @@ export default function WithdrawModal({ open, onClose, onSubmitted }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     const numericAmount = Number(amount)
-    if (!numericAmount || numericAmount <= 0) {
-      toast.error('Enter a valid amount.')
+    if (!numericAmount || numericAmount < 500) {
+      toast.error('The minimum withdrawal is ₱500.')
       return
     }
+    if(!confirmed)return toast.error('Confirm the destination details before submitting.')
 
     setSubmitting(true)
     try {
@@ -73,7 +75,7 @@ export default function WithdrawModal({ open, onClose, onSubmitted }) {
               required
               type="number"
               step="0.01"
-              min="1"
+            min="500"
               className="input-field mt-1"
               placeholder="0.00"
               value={amount}
@@ -114,11 +116,12 @@ export default function WithdrawModal({ open, onClose, onSubmitted }) {
             />
           </div>
 
-          <button type="submit" disabled={submitting} className="btn-primary w-full flex items-center justify-center gap-2">
+          <label className="flex items-start gap-3 rounded-xl bg-teal-50 p-3 text-xs leading-5 text-teal-900"><input type="checkbox" checked={confirmed} onChange={e=>setConfirmed(e.target.checked)} className="mt-1 accent-teal-700"/> I verified that the provider, account name, and account number are correct. I understand that payout destination changes have a 24-hour security cooldown.</label>
+          <button type="submit" disabled={submitting||!confirmed} className="btn-primary w-full flex items-center justify-center gap-2">
             {submitting && <Loader2 size={16} className="animate-spin" />}
             {submitting ? 'Submitting...' : 'Submit Withdrawal'}
           </button>
-          <p className="rounded-xl bg-mango-100/60 p-3 text-xs leading-5 text-ink/55">The amount is held immediately. Admin will show the planned processing time based on availability. Funds are transferred only when marked <strong>Sent</strong>.</p>
+          <p className="rounded-xl bg-mango-100/60 p-3 text-xs leading-5 text-ink/55">Minimum ₱500; maximum combined requests are ₱100,000 per day. The amount is held immediately. Admin will show the planned processing time based on availability. Funds are transferred only when marked <strong>Sent</strong>.</p>
         </form>
       </div>
     </div>

@@ -10,8 +10,8 @@ const content = {
       ['Confirm and prepare', 'Review the order and prepare the items according to their packed weight, dimensions, and handling requirements.'],
       ['Use the buyer address', 'Copy the delivery address from the order. It is private and may only be used to complete delivery.'],
       ['Book the courier', 'Book Lalamove or another courier using the Merchant address for pickup and the buyer address for drop-off.'],
-      ['Share the delivery update', 'After a rider accepts the booking, mark the order as Shipped. Never post the pickup address in chat.'],
-      ['Receiver pays shipping', 'The Reseller or final customer pays the actual delivery charge directly to the courier upon delivery.'],
+      ['Record dispatch evidence', 'Enter the courier, tracking number, pickup schedule, delivery estimate, actual fee, and upload booking or dispatch proof.'],
+      ['Protected completion', 'The receiver confirms after inspection or opens a case. Without a dispute, completion occurs seven days after estimated delivery.'],
     ],
   },
 }
