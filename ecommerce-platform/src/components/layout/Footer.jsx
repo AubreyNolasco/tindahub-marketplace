@@ -31,8 +31,8 @@ export default function Footer() {
         <div>
           <p className="font-semibold text-white text-sm mb-4">Support & Policy</p>
           <div className="flex flex-col gap-3 text-sm text-white/55">
-            <a href="mailto:support@tindahub.ph" className="hover:text-mango-300 transition-colors flex items-center gap-2">
-              <Mail size={15} /> support@tindahub.ph
+            <a href="mailto:nolascoaubrey32@gmail.com" className="hover:text-mango-300 transition-colors flex items-center gap-2">
+              <Mail size={15} /> nolascoaubrey32@gmail.com
             </a>
             <Link to="/legal/terms" className="hover:text-mango-300 transition-colors">Terms</Link><Link to="/legal/privacy" className="hover:text-mango-300 transition-colors">Privacy</Link><Link to="/legal/merchant" className="hover:text-mango-300 transition-colors">Merchant Agreement</Link><Link to="/legal/reseller" className="hover:text-mango-300 transition-colors">Reseller Agreement</Link><Link to="/legal/commission" className="hover:text-mango-300 transition-colors">Commission Policy</Link><Link to="/legal/refund" className="hover:text-mango-300 transition-colors">Refund Policy</Link><Link to="/legal/cookie" className="hover:text-mango-300 transition-colors">Cookie Policy</Link>
           </div>

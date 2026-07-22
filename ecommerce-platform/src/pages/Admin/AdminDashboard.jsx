@@ -50,7 +50,7 @@ export default function AdminDashboard() {
   const actionCount = stats.pendingMerchants + stats.pendingTopups + stats.pendingWithdrawals + stats.pendingSubscriptions + stats.pendingRegistrations
   const metrics = [
     { label: 'Gross marketplace value', value: peso(stats.gmv), detail: `${stats.orders} non-cancelled orders`, icon: TrendingUp, tone: 'bg-teal-50 text-teal-700', link: '/admin/reports/sales' },
-    { label: 'Platform wallet', value: peso(stats.platformWallet), detail: 'Available operation fees', icon: Wallet, tone: 'bg-mango-100 text-mango-600', link: '/admin/wallet' },
+    { label: 'Platform wallet', value: peso(stats.platformWallet), detail: 'Recorded platform revenue', icon: Wallet, tone: 'bg-mango-100 text-mango-600', link: '/admin/wallet' },
     { label: 'Active merchants', value: stats.approvedMerchants, detail: `${stats.merchants} total merchant accounts`, icon: Building2, tone: 'bg-teal-50 text-teal-700', link: '/admin/merchants' },
     { label: 'Registered resellers', value: stats.resellers, detail: 'Marketplace buyer network', icon: Users, tone: 'bg-coral-100 text-coral-600', link: '/admin' }
   ]

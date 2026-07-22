@@ -45,6 +45,7 @@ export default function PurchaseHistory() {
     toast.success('Thank you! The merchant payout has been released.')
     load()
   }
+  const viewDispatchProof=async order=>{const{data,error}=await supabase.storage.from('delivery-proofs').createSignedUrl(order.dispatch_proof_url,300);if(error)return toast.error(error.message);window.open(data.signedUrl,'_blank','noopener,noreferrer')}
 
   if (loading) return <div className="flex justify-center py-24"><Spinner /></div>
 
@@ -73,9 +74,9 @@ export default function PurchaseHistory() {
               <div className="flex justify-between font-semibold text-ink mt-3 pt-3 border-t border-black/5">
                 <span>Total</span><span>{peso(o.total)}</span>
               </div>
-              {o.delivery_provider&&<div className="mt-3 rounded-xl bg-teal-50 p-3 text-xs text-teal-900"><strong>{o.delivery_provider}</strong> · Tracking {o.tracking_number}{o.estimated_delivery_at&&<span className="block mt-1">Estimated delivery: {new Date(o.estimated_delivery_at).toLocaleString('en-PH')}</span>}</div>}
+              {o.delivery_provider&&<div className="mt-3 rounded-xl bg-teal-50 p-3 text-xs text-teal-900"><strong>{o.delivery_provider}</strong> · Tracking {o.tracking_number}{o.estimated_delivery_at&&<span className="block mt-1">Estimated delivery: {new Date(o.estimated_delivery_at).toLocaleString('en-PH')}</span>}{o.actual_shipping_fee!=null&&<span className="block mt-1">Actual courier fee: {peso(o.actual_shipping_fee)}</span>}{o.dispatch_proof_url&&<button onClick={()=>viewDispatchProof(o)} className="mt-2 font-bold underline">View dispatch proof</button>}</div>}
               {o.order_cases?.filter(c=>['open','merchant_review','admin_review'].includes(c.status)).map(c=><p key={c.id} className="mt-3 rounded-xl bg-coral-100 p-3 text-xs font-semibold text-coral-700">Open {c.case_type} request · {c.status.replace('_',' ')}</p>)}
-              {o.customer_payment_records?.[0]&&<div className="mt-3 rounded-xl bg-mango-100/60 p-3 text-xs text-ink/65"><p>Customer payment: <strong className="capitalize">{o.customer_payment_records[0].status.replace('_',' ')}</strong> · Received {peso(o.customer_payment_records[0].received_amount)} of {peso(o.customer_payment_records[0].expected_amount)}</p><p className="mt-1 font-bold text-teal-800">{o.customer_payment_records[0].status==='paid'?'Realized':'Collected'} margin: {peso(realizedResellerMargin(o.customer_payment_records[0].received_amount,o.total))}</p></div>}
+              {o.customer_payment_records?.[0]&&<div className="mt-3 rounded-xl bg-mango-100/60 p-3 text-xs text-ink/65"><p>Customer payment: <strong className="capitalize">{o.customer_payment_records[0].status.replace('_',' ')}</strong> · Received {peso(o.customer_payment_records[0].received_amount)} of {peso(o.customer_payment_records[0].expected_amount)}</p>{o.customer_payment_records[0].status==='refunded'?<p className="mt-1 font-bold text-coral-700">Customer-side payment was recorded as refunded.</p>:<p className="mt-1 font-bold text-teal-800">{o.customer_payment_records[0].status==='paid'?'Realized':'Collected'} margin: {peso(realizedResellerMargin(o.customer_payment_records[0].received_amount,o.total))}</p>}</div>}
               {(() => {
                 const resellerFee = Number(o.reseller_operation_fee) || 0
                 return (

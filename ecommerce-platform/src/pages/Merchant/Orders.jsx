@@ -19,7 +19,7 @@ const NEXT_STATUS = {
 
 const STATUS_ERRORS = {
   NO_MERCHANT_WALLET: 'No merchant wallet was found for this account.',
-  INSUFFICIENT_MERCHANT_FEE_BALANCE: 'Your wallet balance is insufficient for the 5% merchant operation fee.'
+  INSUFFICIENT_MERCHANT_FEE_BALANCE: 'The legacy Merchant fee check blocked this order. Contact Admin so the database workflow can be reviewed.'
 }
 
 export default function Orders() {
@@ -58,6 +58,7 @@ export default function Orders() {
     }
     setProofUrls((p) => ({ ...p, [order.id]: data.signedUrl }))
   }
+  const viewDispatchProof=async order=>{const{data,error}=await supabase.storage.from('delivery-proofs').createSignedUrl(order.dispatch_proof_url,300);if(error)return toast.error(error.message);window.open(data.signedUrl,'_blank','noopener,noreferrer')}
 
   const verifyPayment = async (order, approve) => {
     const payment = order.payments?.[0]
@@ -145,6 +146,7 @@ export default function Orders() {
                   )
                 })()}
                 {o.order_cases?.filter(c=>['open','merchant_review','admin_review'].includes(c.status)).map(c=><div key={c.id} className="mb-3 rounded-xl bg-coral-100 p-4 text-sm text-coral-800"><p className="font-bold capitalize">{c.case_type} request</p><p className="mt-1 text-xs leading-5">{c.reason}</p>{c.status==='merchant_review'&&<div className="mt-3 flex gap-2"><button onClick={()=>reviewCase(c,true)} className="btn-primary text-xs">Approve cancellation</button><button onClick={()=>reviewCase(c,false)} className="btn-secondary text-xs">Reject</button></div>}</div>)}
+                {o.delivery_provider&&<div className="mb-3 rounded-xl bg-teal-50 p-3 text-xs text-teal-900"><strong>{o.delivery_provider}</strong> · Tracking {o.tracking_number}{o.estimated_delivery_at&&<span className="block mt-1">Estimated delivery: {new Date(o.estimated_delivery_at).toLocaleString('en-PH')}</span>}{o.actual_shipping_fee!=null&&<span className="block mt-1">Actual courier fee: {peso(o.actual_shipping_fee)}</span>}{o.dispatch_proof_url&&<button onClick={()=>viewDispatchProof(o)} className="mt-2 font-bold underline">View dispatch proof</button>}</div>}
 
                 {payment && payment.status === 'submitted' && (
                   <div className="bg-mango-100 rounded-xl p-4">

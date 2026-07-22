@@ -22,18 +22,18 @@ function downloadExcel(role, orders, startDate, endDate) {
       : role === 'admin'
         ? [order.merchant_profiles?.business_name || '', order.profiles?.full_name || '', order.payments?.[0]?.method || '', order.payments?.[0]?.status || '']
       : [order.merchant_profiles?.business_name || '', order.customers?.name || '', order.customers?.phone || '', order.customers?.address || '']
-    const fee = role === 'merchant' || role === 'admin' ? order.platform_fee : order.reseller_operation_fee
+    const feeCols = role === 'admin' ? [order.reseller_operation_fee,order.platform_fee] : [role === 'merchant' ? order.platform_fee : order.reseller_operation_fee]
     return [
       ...common, ...roleCols, item.product_name, item.unit_price, item.quantity, item.line_total,
-      order.subtotal, order.shipping_payment_method === 'receiver_pays_on_delivery' ? 'Pay upon delivery' : (order.shipping_fee || 0), order.shipping_vehicle || '', order.shipping_distance_km || '', fee, order.total, order.shipping_address || '', order.notes || ''
+      order.subtotal, order.shipping_payment_method === 'receiver_pays_on_delivery' ? (order.actual_shipping_fee ?? 'Paid to courier') : (order.shipping_fee || 0), order.delivery_provider || order.shipping_vehicle || '', order.tracking_number || '', ...feeCols, order.total, order.shipping_address || '', order.notes || ''
     ]
   }))
   const headers = role === 'merchant'
-    ? ['Order No.', 'Order Date', 'Status', 'Reseller', 'Reseller Phone', 'Payment Method', 'Payment Ref.', 'Payment Status', 'Product', 'Unit Price', 'Quantity', 'Line Total', 'Subtotal', 'Shipping Fee', 'Vehicle', 'Road Distance KM', 'Merchant 3% Fee', 'Order Total', 'Shipping Address', 'Notes']
+      ? ['Order No.', 'Order Date', 'Status', 'Reseller', 'Reseller Phone', 'Payment Method', 'Payment Ref.', 'Payment Status', 'Product', 'Unit Price', 'Quantity', 'Line Total', 'Subtotal', 'Actual Shipping Fee', 'Delivery Provider', 'Tracking Number', 'Merchant 3% Fee', 'Wallet Order Total', 'Shipping Address', 'Notes']
     : role === 'admin'
-      ? ['Order No.', 'Order Date', 'Status', 'Merchant', 'Reseller', 'Payment Method', 'Payment Status', 'Product', 'Unit Price', 'Quantity', 'Line Total', 'Subtotal', 'Shipping Fee', 'Vehicle', 'Road Distance KM', 'Platform Fee', 'Order Total', 'Shipping Address', 'Notes']
-      : ['Order No.', 'Order Date', 'Status', 'Merchant', 'Customer', 'Customer Phone', 'Customer Address', 'Product', 'Unit Price', 'Quantity', 'Line Total', 'Subtotal', 'Shipping Fee', 'Vehicle', 'Road Distance KM', 'Reseller System Fee', 'Order Total', 'Shipping Address', 'Notes']
-  exportExcel(`tindahub-${role}-sales-${startDate}-to-${endDate}.xls`, 'Sales Report', headers, rows)
+      ? ['Order No.', 'Order Date', 'Status', 'Merchant', 'Reseller', 'Payment Method', 'Payment Status', 'Product', 'Unit Price', 'Quantity', 'Line Total', 'Subtotal', 'Actual Shipping Fee', 'Delivery Provider', 'Tracking Number', 'Reseller 1% Fee', 'Merchant 3% Fee', 'Wallet Order Total', 'Shipping Address', 'Notes']
+      : ['Order No.', 'Order Date', 'Status', 'Merchant', 'Customer', 'Customer Phone', 'Customer Address', 'Product', 'Unit Price', 'Quantity', 'Line Total', 'Subtotal', 'Actual Shipping Fee', 'Delivery Provider', 'Tracking Number', 'Reseller 1% Fee', 'Wallet Order Total', 'Shipping Address', 'Notes']
+  exportExcel(`jom-hub-${role}-sales-${startDate}-to-${endDate}.xls`, 'Sales Report', headers, rows)
 }
 
 export default function SalesReportView({ role }) {
@@ -64,8 +64,8 @@ export default function SalesReportView({ role }) {
   const activeOrders = orders.filter((order) => order.status !== 'cancelled')
   const completedOrders = orders.filter((order) => order.status === 'completed')
   const pendingOrders = orders.filter((order) => !['completed', 'cancelled'].includes(order.status))
-  const totalValue = activeOrders.reduce((sum, order) => sum + Number(order.total), 0)
-  const fees = activeOrders.reduce((sum, order) => sum + Number((role === 'merchant' || role === 'admin' ? order.platform_fee : order.reseller_operation_fee) || 0), 0)
+  const totalValue = activeOrders.reduce((sum, order) => sum + Number(role === 'reseller' ? order.total : order.subtotal), 0)
+  const fees = role === 'admin' ? activeOrders.reduce((sum,order)=>sum+Number(order.reseller_operation_fee||0),0)+completedOrders.reduce((sum,order)=>sum+Number(order.platform_fee||0),0) : role === 'merchant' ? completedOrders.reduce((sum,order)=>sum+Number(order.platform_fee||0),0) : activeOrders.reduce((sum,order)=>sum+Number(order.reseller_operation_fee||0),0)
   const counterpartCount = new Set(orders.flatMap((order) => role === 'admin' ? [order.reseller_id, order.merchant_id] : [role === 'merchant' ? order.reseller_id : order.merchant_id])).size
 
   const cards = [
@@ -97,7 +97,7 @@ export default function SalesReportView({ role }) {
         {orders.length === 0 ? <EmptyState icon={ShoppingBag} title="No orders in this date range" /> : (
           <div className="space-y-3">
             {orders.map((order) => {
-              const fee = Number((role === 'merchant' || role === 'admin' ? order.platform_fee : order.reseller_operation_fee) || 0)
+              const fee = role==='admin' ? Number(order.reseller_operation_fee||0)+(order.status==='completed'?Number(order.platform_fee||0):0) : Number((role === 'merchant' ? (order.status==='completed'?order.platform_fee:0) : order.reseller_operation_fee) || 0)
               const counterpartName = role === 'merchant' ? (order.profiles?.full_name || 'Reseller') : role === 'admin' ? `${order.merchant_profiles?.business_name || 'Merchant'} / ${order.profiles?.full_name || 'Reseller'}` : (order.merchant_profiles?.business_name || 'Merchant')
               return (
                 <div key={order.id} className="card p-4 flex justify-between gap-4 flex-wrap">
@@ -109,7 +109,7 @@ export default function SalesReportView({ role }) {
                   <div className="text-right">
                     <p className="font-semibold text-ink">{peso(order.total)}</p>
                     <p className="text-xs text-teal-700">Fee: {peso(fee)}</p>
-                    <p className="text-xs text-ink/50">Shipping: {order.shipping_payment_method === 'receiver_pays_on_delivery' ? 'Receiver pays upon delivery' : peso(order.shipping_fee || 0)} {order.shipping_vehicle ? `· ${order.shipping_vehicle}` : ''}</p>
+                    <p className="text-xs text-ink/50">Shipping: {order.shipping_payment_method === 'receiver_pays_on_delivery' ? `${order.actual_shipping_fee!=null?peso(order.actual_shipping_fee):'Amount pending'} paid to courier` : peso(order.shipping_fee || 0)} {order.delivery_provider ? `· ${order.delivery_provider}` : ''}</p>
                   </div>
                 </div>
               )

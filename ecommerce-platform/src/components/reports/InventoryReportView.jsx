@@ -19,13 +19,13 @@ function downloadMerchantExcel(products, role) {
     p.name, p.sku || '', p.price, p.wholesale_price || '', p.stock_quantity, Number(p.price) * Number(p.stock_quantity),
     p.is_active ? 'Active' : 'Hidden'
   ])
-  exportExcel(`tindahub-${role}-inventory-${today()}.xls`, 'Inventory Report', headers, rows)
+  exportExcel(`jom-hub-${role}-inventory-${today()}.xls`, 'Inventory Report', headers, rows)
 }
 
 function downloadResellerExcel(rows, startDate, endDate) {
   const headers = ['Product', 'Merchant', 'Total Qty Purchased', 'Total Spent', 'Orders', 'Last Order Date']
   const excelRows = rows.map((r) => [r.product, r.merchant, r.totalQty, r.totalSpent, r.orderCount, formatDate(r.lastOrderDate)])
-  exportExcel(`tindahub-reseller-inventory-${startDate}-to-${endDate}.xls`, 'Inventory Report', headers, excelRows)
+  exportExcel(`jom-hub-reseller-inventory-${startDate}-to-${endDate}.xls`, 'Inventory Report', headers, excelRows)
 }
 
 function stockBadge(qty) {

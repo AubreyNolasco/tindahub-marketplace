@@ -16,7 +16,7 @@ function downloadExcel(orders, startDate, endDate) {
     order.total, order.shipping_address || '', order.notes || ''
   ]))
   const headers = ['Order No.', 'Order Date', 'Status', 'Merchant', 'Reseller', 'Reseller Phone', 'Customer', 'Customer Phone', 'Customer Address', 'Payment Method', 'Payment Ref.', 'Payment Status', 'Product', 'Unit Price', 'Quantity', 'Line Total', 'Subtotal', 'Reseller 1% Fee', 'Merchant 3% Fee', 'Order Total', 'Shipping Address', 'Notes']
-  exportExcel(`tindahub-sales-${startDate}-to-${endDate}.xls`, 'Sales Report', headers, rows)
+  exportExcel(`jom-hub-sales-${startDate}-to-${endDate}.xls`, 'Sales Report', headers, rows)
 }
 
 export default function Sales() {

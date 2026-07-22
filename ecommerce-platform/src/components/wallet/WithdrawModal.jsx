@@ -6,7 +6,10 @@ import { useAuth } from '../../contexts/AuthContext'
 
 const ERROR_MESSAGES = {
   INSUFFICIENT_BALANCE: 'Your wallet balance is insufficient for this withdrawal.',
-  INVALID_AMOUNT: 'Enter a valid amount.'
+  INVALID_AMOUNT: 'Enter a valid amount.',
+  MINIMUM_WITHDRAWAL_500: 'The minimum withdrawal is ₱500.',
+  DAILY_WITHDRAWAL_LIMIT_100000: 'Your combined withdrawal requests cannot exceed ₱100,000 per day.',
+  ACCOUNT_CHANGE_COOLDOWN: 'For security, wait 24 hours after changing your payout destination before withdrawing.'
 }
 
 export default function WithdrawModal({ open, onClose, onSubmitted }) {

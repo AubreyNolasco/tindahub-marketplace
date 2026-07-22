@@ -3,6 +3,7 @@ import { AlertTriangle } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { formatDate } from '../../utils/format'
+import { Link } from 'react-router-dom'
 
 const WARNING_DAYS = 7
 
@@ -42,12 +43,11 @@ export default function SubscriptionExpiryModal() {
         </h2>
         <p className="text-sm text-ink/60 mb-5">
           {isExpired
-            ? `Your subscription expired on ${formatDate(sub.expires_at)}. Contact Admin to renew it.`
-            : `Your subscription will expire in ${daysLeft} days (${formatDate(sub.expires_at)}). Contact Admin to renew it.`}
+            ? `Your subscription expired on ${formatDate(sub.expires_at)}. Renew to publish products and accept new orders; existing orders and wallet records remain available.`
+            : `Your subscription will expire in ${daysLeft} days (${formatDate(sub.expires_at)}). Renew now to avoid pausing your active products.`}
         </p>
-        <button onClick={() => setDismissed(true)} className="btn-primary w-full">
-          Naintindihan
-        </button>
+        <Link to="/choose-subscription" className="btn-primary block w-full">Renew Subscription</Link>
+        <button onClick={() => setDismissed(true)} className="btn-secondary mt-2 w-full">Remind Me Later</button>
       </div>
     </div>
   )

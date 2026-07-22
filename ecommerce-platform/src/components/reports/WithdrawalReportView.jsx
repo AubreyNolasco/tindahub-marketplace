@@ -11,13 +11,13 @@ import ReportToolbar from './ReportToolbar'
 import SummaryCards from './SummaryCards'
 
 function downloadExcel(requests, startDate, endDate, role) {
-  const headers = [...(role === 'admin' ? ['Account Owner'] : []), 'Date', 'Amount', 'Bank', 'Account Name', 'Account Number', 'Status', 'Admin Notes', 'Reviewed At']
+  const headers = [...(role === 'admin' ? ['Account Owner'] : []), 'Date', 'Amount', 'Bank', 'Account Name', 'Account Number', 'Status', 'Scheduled For', 'Sent At', 'Transfer Reference', 'Transfer Proof Stored', 'Admin Notes', 'Reviewed At']
   const rows = requests.map((r) => [
     ...(role === 'admin' ? [r.profiles?.full_name || r.owner_id] : []),
-    formatDate(r.created_at), r.amount, r.bank_name, r.bank_account_name, r.bank_account_number, TOPUP_STATUS_LABELS[r.status] || r.status,
-    r.admin_notes || '', r.reviewed_at ? formatDate(r.reviewed_at) : ''
+    formatDate(r.created_at), r.amount, r.bank_name, r.bank_account_name, r.bank_account_number, r.sent_at ? 'Sent' : TOPUP_STATUS_LABELS[r.status] || r.status,
+    r.scheduled_for ? new Date(r.scheduled_for).toLocaleString('en-PH') : '',r.sent_at ? new Date(r.sent_at).toLocaleString('en-PH') : '',r.transfer_reference || '',r.transfer_proof_url ? 'Yes' : 'No',r.admin_notes || '', r.reviewed_at ? formatDate(r.reviewed_at) : ''
   ])
-  exportExcel(`tindahub-withdrawals-${startDate}-to-${endDate}.xls`, 'Withdrawal Report', headers, rows)
+  exportExcel(`jom-hub-withdrawals-${startDate}-to-${endDate}.xls`, 'Withdrawal Report', headers, rows)
 }
 
 export default function WithdrawalReportView({ role }) {
@@ -52,7 +52,7 @@ export default function WithdrawalReportView({ role }) {
 
   const cards = [
     { label: 'Total Requested', value: peso(totalRequested), icon: PhilippinePeso },
-    { label: 'Approved Amount', value: peso(approvedAmount), icon: Landmark },
+    { label: 'Approved / Sent Amount', value: peso(approvedAmount), icon: Landmark },
     { label: 'Pending Requests', value: pendingCount, icon: Hourglass },
     { label: 'Rejected Requests', value: rejectedCount, icon: XCircle }
   ]
@@ -86,7 +86,7 @@ export default function WithdrawalReportView({ role }) {
                   <p className="text-xs text-ink/50">{r.bank_name} · {r.bank_account_number} · {formatDate(r.created_at)}</p>
                   {r.status === 'rejected' && r.admin_notes && <p className="text-xs text-coral-600 mt-1">{r.admin_notes}</p>}
                 </div>
-                <span className={`badge ${TOPUP_STATUS_STYLES[r.status]}`}>{TOPUP_STATUS_LABELS[r.status]}</span>
+                <span className={`badge ${TOPUP_STATUS_STYLES[r.status]}`}>{r.sent_at?'Sent':TOPUP_STATUS_LABELS[r.status]}</span>
               </div>
             ))}
           </div>

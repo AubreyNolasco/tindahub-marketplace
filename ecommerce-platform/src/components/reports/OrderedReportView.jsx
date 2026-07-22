@@ -27,7 +27,7 @@ function downloadExcel(role, lines, startDate, endDate) {
   const rows = lines.map(({ order, item, counterpart }) => [
     order.order_number, formatDate(order.created_at), order.status, counterpart, item.product_name, item.unit_price, item.quantity, item.line_total
   ])
-  exportExcel(`tindahub-${role}-ordered-${startDate}-to-${endDate}.xls`, 'Ordered Report', headers, rows)
+  exportExcel(`jom-hub-${role}-ordered-${startDate}-to-${endDate}.xls`, 'Ordered Report', headers, rows)
 }
 
 export default function OrderedReportView({ role }) {

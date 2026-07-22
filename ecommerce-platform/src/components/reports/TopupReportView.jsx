@@ -17,7 +17,7 @@ function downloadExcel(requests, startDate, endDate, role) {
     formatDate(r.created_at), r.amount, r.method?.toUpperCase() || '', r.reference_number || '', TOPUP_STATUS_LABELS[r.status] || r.status,
     r.admin_notes || '', r.reviewed_at ? formatDate(r.reviewed_at) : ''
   ])
-  exportExcel(`tindahub-topups-${startDate}-to-${endDate}.xls`, 'Top-Up Report', headers, rows)
+  exportExcel(`jom-hub-topups-${startDate}-to-${endDate}.xls`, 'Top-Up Report', headers, rows)
 }
 
 export default function TopupReportView({ role }) {

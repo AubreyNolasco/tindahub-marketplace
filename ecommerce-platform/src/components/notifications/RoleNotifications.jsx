@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Bell, CalendarClock, PackageCheck, ShoppingBag, WalletCards, X } from 'lucide-react'
+import { Bell, CalendarClock, PackageCheck, ShieldAlert, ShoppingBag, WalletCards, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
@@ -22,22 +22,25 @@ export default function RoleNotifications() {
     if (!user || !['merchant', 'reseller'].includes(role)) return
     const items = []
     await supabase.rpc('run_operational_maintenance')
-    const { data: wallet } = await supabase.from('wallets').select('id,balance,updated_at').eq('owner_id', user.id).maybeSingle()
+    const [{ data: wallet },{data:withdrawals}]=await Promise.all([supabase.from('wallets').select('id,balance,updated_at').eq('owner_id', user.id).maybeSingle(),supabase.from('withdrawal_requests').select('id,status,amount,scheduled_for,sent_at,updated_at').eq('owner_id',user.id).in('status',['pending','approved']).order('created_at',{ascending:false}).limit(5)])
     if (wallet) items.push({ id:`wallet:${wallet.id}:${wallet.updated_at}`, title:Number(wallet.balance) <= LOW_BALANCE_LIMIT ? 'Low wallet balance' : 'Current wallet balance', message:`Your available balance is ${peso(wallet.balance)}.`, to:`/${role}/wallet`, action:'Open wallet', icon:WalletCards, tone:Number(wallet.balance) <= LOW_BALANCE_LIMIT ? 'coral' : 'teal' })
+    withdrawals?.forEach(row=>items.unshift({id:`withdrawal:${row.id}:${row.sent_at||row.updated_at}`,title:row.sent_at?'Withdrawal sent':row.status==='approved'?'Withdrawal scheduled':'Withdrawal under review',message:row.sent_at?`${peso(row.amount)} was marked Sent.`:row.scheduled_for?`${peso(row.amount)} planned for ${new Date(row.scheduled_for).toLocaleString('en-PH')}.`:`${peso(row.amount)} is waiting for Admin review.`,to:`/${role}/wallet`,action:'View withdrawal',icon:WalletCards,tone:row.sent_at?'teal':'mango'}))
 
     if (role === 'merchant') {
       const [{ data: orders }, { data: subscription }] = await Promise.all([
-        supabase.from('orders').select('id,order_number,status,updated_at').eq('merchant_id', user.id).in('status', ['pending','confirmed']).order('created_at', { ascending:false }).limit(10),
+        supabase.from('orders').select('id,order_number,status,updated_at,order_cases(id,case_type,status,updated_at)').eq('merchant_id', user.id).in('status', ['confirmed','processing','shipped']).order('created_at', { ascending:false }).limit(10),
         supabase.from('subscriptions').select('id,status,expires_at,updated_at').eq('owner_id', user.id).maybeSingle()
       ])
       orders?.forEach(order => items.unshift({ id:`order:${order.id}:${order.status}`, title:'Order needs your attention', message:`Order ${order.order_number} is ${order.status} and ready for review.`, to:'/merchant/orders', action:'Review order', icon:ShoppingBag, tone:'mango' }))
+      orders?.flatMap(order=>(order.order_cases||[]).map(caseItem=>({order,caseItem}))).filter(({caseItem})=>['open','merchant_review','admin_review'].includes(caseItem.status)).forEach(({order,caseItem})=>items.unshift({id:`case:${caseItem.id}:${caseItem.updated_at}`,title:'Order case update',message:`${caseItem.case_type} request for ${order.order_number} is ${caseItem.status.replace('_',' ')}.`,to:'/merchant/orders',action:'Review case',icon:ShieldAlert,tone:'coral'}))
       if (subscription) {
         const days = Math.ceil((new Date(subscription.expires_at) - new Date()) / 86400000)
         items.unshift({ id:`subscription:${subscription.id}:${subscription.updated_at}`, title:days < 0 ? 'Subscription expired' : days <= 30 ? 'Subscription expiring soon' : 'Subscription active', message:days < 0 ? `Expired on ${formatDate(subscription.expires_at)}.` : `Active until ${formatDate(subscription.expires_at)}${days <= 30 ? ` (${days} days left)` : ''}.`, to:'/choose-subscription', action:'View subscription', icon:CalendarClock, tone:days <= 30 ? 'coral' : 'teal' })
       }
     } else {
-      const { data: orders } = await supabase.from('orders').select('id,order_number,status,updated_at').eq('reseller_id', user.id).in('status', ['confirmed','processing','shipped']).order('updated_at', { ascending:false }).limit(10)
+      const { data: orders } = await supabase.from('orders').select('id,order_number,status,updated_at,order_cases(id,case_type,status,updated_at)').eq('reseller_id', user.id).in('status', ['confirmed','processing','shipped']).order('updated_at', { ascending:false }).limit(10)
       orders?.forEach(order => items.unshift({ id:`order:${order.id}:${order.status}`, title:order.status === 'shipped' ? 'Order shipped—confirm after receipt' : 'Order status updated', message:`Order ${order.order_number} is now ${order.status}.`, to:'/reseller/orders', action:'Track order', icon:PackageCheck, tone:order.status === 'shipped' ? 'mango' : 'teal' }))
+      orders?.flatMap(order=>(order.order_cases||[]).map(caseItem=>({order,caseItem}))).filter(({caseItem})=>['open','merchant_review','admin_review'].includes(caseItem.status)).forEach(({order,caseItem})=>items.unshift({id:`case:${caseItem.id}:${caseItem.updated_at}`,title:'Order case update',message:`${caseItem.case_type} request for ${order.order_number} is ${caseItem.status.replace('_',' ')}.`,to:'/reseller/orders',action:'View case',icon:ShieldAlert,tone:'coral'}))
     }
     setNotifications(items)
   }, [user?.id, role])
@@ -48,6 +51,8 @@ export default function RoleNotifications() {
     const channel = supabase.channel(`header-notifications-${user.id}`)
       .on('postgres_changes', { event:'*', schema:'public', table:'orders' }, load)
       .on('postgres_changes', { event:'*', schema:'public', table:'wallets', filter:`owner_id=eq.${user.id}` }, load)
+      .on('postgres_changes',{event:'*',schema:'public',table:'withdrawal_requests',filter:`owner_id=eq.${user.id}`},load)
+      .on('postgres_changes',{event:'*',schema:'public',table:'order_cases'},load)
     if (role === 'merchant') channel.on('postgres_changes', { event:'*', schema:'public', table:'subscriptions', filter:`owner_id=eq.${user.id}` }, load)
     channel.subscribe()
     return () => { supabase.removeChannel(channel) }
