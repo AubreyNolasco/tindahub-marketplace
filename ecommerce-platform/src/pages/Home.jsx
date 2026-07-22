@@ -67,22 +67,22 @@ export default function Home() {
 
   const heroRadius = content.hero_border === 'square' ? 'rounded-none' : content.hero_border === 'soft' ? 'rounded-xl' : 'rounded-[1.75rem]'
   return <div className="overflow-hidden bg-cream">
-    {subscriptionPopup && <div className="fixed inset-0 z-[95] flex items-center justify-center bg-ink/65 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Join RM Hub">
-      <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white shadow-2xl">
-        <div className="relative overflow-hidden bg-gradient-to-br from-teal-950 via-teal-800 to-teal-600 px-6 py-8 text-white sm:px-9">
+    {subscriptionPopup && <div className="fixed inset-0 z-[95] flex items-center justify-center bg-ink/65 p-2 backdrop-blur-sm sm:p-4" role="dialog" aria-modal="true" aria-label="Join RM Hub">
+      <div className="max-h-[calc(100dvh-1rem)] w-full max-w-xl overflow-y-auto rounded-2xl bg-white shadow-2xl sm:max-h-[92vh] sm:rounded-3xl">
+        <div className="relative overflow-hidden bg-gradient-to-br from-teal-950 via-teal-800 to-teal-600 px-4 py-5 text-white sm:px-7 sm:py-6">
           <div className="absolute -right-12 -top-16 h-52 w-52 rounded-full bg-mango-400/20 blur-2xl" />
-          <button type="button" onClick={closeSubscriptionPopup} className="absolute right-5 top-5 rounded-xl bg-white/10 p-2 text-white/80 transition hover:bg-white/20 hover:text-white" aria-label="Close"><X size={20} /></button>
+          <button type="button" onClick={closeSubscriptionPopup} className="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white/80 transition hover:bg-white/20 hover:text-white sm:right-4 sm:top-4" aria-label="Close"><X size={19} /></button>
           <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-mango-200"><Sparkles size={14} /> Grow with RM Hub</span>
-          <h2 className="mt-5 max-w-xl font-display text-3xl font-extrabold leading-tight sm:text-4xl">Turn your products and connections into a growing business.</h2>
+          <h2 className="mt-3 max-w-lg pr-6 font-display text-2xl font-extrabold leading-tight sm:text-3xl">Turn your products and connections into a growing business.</h2>
           <p className="mt-3 max-w-xl text-sm leading-6 text-teal-50/75">Join a trusted marketplace built for Filipino Merchants and Resellers—with organized orders, secure workflows, wallets, reports, campaigns, and direct in-system communication.</p>
         </div>
-        <div className="p-6 sm:p-8">
-          <div className="grid gap-4 sm:grid-cols-2">
+        <div className="p-4 sm:p-6">
+          <div className="subscription-audience grid grid-cols-2 gap-3">
             <div className="rounded-2xl border border-teal-100 bg-teal-50/70 p-5"><span className="grid h-11 w-11 place-items-center rounded-xl bg-teal-700 text-white"><Store size={21} /></span><h3 className="mt-4 font-display text-lg font-bold text-ink">For Merchants</h3><p className="mt-2 text-sm leading-6 text-ink/60">Build your digital store, reach more resellers, manage inventory and orders, join campaigns, and download business reports.</p></div>
             <div className="rounded-2xl border border-mango-300 bg-mango-100/45 p-5"><span className="grid h-11 w-11 place-items-center rounded-xl bg-mango-500 text-ink"><UsersRound size={21} /></span><h3 className="mt-4 font-display text-lg font-bold text-ink">For Resellers</h3><p className="mt-2 text-sm leading-6 text-ink/60">Find trusted suppliers, access quantity discounts, manage customers, place organized orders, and monitor your growing sales activity.</p></div>
           </div>
-          <div className="mt-5 rounded-2xl border border-black/[0.06] p-4"><p className="text-xs font-bold uppercase tracking-[0.14em] text-teal-700">Merchant subscription options</p><div className="mt-3 grid grid-cols-3 gap-2 text-center">{plans.map((plan) => <div key={plan.duration} className={`rounded-xl px-2 py-3 ${plan.featured ? 'bg-teal-700 text-white' : 'bg-cream text-ink'}`}><p className="text-[11px] font-semibold opacity-70">{plan.duration}</p><p className="mt-1 font-display text-lg font-bold">{plan.price}</p></div>)}</div><p className="mt-3 text-center text-xs leading-5 text-ink/45">Submit your payment screenshot and wait for Admin approval before activation.</p></div>
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row"><Link to="/signup" onClick={closeSubscriptionPopup} className="btn-primary flex flex-1 items-center justify-center gap-2 py-3">Join RM Hub today <ArrowRight size={17} /></Link><button type="button" onClick={closeSubscriptionPopup} className="btn-secondary flex-1 py-3">Explore the homepage</button></div>
+          <div className="mt-3 rounded-xl border border-black/[0.06] p-3"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-teal-700 sm:text-xs">Merchant subscription options</p><div className="mt-2 grid grid-cols-3 gap-1.5 text-center">{plans.map((plan) => <div key={plan.duration} className={`rounded-lg px-1 py-2 ${plan.featured ? 'bg-teal-700 text-white' : 'bg-cream text-ink'}`}><p className="text-[9px] font-semibold opacity-70 sm:text-[11px]">{plan.duration}</p><p className="mt-0.5 whitespace-nowrap font-display text-sm font-bold sm:text-base">{plan.price}</p></div>)}</div><p className="mt-2 text-center text-[10px] leading-4 text-ink/45 sm:text-xs">Submit your payment screenshot and wait for Admin approval before activation.</p></div>
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row"><Link to="/signup" onClick={closeSubscriptionPopup} className="btn-primary flex flex-1 items-center justify-center gap-2 py-2.5 text-sm">Join RM Hub today <ArrowRight size={16} /></Link><button type="button" onClick={closeSubscriptionPopup} className="btn-secondary flex-1 py-2.5 text-sm">Explore the homepage</button></div>
         </div>
       </div>
     </div>}
