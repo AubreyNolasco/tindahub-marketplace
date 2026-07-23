@@ -7,6 +7,7 @@ import Footer from './components/layout/Footer'
 import ProtectedRoute from './components/layout/ProtectedRoute'
 import NetworkStatus from './components/system/NetworkStatus'
 import ScrollToTop from './components/system/ScrollToTop'
+import PostLoginGuide from './components/onboarding/PostLoginGuide'
 
 import Home from './pages/Home'
 import NotFound from './pages/NotFound'
@@ -94,6 +95,7 @@ export default function App() {
       <NetworkStatus />
       <AuthProvider>
         <CartProvider>
+          <PostLoginGuide />
           <div className="min-h-screen bg-cream flex flex-col">
             <Navbar />
             <Toaster

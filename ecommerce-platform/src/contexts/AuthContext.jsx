@@ -38,6 +38,11 @@ export function AuthProvider({ children }) {
       setProfile(null)
       setProfileError('No profile record was found for this account. Apply the Google OAuth database migration, then sign in again.')
     } else {
+      const { error: loginHistoryError } = await supabase.rpc('record_login_event', {
+        p_user_agent: typeof navigator === 'undefined' ? null : navigator.userAgent
+      })
+      if (loginHistoryError) console.error('Unable to record login history:', loginHistoryError.message)
+
       if (data?.role === 'staff') {
         const { data: staffAccess, error: staffError } = await supabase.from('staff_access').select('permissions, active').eq('user_id', userId).maybeSingle()
         if (staffError) console.error('Failed to load staff permissions:', staffError.message)
