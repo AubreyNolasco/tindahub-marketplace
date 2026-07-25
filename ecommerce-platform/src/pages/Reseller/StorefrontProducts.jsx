@@ -4,7 +4,7 @@ import toast from 'react-hot-toast'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
-import { cleanText, safeUploadPath, validateImage } from '../../utils/security'
+import { cleanText, compressImage, safeUploadPath, validateImage } from '../../utils/security'
 import { peso } from '../../utils/format'
 import Spinner from '../../components/ui/Spinner'
 import EmptyState from '../../components/ui/EmptyState'
@@ -43,6 +43,7 @@ export default function StorefrontProducts() {
   const upload = async (file,prefix) => {
     const validation=validateImage(file)
     if(validation) throw new Error(validation)
+    file=await compressImage(file)
     const path=safeUploadPath(user.id,prefix,file)
     const {error}=await supabase.storage.from('reseller-storefronts').upload(path,file,{contentType:file.type,upsert:false})
     if(error) throw error

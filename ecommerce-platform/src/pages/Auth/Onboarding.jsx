@@ -4,7 +4,7 @@ import { BadgeCheck, Loader2, Store, Upload, Users } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../lib/supabase";
-import { cleanText, safeUploadPath, validateImage, validatePaymentReference } from "../../utils/security";
+import { cleanText, compressImage, safeUploadPath, validateImage, validatePaymentReference } from "../../utils/security";
 import { COMPLETE_ADDRESS_HELP, isCompleteAddress } from "../../utils/address";
 import Spinner from "../../components/ui/Spinner";
 import ProfileLoadError from "../../components/auth/ProfileLoadError";
@@ -61,14 +61,15 @@ export default function Onboarding() {
       let proofPath = null;
       if (role === "reseller") {
         await ensurePaymentReferenceAvailable(referenceNumber);
+        const compressedProof = await compressImage(proofFile);
         proofPath = safeUploadPath(
           user.id,
           "email-onboarding-reseller",
-          proofFile,
+          compressedProof,
         );
         const { error: uploadError } = await supabase.storage
           .from("payment-proofs")
-          .upload(proofPath, proofFile);
+          .upload(proofPath, compressedProof);
         if (uploadError) throw uploadError;
       }
       const { error } = await supabase.rpc("complete_account_onboarding", {

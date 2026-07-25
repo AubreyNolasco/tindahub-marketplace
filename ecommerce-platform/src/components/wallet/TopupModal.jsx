@@ -3,7 +3,7 @@ import { Loader2, Upload, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
-import { cleanText, safeUploadPath, validateImage, validatePaymentReference } from '../../utils/security'
+import { cleanText, compressImage, safeUploadPath, validateImage, validatePaymentReference } from '../../utils/security'
 import BankTransferQr from '../payment/BankTransferQr'
 import { ensurePaymentReferenceAvailable, paymentReferenceErrorMessage } from '../../lib/paymentReference'
 
@@ -47,10 +47,11 @@ export default function TopupModal({ open, onClose, onSubmitted }) {
     setSubmitting(true)
     try {
       await ensurePaymentReferenceAvailable(refNumber)
-      const path = safeUploadPath(user.id, 'topup', proofFile)
+      const compressedProof = await compressImage(proofFile)
+      const path = safeUploadPath(user.id, 'topup', compressedProof)
       const { error: uploadErr } = await supabase.storage
         .from('payment-proofs')
-        .upload(path, proofFile, { upsert: true })
+        .upload(path, compressedProof, { upsert: true })
       if (uploadErr) throw uploadErr
 
       const { error: insertErr } = await supabase.from('topup_requests').insert({
