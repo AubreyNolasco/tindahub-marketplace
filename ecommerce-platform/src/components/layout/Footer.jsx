@@ -1,7 +1,9 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { ArrowRight, BadgeCheck, BarChart3, Mail, ShieldCheck, Store } from 'lucide-react'
 
 export default function Footer() {
+  const { pathname } = useLocation()
+  if (pathname.startsWith('/store/') || pathname.startsWith('/reseller-store/')) return null
   return (
     <footer className="mt-16 overflow-hidden bg-teal-950 text-white">
       <div className="border-b border-white/10 bg-teal-900/50"><div className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-7 sm:flex-row sm:items-center sm:justify-between sm:px-6"><div><p className="font-display text-xl font-bold">Ready to grow with JOM HUB?</p><p className="mt-1 text-sm text-white/55">Create your professional Merchant or Reseller workspace today.</p></div><Link to="/signup" className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-mango-500 px-5 py-3 text-sm font-bold text-ink transition hover:bg-mango-600">Join the marketplace <ArrowRight size={16} /></Link></div></div>

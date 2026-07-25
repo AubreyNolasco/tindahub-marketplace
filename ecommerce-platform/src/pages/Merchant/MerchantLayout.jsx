@@ -1,4 +1,4 @@
-import { BarChart3, Boxes, ClipboardList, FileDown, FileUp, LayoutDashboard, MapPin, Megaphone, MessageSquare, Package, ShoppingBag, Star, UserRound, WalletCards } from 'lucide-react'
+import { BarChart3, Boxes, ClipboardList, FileDown, FileUp, LayoutDashboard, MapPin, Megaphone, MessageSquare, Package, ShoppingBag, Star, Stethoscope, UserRound, WalletCards, UserPlus, Sliders } from 'lucide-react'
 import WorkspaceLayout from '../../components/layout/WorkspaceLayout'
 import SubscriptionExpiryModal from '../../components/merchant/SubscriptionExpiryModal'
 
@@ -14,6 +14,11 @@ const sections = [
     { to: '/merchant/wallet', label: 'Wallet', icon: WalletCards },
     { to: '/merchant/address', label: 'Pickup Address', icon: MapPin },
     { to: '/merchant/account', label: 'Update Account', icon: UserRound }
+  ]},
+  { label: 'Service Referrals', items: [
+    { to: '/merchant/service-settings', label: 'Service Type', icon: Sliders },
+    { to: '/merchant/clinic-services', label: 'Manage Services', icon: Stethoscope },
+    { to: '/merchant/referrals', label: 'Referral Requests', icon: UserPlus }
   ]},
   { label: 'Reports', items: [
     { to: '/merchant/reports/sales', label: 'Sales Report', icon: BarChart3 },

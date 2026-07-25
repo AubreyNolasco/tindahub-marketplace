@@ -2,12 +2,12 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext(null)
-const TEST_EMAILS = new Set(['reseller@gmail.com', 'merchant@gmail.com'])
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
   const [profile, setProfile] = useState(null)
   const [profileError, setProfileError] = useState(null)
+  const [deviceAccessStatus, setDeviceAccessStatus] = useState('signed_out')
   const [loading, setLoading] = useState(true)
 
   const loadProfile = useCallback(async (userId, userEmail = '', provider = '') => {
@@ -63,19 +63,26 @@ export function AuthProvider({ children }) {
     supabase.auth.getSession().then(async ({ data: { session }, error }) => {
       if (error) setProfileError(error.message)
       setSession(session)
-      if (session?.user) await loadProfile(session.user.id, session.user.email, session.user.app_metadata?.provider)
+      if (session?.user) {
+        setDeviceAccessStatus('checking')
+        await loadProfile(session.user.id, session.user.email, session.user.app_metadata?.provider)
+      } else {
+        setDeviceAccessStatus('signed_out')
+      }
     }).catch((error) => {
       console.error('Failed to initialize authentication:', error)
       setProfileError(error.message || 'Unable to initialize authentication.')
     }).finally(() => setLoading(false))
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session)
       if (session?.user) {
+        if (event === 'SIGNED_IN') setDeviceAccessStatus('checking')
         setTimeout(() => loadProfile(session.user.id, session.user.email, session.user.app_metadata?.provider), 0)
       } else {
         setProfile(null)
         setProfileError(null)
+        setDeviceAccessStatus('signed_out')
       }
     })
 
@@ -91,16 +98,19 @@ export function AuthProvider({ children }) {
     }
   })
 
-  const signInTestAccount = async (email, password) => {
-    const normalizedEmail = email.trim().toLowerCase()
-    if (!TEST_EMAILS.has(normalizedEmail)) return { error: new Error('This login is only for the two registered test accounts.') }
-    return supabase.auth.signInWithPassword({ email: normalizedEmail, password })
+  const signInWithPassword = async (email, password) => {
+    return supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password
+    })
   }
 
-  const requestEmailOtp = async (email) => {
+  const requestEmailOtp = async (email, captchaToken) => {
     const normalizedEmail = email.trim().toLowerCase()
-    if (TEST_EMAILS.has(normalizedEmail)) return { error: new Error('Use your fixed password for this test account.') }
-    return supabase.auth.signInWithOtp({ email: normalizedEmail, options: { shouldCreateUser: true } })
+    return supabase.auth.signInWithOtp({
+      email: normalizedEmail,
+      options: { shouldCreateUser: true, captchaToken: captchaToken || undefined }
+    })
   }
 
   const verifyEmailOtp = async (email, token) => supabase.auth.verifyOtp({
@@ -114,7 +124,12 @@ export function AuthProvider({ children }) {
     setSession(null)
     setProfile(null)
     setProfileError(null)
+    setDeviceAccessStatus('signed_out')
   }
+  const signOutLocal = useCallback(async () => {
+    await supabase.auth.signOut({ scope: 'local' })
+    setSession(null); setProfile(null); setProfileError(null); setDeviceAccessStatus('signed_out')
+  }, [])
 
   const refreshProfile = async () => {
     if (session?.user) await loadProfile(session.user.id, session.user.email, session.user.app_metadata?.provider)
@@ -125,13 +140,16 @@ export function AuthProvider({ children }) {
     user: session?.user ?? null,
     profile,
     profileError,
+    deviceAccessStatus,
+    setDeviceAccessStatus,
     role: profile?.role ?? null,
     loading,
     signInWithGoogle,
-    signInTestAccount,
+    signInWithPassword,
     requestEmailOtp,
     verifyEmailOtp,
     signOut,
+    signOutLocal,
     refreshProfile
   }
 

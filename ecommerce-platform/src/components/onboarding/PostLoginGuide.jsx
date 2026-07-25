@@ -35,7 +35,7 @@ function guideFor(profile, role) {
   if (role === 'reseller') return {
     eyebrow: 'Reseller next steps', title: 'Prepare your first sale',
     message: 'Set up the customer and confirm all costs before placing an order.', icon: Users,
-    steps: ['Add a customer with permission and complete details.', 'Browse approved products and compare profit.', 'Review wallet funds and the final order amount.'],
+    steps: ['Get a Merchant product for My Product List.', 'Customize and share your customer-store link.', 'Record the committed customer before checkout.'],
     action: 'Open Reseller dashboard', to: '/reseller'
   }
   return {
@@ -49,7 +49,7 @@ function guideFor(profile, role) {
 }
 
 export default function PostLoginGuide() {
-  const { session, user, profile, role, loading } = useAuth()
+  const { session, user, profile, role, loading, deviceAccessStatus } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
@@ -57,11 +57,15 @@ export default function PostLoginGuide() {
   const storageKey = user ? `rmhub_login_guide_seen_${user.id}_${user.last_sign_in_at || session?.expires_at || 'session'}` : ''
 
   useEffect(() => {
-    if (loading || !user || !profile || !storageKey || location.pathname === '/auth/callback') return
+    if (deviceAccessStatus !== 'active') {
+      setOpen(false)
+      return
+    }
+    if (loading || !user || !profile || !storageKey || ['/auth/callback', '/device-access'].includes(location.pathname)) return
     try { setOpen(!sessionStorage.getItem(storageKey)) } catch { setOpen(true) }
-  }, [loading, user, profile, storageKey, location.pathname])
+  }, [deviceAccessStatus, loading, user, profile, storageKey, location.pathname])
 
-  if (!open || !user || !profile) return null
+  if (!open || !user || !profile || deviceAccessStatus !== 'active') return null
   const Icon = guide.icon
   const close = () => {
     try { sessionStorage.setItem(storageKey, 'true') } catch { /* restricted storage */ }

@@ -4,7 +4,7 @@ import {
   BarChart3, Boxes, Building2, ChevronRight, CircleDollarSign,
   ClipboardList, CreditCard, FileChartColumn, FileDown,
   FileUp, FolderTree, House, LayoutDashboard, Menu, MessageSquare,
-  Megaphone, PanelLeftClose, Presentation, ReceiptText, ShieldAlert, ShieldCheck, Star, UsersRound, WalletCards, X, History, CalendarDays, UserCog, Scale, BookOpenCheck, KeyRound, Activity
+  Megaphone, PanelLeftClose, Presentation, ReceiptText, ShieldAlert, ShieldCheck, Star, UsersRound, WalletCards, X, History, CalendarDays, UserCog, Scale, BookOpenCheck, KeyRound, Activity, Workflow, Bug
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { canAccessAdmin } from '../../config/adminPermissions'
@@ -15,6 +15,7 @@ const sections = [
   {
     label: 'Workspace',
     items: [
+      { to: '/admin/test-accounts', label: 'Test Accounts', icon: Bug, adminOnly: true },
       { to: '/admin', label: 'Overview', icon: LayoutDashboard, end: true, permission: 'overview' },
       { to: '/admin/staff', label: 'Staff Access', icon: UserCog, adminOnly: true },
       { to: '/admin/full-access', label: 'Full Access', icon: KeyRound, adminOnly: true },
@@ -22,6 +23,7 @@ const sections = [
       { to: '/admin/order-cases', label: 'Order Cases', icon: ShieldAlert, adminOnly: true },
       { to: '/admin/products', label: 'Products', icon: Boxes, adminOnly: true },
       { to: '/admin/legal', label: 'Legal Settings', icon: Scale, adminOnly: true },
+      { to: '/admin/system-flowchart', label: 'System Flowchart', icon: Workflow, adminOnly: true },
       { to: '/admin/process-guide', label: 'Process Guide', icon: BookOpenCheck, adminOnly: true },
       { to: '/admin/merchant-presentation', label: 'Merchant Slides', icon: Presentation, adminOnly: true },
       { to: '/admin/reseller-presentation', label: 'Reseller Slides', icon: Presentation, adminOnly: true },
@@ -73,10 +75,10 @@ function Sidebar({ open, collapsed, onClose, onToggleCollapse, visibleSections, 
         <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-5 scrollbar-thin">
           {visibleSections.map((section) => <div key={section.label}>
             {!collapsed && <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-ink/45">{section.label}</p>}
-            <div className="space-y-1">{section.items.map(({ to, label, icon: Icon, end }) =>
-              <NavLink key={to} to={to} end={end} onClick={onClose} title={collapsed ? label : undefined} data-guide-current-nav={currentPath === to || (!end && currentPath.startsWith(to)) ? 'true' : undefined}
-                className={({ isActive }) => `group relative flex min-h-11 items-center rounded-xl text-sm font-semibold transition-all ${collapsed ? 'justify-center px-2' : 'gap-3 px-3'} ${isActive ? 'bg-teal-600 text-white shadow-md shadow-teal-900/10' : 'text-ink/70 hover:bg-teal-50 hover:text-teal-900'}`}>
-                {({ isActive }) => <><Icon size={18} className={`shrink-0 ${isActive ? 'text-white' : 'text-teal-600 group-hover:text-teal-700'}`} />{!collapsed && <><span className="flex-1 truncate">{label}</span>{isActive && <ChevronRight size={15} className="text-white" />}</>}</>}
+            <div className="space-y-1">{section.items.map(({ to, label, icon: Icon, end, highlight }) =>
+              <NavLink key={`${to}-${label}`} to={to} end={end} onClick={onClose} title={collapsed ? label : undefined} data-guide-current-nav={currentPath === to || (!end && currentPath.startsWith(to)) ? 'true' : undefined}
+                className={({ isActive }) => `group relative flex min-h-11 items-center rounded-xl text-sm font-semibold transition-all ${collapsed ? 'justify-center px-2' : 'gap-3 px-3'} ${highlight ? 'bg-red-600 text-white hover:bg-red-700' : isActive ? 'bg-teal-600 text-white shadow-md shadow-teal-900/10' : 'text-ink/70 hover:bg-teal-50 hover:text-teal-900'}`}>
+                {({ isActive }) => <><Icon size={18} className={`shrink-0 ${highlight || isActive ? 'text-white' : 'text-teal-600 group-hover:text-teal-700'}`} />{!collapsed && <><span className="flex-1 truncate">{label}</span>{isActive && !highlight && <ChevronRight size={15} className="text-white" />}</>}</>}
               </NavLink>
             )}</div>
           </div>)}

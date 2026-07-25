@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { ShoppingCart, Store, Package, LayoutDashboard, ShieldCheck, LogOut, User, Menu, X } from 'lucide-react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { ShoppingCart, House, Package, LayoutDashboard, ShieldCheck, LogOut, User, Stethoscope, Menu, X } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useCart } from '../../contexts/CartContext'
 import { getAdminHomePath } from '../../config/adminPermissions'
@@ -9,7 +9,9 @@ export default function Navbar() {
   const { user, profile, role, signOut } = useAuth()
   const { totalCount } = useCart()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
+  const customerStorefront = pathname.startsWith('/store/') || pathname.startsWith('/reseller-store/')
 
   const handleSignOut = async () => {
     setMenuOpen(false)
@@ -20,6 +22,8 @@ export default function Navbar() {
   const dashLink =
     ['admin', 'staff'].includes(role) ? getAdminHomePath(profile) : role === 'merchant' ? '/merchant' : '/reseller'
 
+  if (customerStorefront) return null
+
   return (
     <header className="sticky top-0 z-40 border-b border-black/[0.06] bg-white/90 shadow-sm shadow-teal-950/[0.02] backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-3 sm:px-6">
@@ -28,8 +32,9 @@ export default function Navbar() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-1 rounded-full border border-black/[0.05] bg-cream/80 p-1.5 text-sm font-semibold text-ink/65">
-          <Link to="/" className="flex items-center gap-1.5 rounded-full px-4 py-2 transition hover:bg-white hover:text-teal-700 hover:shadow-sm"><Store size={16} /> Store</Link>
-          <Link to="/catalog" className="flex items-center gap-1.5 rounded-full px-4 py-2 transition hover:bg-white hover:text-teal-700 hover:shadow-sm"><Package size={16} /> Products</Link>
+          <Link to="/" className="flex items-center gap-1.5 rounded-full px-4 py-2 transition hover:bg-white hover:text-teal-700 hover:shadow-sm"><House size={16} /> Home</Link>
+          {user && <Link to="/catalog" className="flex items-center gap-1.5 rounded-full px-4 py-2 transition hover:bg-white hover:text-teal-700 hover:shadow-sm"><Package size={16} /> Products</Link>}
+          {user && <Link to="/clinics" className="flex items-center gap-1.5 rounded-full px-4 py-2 transition hover:bg-white hover:text-teal-700 hover:shadow-sm"><Stethoscope size={16} /> Clinics</Link>}
           {user && (
             <Link to={dashLink} className="hover:text-teal-600 transition-colors flex items-center gap-1">
               <LayoutDashboard size={16} /> Workspace
@@ -85,8 +90,9 @@ export default function Navbar() {
 
       {menuOpen && (
         <nav className="max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-black/5 bg-white px-3 py-3 text-sm font-medium text-ink/70 shadow-lg md:hidden sm:px-6">
-          <Link to="/" className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600" onClick={() => setMenuOpen(false)}><Store size={17} /> Store</Link>
-          <Link to="/catalog" className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600" onClick={() => setMenuOpen(false)}><Package size={17} /> Products</Link>
+          <Link to="/" className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600" onClick={() => setMenuOpen(false)}><House size={17} /> Home</Link>
+          {user && <Link to="/catalog" className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600" onClick={() => setMenuOpen(false)}><Package size={17} /> Products</Link>}
+          {user && <Link to="/clinics" className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600" onClick={() => setMenuOpen(false)}><Stethoscope size={17} /> Clinics</Link>}
           {user && (
             <Link to={dashLink} className="flex min-h-11 items-center gap-3 rounded-xl px-3 transition-colors hover:bg-teal-50 hover:text-teal-600" onClick={() => setMenuOpen(false)}>
               <LayoutDashboard size={16} /> Dashboard

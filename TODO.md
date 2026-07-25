@@ -1,33 +1,22 @@
-# System Improvement Plan - TODO
+# 🚀 TindaHub Marketplace - Front-Page Overhaul (Phase 8)
 
-## Step 1: Database Migration - Fix Merchants & Permits
-- [x] Create `20260724000100_system_improvements.sql` with:
-  - Add `business_permit_expires_at` column to `merchant_profiles`
-  - Fix `activate_account_invitation()` - admin-created merchants get approved + subscription
-  - Fix `activate_existing_account_invitation()` - same as above
-  - Fix `enforce_merchant_permit_approval()` - allow admin bypass
-  - Give admin-created resellers ₱500 initial wallet
-  - Add maintenance function `expire_business_permits()`
-  - Update `get_admin_merchant_profiles` to include `business_permit_expires_at`
-  - Update `get_my_merchant_profile` to include `business_permit_expires_at`
+## Progress Tracker
 
-## Step 2: Fix BusinessPermit.jsx
-- [x] Add `status: 'pending'` on resubmission
-- [x] Show expiry date info when permit is approved
-- [x] Better error handling with bucket detection
+### Step 1: Fix Home.jsx bugs & add new sections ✅
+- [x] Fix extra `</div>` bug in Clinic Referral section
+- [x] Add Real Estate Referral section (with property imagery)
+- [x] Add FAQ accordion section
+- [x] Add "Trusted Partners" branding section
 
-## Step 3: Fix Admin Merchants.jsx
-- [x] Add expiry date picker modal when approving a permit
-- [x] Show permit expiry info (valid until/expired) on merchant cards
+### Step 2: Update GrowthSection.jsx ✅
+- [x] Add Real Estate as 4th path option
+- [x] Add Real Estate features data
+- [x] Added Building2 to imports
 
-## Step 4: Admin FullAccess.jsx (No changes needed - already has create form)
-- [x] Migration handles admin-created accounts (merchant fully activated, reseller gets ₱500)
+### Step 3: Fix ClinicDiscovery.jsx ✅
+- [x] Fix broken JSX structure (missing closing tags fully rewritten)
 
-## Step 5: ResellerDashboard.jsx (No changes needed - ₱500 wallet satisfies the > 0 check)
-- [x] Admin-created resellers skip "Fund wallet" step naturally since they get ₱500
-
-## Step 6: Verify all files are properly saved
-- [x] Migration file complete
-- [x] BusinessPermit.jsx complete
-- [x] Merchants.jsx complete
+### Step 4: Verify & polish ✅
+- [x] Build passes (1821 modules, 7.47s)
+- [x] Fixed `Home` import naming conflict
 

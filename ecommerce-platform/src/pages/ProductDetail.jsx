@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { BadgeCheck, MessageCircle, Minus, Package, PackageSearch, Plus, ShieldCheck, Store } from 'lucide-react'
+import { BadgeCheck, Check, MessageCircle, Minus, Package, PackageSearch, Plus, ShieldCheck, Store } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
@@ -31,6 +31,8 @@ export default function ProductDetail() {
   const [qty, setQty] = useState(1)
   const [customerSellingPrice, setCustomerSellingPrice] = useState(0)
   const [showQuickAdd, setShowQuickAdd] = useState(false)
+  const [listedForCustomers, setListedForCustomers] = useState(false)
+  const [listing, setListing] = useState(false)
 
   const loadReviews = async () => {
     const { data, error } = await supabase.from('product_reviews').select('*').eq('product_id', id).order('created_at', { ascending: false })
@@ -53,9 +55,11 @@ export default function ProductDetail() {
     Promise.all([
       supabase.from('orders').select('id, order_items!inner(product_id)').eq('reseller_id', user.id).eq('status', 'completed').eq('order_items.product_id', id).limit(1),
       supabase.from('product_reviews').select('*').eq('product_id', id).eq('reseller_id', user.id).maybeSingle(),
-    ]).then(([orderResult, reviewResult]) => {
+      supabase.from('reseller_storefront_products').select('product_id').eq('reseller_id',user.id).eq('product_id',id).maybeSingle(),
+    ]).then(([orderResult, reviewResult, listingResult]) => {
       setEligibleOrder(orderResult.data?.[0] || null)
       if (reviewResult.data) { setMyReview(reviewResult.data); setRating(reviewResult.data.rating); setComment(reviewResult.data.comment) }
+      setListedForCustomers(Boolean(listingResult.data))
     })
   }, [id, user?.id, role])
 
@@ -78,6 +82,15 @@ export default function ProductDetail() {
   if (!product) return <div className="mx-auto max-w-3xl px-4 py-16"><EmptyState icon={PackageSearch} title="Product Not Found" message="This item may have been removed or hidden by the Merchant." action={<Link to="/catalog" className="btn-primary">Back to Catalog</Link>} /></div>
 
   const confirmAdd = (customer, sellingPrice) => { addItem(product, qty, customer, sellingPrice); setShowQuickAdd(false); toast.success(`Added to cart: ${product.name}`) }
+  const getForProductList = async () => {
+    if(listedForCustomers)return
+    setListing(true)
+    const{error}=await supabase.from('reseller_storefront_products').insert({reseller_id:user.id,product_id:id})
+    setListing(false)
+    if(error)return toast.error(error.message)
+    setListedForCustomers(true)
+    toast.success('Product added to My Product List and customer storefront.')
+  }
   const storeOpen = isStoreOpen(product.merchant_profiles)
 
   return <div className="min-h-screen bg-[#f5f8f5] py-6 sm:py-10"><div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -92,6 +105,7 @@ export default function ProductDetail() {
         {product.campaign_discount_percent > 0 ? <div className="mt-4 rounded-2xl border border-mango-300 bg-gradient-to-r from-mango-100 to-white p-4"><p className="text-xs font-bold uppercase tracking-wide text-mango-600">Marketplace campaign</p><div className="mt-2 flex items-center justify-between"><span className="font-display text-xl font-bold text-ink">{product.campaign_discount_percent}% OFF</span><span className="font-bold text-teal-700">{peso(getUnitPrice(product, qty))} each</span></div><p className="mt-2 text-xs text-ink/50">Campaign price applies to every quantity. Store quantity discounts are paused.</p></div> : product.discount_tiers?.length > 0 && <div className="mt-4 rounded-2xl border border-mango-300/50 bg-mango-100/40 p-4"><p className="text-xs font-bold uppercase tracking-wide text-mango-600">Reseller quantity discounts</p><div className="mt-2 space-y-2">{product.discount_tiers.map((tier) => { const percent = Number(tier.discount_percent) || Number(((1 - Number(tier.price) / Number(product.price)) * 100).toFixed(2)); return <div key={tier.min_qty} className="flex items-center justify-between gap-3 text-sm"><span className="text-ink/60">Buy {tier.min_qty}+ items</span><span className="text-right"><strong className="text-mango-600">{percent}% OFF</strong><span className="ml-2 font-bold text-teal-700">{peso(tier.price)} each</span></span></div> })}</div></div>}
         {(role === 'reseller' ? getResellerUnitPrice(product, qty) : getUnitPrice(product, qty)) < Number(product.price) && <div className="mt-3 rounded-xl bg-teal-50 px-3 py-2 text-sm text-teal-700"><strong>Your buying price: {peso(role === 'reseller' ? getResellerUnitPrice(product, qty) : getUnitPrice(product, qty))} each</strong><span className="ml-2">Total product discount: {peso((Number(product.price) - (role === 'reseller' ? getResellerUnitPrice(product, qty) : getUnitPrice(product, qty))) * qty)}</span></div>}
         {role === 'reseller' && <div className="mt-4"><ResellerProfitPanel product={product} quantity={qty} sellingPrice={customerSellingPrice} onSellingPriceChange={setCustomerSellingPrice} /></div>}
+        {role === 'reseller' && <button onClick={getForProductList} disabled={listedForCustomers||listing} className={`mt-4 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold ${listedForCustomers?'bg-teal-50 text-teal-700':'border border-teal-200 bg-white text-teal-700 hover:bg-teal-50'}`}>{listedForCustomers?<><Check size={16}/> Already in My Product List</>:listing?'Adding product...':<><Plus size={16}/> Get for My Product List</>}</button>}
         {!storeOpen && <div className="mt-4 rounded-xl bg-mango-100 p-3 text-sm font-semibold text-mango-700">Store is currently closed. Products will be available again during store hours.</div>}
         {(role === 'reseller' || role === 'merchant') && <div className="mt-auto flex items-center gap-3 pt-7"><div className="flex items-center overflow-hidden rounded-xl border border-black/10"><button onClick={() => setQty((value) => Math.max(product.min_order_qty, value - 1))} className="p-3 hover:bg-teal-50"><Minus size={16} /></button><span className="min-w-10 text-center font-semibold">{qty}</span><button onClick={() => setQty((value) => Math.min(product.stock_quantity, value + 1))} className="p-3 hover:bg-teal-50"><Plus size={16} /></button></div><button onClick={() => setShowQuickAdd(true)} className="btn-primary flex-1 py-3" disabled={!storeOpen || product.stock_quantity < product.min_order_qty}>{!storeOpen ? 'Store Closed' : product.stock_quantity < product.min_order_qty ? 'Out of Stock' : 'Add to Cart'}</button></div>}
         {!role && <div className="mt-6 rounded-xl bg-teal-50 p-4 text-sm text-teal-700"><Link to="/login" className="font-semibold underline">Log in</Link> as a reseller to purchase.</div>}

@@ -181,7 +181,8 @@ for each row execute function public.activate_existing_account_invitation();
 -- ---------------------------------------------------------------------
 -- 5. Update get_admin_merchant_profiles to include business_permit_expires_at
 -- ---------------------------------------------------------------------
-create or replace function public.get_admin_merchant_profiles()
+drop function if exists public.get_admin_merchant_profiles();
+create function public.get_admin_merchant_profiles()
 returns table (
   id uuid,
   business_name text,
@@ -258,7 +259,8 @@ grant execute on function public.expire_business_permits() to authenticated;
 -- ---------------------------------------------------------------------
 -- 7. Update get_my_merchant_profile to include expiry field
 -- ---------------------------------------------------------------------
-create or replace function public.get_my_merchant_profile()
+drop function if exists public.get_my_merchant_profile();
+create function public.get_my_merchant_profile()
 returns public.merchant_profiles
 language plpgsql
 security definer

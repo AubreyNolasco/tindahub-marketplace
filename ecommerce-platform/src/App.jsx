@@ -8,6 +8,8 @@ import ProtectedRoute from './components/layout/ProtectedRoute'
 import NetworkStatus from './components/system/NetworkStatus'
 import ScrollToTop from './components/system/ScrollToTop'
 import PostLoginGuide from './components/onboarding/PostLoginGuide'
+import DeviceAccessGuard from './components/auth/DeviceAccessGuard'
+import MfaGuard from './components/auth/MfaGuard'
 
 import Home from './pages/Home'
 import NotFound from './pages/NotFound'
@@ -21,6 +23,7 @@ import ChooseSubscription from './pages/Auth/ChooseSubscription'
 import AuthCallback from './pages/Auth/AuthCallback'
 import AuthContinue from './pages/Auth/AuthContinue'
 import Onboarding from './pages/Auth/Onboarding'
+import DeviceAccessAction from './pages/Auth/DeviceAccessAction'
 
 import ResellerLayout from './pages/Reseller/ResellerLayout'
 import ResellerDashboard from './pages/Reseller/ResellerDashboard'
@@ -36,8 +39,16 @@ import ResellerInventoryReport from './pages/Reseller/Reports/InventoryReport'
 import ResellerTopupReport from './pages/Reseller/Reports/TopupReport'
 import ResellerWithdrawalReport from './pages/Reseller/Reports/WithdrawalReport'
 import ResellerOrderedReport from './pages/Reseller/Reports/OrderedReport'
+import StorefrontProducts from './pages/Reseller/StorefrontProducts'
+import ResellerStorefront from './pages/ResellerStorefront'
+import ClinicDiscovery from './pages/Reseller/ClinicDiscovery'
+import MyReferrals from './pages/Reseller/MyReferrals'
+import DeliverySettings from './pages/Reseller/DeliverySettings'
 
 import MerchantLayout from './pages/Merchant/MerchantLayout'
+import ServiceSettings from './pages/Merchant/ServiceSettings'
+import ClinicServices from './pages/Merchant/ClinicServices'
+import ReferralRequests from './pages/Merchant/ReferralRequests'
 import MerchantDashboard from './pages/Merchant/MerchantDashboard'
 import Products from './pages/Merchant/Products'
 import ProductForm from './pages/Merchant/ProductForm'
@@ -82,11 +93,13 @@ import BusinessPermit from './pages/Merchant/BusinessPermit'
 import StaffManagement from './pages/Admin/StaffManagement'
 import LegalSettings from './pages/Admin/LegalSettings'
 import ProcessGuide from './pages/Admin/ProcessGuide'
+import SystemFlowchart from './pages/Admin/SystemFlowchart'
 import AdminPermissionRoute from './components/auth/AdminPermissionRoute'
 import AdminFullAccess from './pages/Admin/FullAccess'
 import ApprovalCenter from './pages/Admin/ApprovalCenter'
 import OrderCases from './pages/Admin/OrderCases'
 import ActivityLog from './pages/Admin/ActivityLog'
+import TestAccounts from './pages/Admin/TestAccounts'
 
 export default function App() {
   return (
@@ -96,6 +109,8 @@ export default function App() {
       <AuthProvider>
         <CartProvider>
           <PostLoginGuide />
+          <MfaGuard />
+          <DeviceAccessGuard />
           <div className="min-h-screen bg-cream flex flex-col">
             <Navbar />
             <Toaster
@@ -117,19 +132,23 @@ export default function App() {
             <main className="flex-1">
               <Routes>
                 <Route path="/" element={<Home />} />
-                <Route path="/catalog" element={<Catalog />} />
-                <Route path="/product/:id" element={<ProductDetail />} />
-                <Route path="/merchant-store/:id" element={<MerchantStore />} />
+                <Route path="/catalog" element={<ProtectedRoute allowedRoles={['reseller','merchant','admin','staff']}><Catalog /></ProtectedRoute>} />
+                <Route path="/product/:id" element={<ProtectedRoute allowedRoles={['reseller','merchant','admin','staff']}><ProductDetail /></ProtectedRoute>} />
+                <Route path="/merchant-store/:id" element={<ProtectedRoute allowedRoles={['reseller','merchant','admin','staff']}><MerchantStore /></ProtectedRoute>} />
+                <Route path="/reseller-store/:id" element={<ResellerStorefront />} />
+                <Route path="/store/:slug" element={<ResellerStorefront />} />
                 <Route path="/policy" element={<Policy />} />
                 <Route path="/legal/:type" element={<Policy />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Login />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/auth/continue" element={<AuthContinue />} />
+                <Route path="/device-access" element={<DeviceAccessAction />} />
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/pending-approval" element={<PendingApproval />} />
                 <Route path="/choose-subscription" element={<ChooseSubscription />} />
                 <Route path="/merchant-permit" element={<ProtectedRoute allowedRoles={['merchant']} allowUnverifiedMerchant><BusinessPermit /></ProtectedRoute>} />
+                <Route path="/clinics" element={<ProtectedRoute allowedRoles={['reseller','merchant','admin']}><ClinicDiscovery /></ProtectedRoute>} />
 
                 {/* Reseller */}
                 <Route path="/cart" element={<ProtectedRoute allowedRoles={['reseller', 'merchant']}><Cart /></ProtectedRoute>} />
@@ -137,10 +156,12 @@ export default function App() {
                 <Route path="/reseller" element={<ProtectedRoute allowedRoles={['reseller']}><ResellerLayout /></ProtectedRoute>}>
                   <Route index element={<ResellerDashboard />} />
                   <Route path="orders" element={<OrderHistory />} />
+                  <Route path="products" element={<StorefrontProducts />} />
                   <Route path="customers" element={<Customers />} />
                   <Route path="chats" element={<ResellerChats />} />
                   <Route path="chats/:merchantId" element={<ResellerChatDetail />} />
-                  <Route path="wallet" element={<ResellerWallet />} />
+<Route path="wallet" element={<ResellerWallet />} />
+                  <Route path="delivery" element={<DeliverySettings />} />
                   <Route path="address" element={<ProfileAddress />} />
                   <Route path="account" element={<AccountSettings />} />
                   <Route path="reports/sales" element={<ResellerSalesReport />} />
@@ -148,6 +169,7 @@ export default function App() {
                   <Route path="reports/topups" element={<ResellerTopupReport />} />
                   <Route path="reports/withdrawals" element={<ResellerWithdrawalReport />} />
                   <Route path="reports/ordered" element={<ResellerOrderedReport />} />
+                  <Route path="referrals" element={<MyReferrals />} />
                 </Route>
 
                 {/* Merchant */}
@@ -170,6 +192,9 @@ export default function App() {
                   <Route path="reports/topups" element={<MerchantTopupReport />} />
                   <Route path="reports/withdrawals" element={<MerchantWithdrawalReport />} />
                   <Route path="reports/ordered" element={<MerchantOrderedReport />} />
+                  <Route path="service-settings" element={<ServiceSettings />} />
+                  <Route path="clinic-services" element={<ClinicServices />} />
+                  <Route path="referrals" element={<ReferralRequests />} />
                 </Route>
 
                 {/* Admin */}
@@ -180,10 +205,12 @@ export default function App() {
                   <Route path="approval-center" element={<AdminPermissionRoute adminOnly><ApprovalCenter /></AdminPermissionRoute>} />
                   <Route path="order-cases" element={<AdminPermissionRoute adminOnly><OrderCases /></AdminPermissionRoute>} />
                   <Route path="activity-log" element={<AdminPermissionRoute adminOnly><ActivityLog /></AdminPermissionRoute>} />
+                  <Route path="test-accounts" element={<AdminPermissionRoute adminOnly><TestAccounts /></AdminPermissionRoute>} />
                   <Route path="products" element={<AdminPermissionRoute adminOnly><Products admin /></AdminPermissionRoute>} />
                   <Route path="products/new" element={<AdminPermissionRoute adminOnly><ProductForm admin /></AdminPermissionRoute>} />
                   <Route path="products/:id/edit" element={<AdminPermissionRoute adminOnly><ProductForm admin /></AdminPermissionRoute>} />
                   <Route path="legal" element={<AdminPermissionRoute adminOnly><LegalSettings /></AdminPermissionRoute>} />
+                  <Route path="system-flowchart" element={<AdminPermissionRoute adminOnly><SystemFlowchart /></AdminPermissionRoute>} />
                   <Route path="process-guide" element={<AdminPermissionRoute adminOnly><ProcessGuide /></AdminPermissionRoute>} />
                   <Route path="merchant-presentation" element={<AdminPermissionRoute adminOnly><ProcessPresentation audience="merchant" /></AdminPermissionRoute>} />
                   <Route path="reseller-presentation" element={<AdminPermissionRoute adminOnly><ProcessPresentation audience="reseller" /></AdminPermissionRoute>} />
