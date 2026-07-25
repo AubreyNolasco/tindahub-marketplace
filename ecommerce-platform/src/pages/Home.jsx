@@ -16,79 +16,79 @@ import GrowthSection from '../components/home/GrowthSection'
 import JomBits from '../components/assistant/JomBits'
 
 const fallback = {
-  eyebrow: 'Para sa lumalagong negosyong Pilipino 🇵🇭',
-  title: 'Palaguin ang iyong negosyo sa isang pinagkakatiwalaang merkado.',
-  description: 'Pinagsasama ng JOM HUB ang mga merchant at reseller — may produktong sourcing, secure wallet payments, order tracking, business reports, at direktang komunikasyon.',
-  hero_image: 'https://images.unsplash.com/photo-1607748862156-7c548e5e5cfd?auto=format&fit=crop&w=1400&q=85',
-  hero_image_mobile: 'https://images.unsplash.com/photo-1607748862156-7c548e5e5cfd?auto=format&fit=crop&w=600&q=70',
-  hero_button: 'Simulan ang iyong negosyo', hero_border: 'rounded', hero_accent: '#16794B',
-  announcement: { enabled: true, text: 'Maligayang pagdating sa JOM HUB — Itinayo para sa lumalagong negosyong Pilipino', link_text: 'Sumali na', link_url: '/signup', background: '#0B4D30', color: '#FFFFFF' },
+  eyebrow: 'Built for growing Filipino businesses 🇵🇭',
+  title: 'Grow your business on a marketplace you can trust.',
+  description: 'JOM HUB connects Merchants and Resellers with product sourcing, secure wallet payments, order tracking, business reports, and direct communication — all in one workspace.',
+  hero_image: '/hero/filipino-market-vendors.jpg',
+  hero_image_mobile: '/hero/filipino-market-vendors.jpg',
+  hero_button: 'Start your business', hero_border: 'rounded', hero_accent: '#16794B',
+  announcement: { enabled: true, text: 'Welcome to JOM HUB — built for growing Filipino businesses', link_text: 'Join now', link_url: '/signup', background: '#0B4D30', color: '#FFFFFF' },
   banners: [],
   sections: { benefits: true, process: true, subscription: true, topup: true, final_cta: true }
 }
 
 const transactionSteps = [
-  { icon: ShoppingBag, title: 'Tuklasin', text: 'Maghanap ng produkto mula sa mga aprubadong merchant. Ihambing ang presyo, stock, at minimum order.' },
-  { icon: Wallet, title: 'Magbayad nang ligtas', text: 'I-load ang wallet, suriin ang kabuuang halaga, at magsumite ng payment sa malinaw na proseso.' },
-  { icon: PackageCheck, title: 'Subaybayan ang order', text: 'Sundan ang bawat order — mula kumpirmasyon hanggang sa pagproseso, pagpapadala, at pagkumpleto.' },
-  { icon: ShieldCheck, title: 'Kumpletuhin nang ligtas', text: 'Ang bayad sa merchant ay ilalabas sa pamamagitan ng kontroladong proseso ng marketplace pagkatapos makumpleto.' }
+  { icon: ShoppingBag, title: 'Discover', text: 'Browse products from approved Merchants. Compare price, stock, and minimum order quantities.' },
+  { icon: Wallet, title: 'Pay securely', text: 'Load your wallet, review the total, and submit payment through a clear, guided process.' },
+  { icon: PackageCheck, title: 'Track your order', text: 'Follow every order from confirmation through processing, shipping, and completion.' },
+  { icon: ShieldCheck, title: 'Complete with confidence', text: 'Merchant payout is released through a controlled marketplace process once the order is complete.' }
 ]
 
 const benefits = [
-  { icon: Store, title: 'Digital na tindahan', text: 'Ipakita ang iyong produkto, presyo, at impormasyon ng negosyo sa isang propesyonal na online store.' },
-  { icon: TrendingUp, title: 'Dagdag kita', text: 'Direktang kumonekta sa mga reseller na naghahanap ng maaasahang produkto at pangmatagalang supplier.' },
-  { icon: BarChart3, title: 'Mga ulat ng negosyo', text: 'I-download ang sales, inventory, orders, top-ups, at withdrawals bilang Excel-ready reports.' },
-  { icon: MessageCircle, title: 'Mabilis na koordinasyon', text: 'Panatilihing konektado ang usapan ng merchant at reseller sa kanilang marketplace activity.' },
-  { icon: Wallet, title: 'Organisadong cash flow', text: 'Subaybayan ang wallet balance, top-ups, withdrawals, fees, payments, at payouts sa isang lugar.' },
-  { icon: BadgeCheck, title: 'Admin-reviewed access', text: 'Ang mga payment proofs at account applications ay sinusuri para sa mas ligtas na komunidad.' },
-  { icon: Sparkles, title: 'Gabay sa pag-setup', text: 'Ang progress checklists at recommended next actions ay gagabay sa iyo sa bawat hakbang.' },
-  { icon: FileImage, title: 'Mga printable records', text: 'Panatilihin ang system-generated receipts para sa marketplace orders, top-ups, at withdrawals.' },
-  { icon: LockKeyhole, title: 'Ligtas na activity history', text: 'Ang mga sensitibong pagbabago ay recorded para sa Admin review.' },
-  { icon: Smartphone, title: 'Mobile-friendly workspace', text: 'Ang mga Reseller at Merchant ay makakagalaw sa pagitan ng Home, Products, Orders, Wallet, at Account.' },
-  { icon: Stethoscope, title: 'Clinic & Real Estate referrals', text: 'I-refer ang iyong customer sa partner clinics o real estate agents at kumita ng referral fee — walang upfront cost.' },
-  { icon: Truck, title: 'Lalamove integration', text: 'Kumonekta sa Lalamove para sa real-time delivery quotes at mas mabilis na pagpapadala.' }
+  { icon: Store, title: 'Digital storefront', text: 'Showcase your products, pricing, and business details in a professional online store.' },
+  { icon: TrendingUp, title: 'More income', text: 'Connect directly with Resellers looking for reliable products and long-term suppliers.' },
+  { icon: BarChart3, title: 'Business reports', text: 'Download sales, inventory, orders, top-ups, and withdrawals as Excel-ready reports.' },
+  { icon: MessageCircle, title: 'Fast coordination', text: 'Keep Merchant and Reseller conversations connected to their marketplace activity.' },
+  { icon: Wallet, title: 'Organized cash flow', text: 'Track wallet balance, top-ups, withdrawals, fees, payments, and payouts in one place.' },
+  { icon: BadgeCheck, title: 'Admin-reviewed access', text: 'Payment proofs and account applications are reviewed for a safer community.' },
+  { icon: Sparkles, title: 'Guided setup', text: 'Progress checklists and recommended next actions guide you through every step.' },
+  { icon: FileImage, title: 'Printable records', text: 'Keep system-generated receipts for marketplace orders, top-ups, and withdrawals.' },
+  { icon: LockKeyhole, title: 'Secure activity history', text: 'Sensitive changes are recorded and available for Admin review.' },
+  { icon: Smartphone, title: 'Mobile-friendly workspace', text: 'Resellers and Merchants can move seamlessly between Home, Products, Orders, Wallet, and Account.' },
+  { icon: Stethoscope, title: 'Clinic & real estate referrals', text: 'Refer your customers to partner clinics or real estate agents and earn a referral fee — no upfront cost.' },
+  { icon: Truck, title: 'Lalamove integration', text: 'Connect to Lalamove for real-time delivery quotes and faster shipping.' }
 ]
 
 const plans = [
-  { duration: 'Starter · 6 Months', price: '₱1,599', note: '₱267/month para sa bagong store' },
+  { duration: 'Starter · 6 Months', price: '₱1,599', note: '₱267/month for a new store' },
   { duration: 'Growth · 1 Year', price: '₱2,799', note: '₱233/month — best value', featured: true },
-  { duration: 'Pro · 2 Years', price: '₱4,999', note: '₱208/month para sa pangmatagalan' }
+  { duration: 'Pro · 2 Years', price: '₱4,999', note: '₱208/month for the long term' }
 ]
 
 const faqs = [
   {
-    q: 'Paano ako mag-start bilang Merchant?',
-    a: 'Gumamit ng iyong Gmail para mag-sign up, i-type ang 6-digit OTP, at piliin ang "Merchant" role. Kumpletuhin ang iyong business details, mag-upload ng valid business permit, pumili ng subscription plan (6 months, 1 year, o 2 years), at mag-upload ng payment proof. Maghintay ng Admin approval para i-activate ang iyong store.'
+    q: 'How do I get started as a Merchant?',
+    a: 'Sign up with your Gmail, enter the 6-digit OTP, and choose the "Merchant" role. Complete your business details, upload a valid business permit, choose a subscription plan (6 months, 1 year, or 2 years), and upload your payment proof. Wait for Admin approval to activate your store.'
   },
   {
-    q: 'Paano ako mag-start bilang Reseller?',
-    a: 'Gumamit ng iyong Gmail para mag-sign up, i-type ang 6-digit OTP, at piliin ang "Reseller" role. Kumpletuhin ang iyong contact at delivery address, mag-submit ng initial wallet top-up proof, at maghintay ng Admin verification. Pagkatapos ma-approve, makakapag-browse ka na ng mga produkto at makakapag-order.'
+    q: 'How do I get started as a Reseller?',
+    a: 'Sign up with your Gmail, enter the 6-digit OTP, and choose the "Reseller" role. Complete your contact and delivery address, submit proof of your initial wallet top-up, and wait for Admin verification. Once approved, you can browse products and start ordering.'
   },
   {
-    q: 'Paano gumagana ang Clinic Referral System?',
-    a: 'Pumunta sa clinics page, pumili ng partner dental o optical clinic at ng kanilang service. I-refer ang iyong customer sa pamamagitan ng pag-enter ng kanilang details. Pagkatapos ng appointment, iko-confirm ng clinic at awtomatikong ililipat ang referral fee sa iyong wallet.'
+    q: 'How does the Clinic Referral System work?',
+    a: 'Go to the clinics page, choose a partner dental or optical clinic and their service, then refer your customer by entering their details. Once the appointment is confirmed by the clinic, the referral fee is automatically transferred to your wallet.'
   },
   {
-    q: 'Paano gumagana ang Real Estate Referral?',
-    a: 'Mag-browse ng partner real estate agents at properties sa services page. I-refer ang iyong customer sa agent. Kapag nag-schedule ng property viewing at kumpletuhin ang transaction, makakatanggap ka ng referral fee — walang upfront cost sa iyo.'
+    q: 'How does Real Estate Referral work?',
+    a: 'Browse partner real estate agents and properties on the services page, then refer your customer to the agent. Once a property viewing is scheduled and the transaction is completed, you receive a referral fee — at no upfront cost to you.'
   },
   {
-    q: 'Ano ang mga payment options?',
-    a: 'Gamitin ang JOM HUB InstaPay QR para mag-top up ng iyong wallet. I-scan ang QR, ilagay ang amount, at i-upload ang payment screenshot kasama ang one-use reference number. Susuriin ng Admin ang payment bago ma-credit ang iyong wallet.'
+    q: 'What are the payment options?',
+    a: 'Use JOM HUB InstaPay QR to top up your wallet. Scan the QR, enter the amount, and upload your payment screenshot along with the one-use reference number. Admin reviews the payment before your wallet is credited.'
   },
   {
-    q: 'Paano gumagana ang Lalamove delivery?',
-    a: 'Ikonekta ng Merchant ang kanilang Lalamove account sa settings. Kapag nag-order ang Reseller, makakakuha sila ng real-time delivery quote. Suportado ang Metro Manila at Cebu areas.'
+    q: 'How does Lalamove delivery work?',
+    a: 'Merchants connect their Lalamove account in settings. When a Reseller places an order, they get a real-time delivery quote. Metro Manila and Cebu areas are supported.'
   }
 ]
 
 const testimonials = [
-  { text: 'Dati, ang hirap maghanap ng maaasahang supplier. Sa JOM HUB, isang click lang — naka-order na ako at nadeliver agad. Malaki ang natipid ko sa oras at pahirap sa paghahanap.', name: 'Maria Santos', role: 'Reseller — Bulacan', avatar: 'MS' },
-  { text: 'Ang saya pala ng may digital storefront. Lumaki ang benta ko nang 40% sa unang tatlong buwan. Sobrang dali gamitin at napaka-professional ng JOM HUB.', name: 'Juan dela Cruz', role: 'Merchant — Manila', avatar: 'JC' },
-  { text: 'Hindi ko na kailangan mangolekta ng cash o magmanual ng records. Lahat — orders, payments, reports — automated na. Laking tulong para sa maliit kong negosyo.', name: 'Ana Gonzales', role: 'Merchant — Cebu', avatar: 'AG' },
-  { text: 'As a reseller, mahalaga sa akin ang inventory at pricing transparency. JOM HUB gives me real-time updates from my suppliers. Game changer siya!', name: 'Carlos Reyes', role: 'Reseller — Laguna', avatar: 'CR' },
-  { text: 'Ang galing ng clinic referral system! Nag-refer lang ako ng dalawang customer, nakatanggap agad ng referral fee sa wallet ko. Walang hassle, walang papel.', name: 'Diana Lopez', role: 'Reseller — Quezon City', avatar: 'DL' },
-  { text: 'Una akong nag-alinlangan dahil hindi ako tech-savvy. Pero ang intuitive ng interface — natuto ako agad. Ngayon, araw-araw ko ginagamit ang JOM HUB para sa aking store.', name: 'Elena Martinez', role: 'Merchant — Davao', avatar: 'EM' }
+  { text: 'Finding a reliable supplier used to be so hard. With JOM HUB, it only takes one click — my order gets placed and delivered right away. It saved me so much time and hassle.', name: 'Maria Santos', role: 'Reseller — Bulacan', avatar: 'MS' },
+  { text: 'I never expected having a digital storefront to make this much of a difference. My sales grew 40% in the first three months. JOM HUB is easy to use and genuinely professional.', name: 'Juan dela Cruz', role: 'Merchant — Manila', avatar: 'JC' },
+  { text: 'I no longer have to collect cash or keep manual records. Orders, payments, reports — everything is automated now. It has been a huge help for my small business.', name: 'Ana Gonzales', role: 'Merchant — Cebu', avatar: 'AG' },
+  { text: 'As a reseller, inventory and pricing transparency matter a lot to me. JOM HUB gives me real-time updates from my suppliers. It has been a game changer.', name: 'Carlos Reyes', role: 'Reseller — Laguna', avatar: 'CR' },
+  { text: 'The clinic referral system is fantastic. I referred just two customers and received the referral fee straight to my wallet right away — no hassle, no paperwork.', name: 'Diana Lopez', role: 'Reseller — Quezon City', avatar: 'DL' },
+  { text: 'I was hesitant at first because I am not very tech-savvy, but the interface is so intuitive that I picked it up right away. Now I use JOM HUB every day for my store.', name: 'Elena Martinez', role: 'Merchant — Davao', avatar: 'EM' }
 ]
 
 const safeInternalLink = (value, fallbackValue) => typeof value === 'string' && value.startsWith('/') && !value.startsWith('//') ? value : fallbackValue
@@ -138,23 +138,23 @@ export default function Home() {
         <div className="relative overflow-hidden bg-gradient-to-br from-teal-950 via-teal-800 to-teal-600 px-4 py-5 text-white sm:px-7 sm:py-6">
           <div className="absolute -right-12 -top-16 h-52 w-52 rounded-full bg-mango-400/20 blur-2xl" />
           <button type="button" onClick={closeSubscriptionPopup} className="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white/80 transition hover:bg-white/20 hover:text-white sm:right-4 sm:top-4" aria-label="Close"><X size={19} /></button>
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-mango-200"><Sparkles size={14} /> Lumago kasama ang JOM HUB</span>
-          <h2 className="mt-3 max-w-lg pr-6 font-display text-2xl font-extrabold leading-tight sm:text-3xl">Gawing lumalagong negosyo ang iyong produkto at koneksyon.</h2>
-          <p className="mt-3 max-w-xl text-sm leading-6 text-teal-50/75">Sumali sa pinagkakatiwalaang marketplace na ginawa para sa mga Pilipinong Merchant at Reseller — may organized orders, secure workflows, wallets, reports, campaigns, at direct communication.</p>
+          <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-mango-200"><Sparkles size={14} /> Grow with JOM HUB</span>
+          <h2 className="mt-3 max-w-lg pr-6 font-display text-2xl font-extrabold leading-tight sm:text-3xl">Turn your products and connections into a growing business.</h2>
+          <p className="mt-3 max-w-xl text-sm leading-6 text-teal-50/75">Join the trusted marketplace built for Filipino Merchants and Resellers — with organized orders, secure workflows, wallets, reports, campaigns, and direct communication.</p>
         </div>
         <div className="p-4 sm:p-6">
           <div className="subscription-audience grid grid-cols-2 gap-3">
-            <div className="rounded-2xl border border-teal-100 bg-teal-50/70 p-5"><span className="grid h-11 w-11 place-items-center rounded-xl bg-teal-700 text-white"><Store size={21} /></span><h3 className="mt-4 font-display text-lg font-bold text-ink">Para sa Merchants</h3><p className="mt-2 text-sm leading-6 text-ink/60">Buuin ang iyong digital store, maabot ang mas maraming reseller, at pamahalaan ang inventory at orders.</p></div>
-            <div className="rounded-2xl border border-mango-300 bg-mango-100/45 p-5"><span className="grid h-11 w-11 place-items-center rounded-xl bg-mango-500 text-ink"><UsersRound size={21} /></span><h3 className="mt-4 font-display text-lg font-bold text-ink">Para sa Resellers</h3><p className="mt-2 text-sm leading-6 text-ink/60">Maghanap ng pinagkakatiwalaang supplier, magkaroon ng quantity discounts, at subaybayan ang iyong benta.</p></div>
+            <div className="rounded-2xl border border-teal-100 bg-teal-50/70 p-5"><span className="grid h-11 w-11 place-items-center rounded-xl bg-teal-700 text-white"><Store size={21} /></span><h3 className="mt-4 font-display text-lg font-bold text-ink">For Merchants</h3><p className="mt-2 text-sm leading-6 text-ink/60">Build your digital store, reach more Resellers, and manage inventory and orders.</p></div>
+            <div className="rounded-2xl border border-mango-300 bg-mango-100/45 p-5"><span className="grid h-11 w-11 place-items-center rounded-xl bg-mango-500 text-ink"><UsersRound size={21} /></span><h3 className="mt-4 font-display text-lg font-bold text-ink">For Resellers</h3><p className="mt-2 text-sm leading-6 text-ink/60">Find trusted suppliers, get quantity discounts, and track your sales.</p></div>
           </div>
-          <div className="mt-3 rounded-xl border border-black/[0.06] p-3"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-teal-700 sm:text-xs">Merchant subscription options</p><div className="mt-2 grid grid-cols-3 gap-1.5 text-center">{plans.map((plan) => <div key={plan.duration} className={`rounded-lg px-1 py-2 ${plan.featured ? 'bg-teal-700 text-white' : 'bg-cream text-ink'}`}><p className="text-[9px] font-semibold opacity-70 sm:text-[11px]">{plan.duration}</p><p className="mt-0.5 whitespace-nowrap font-display text-sm font-bold sm:text-base">{plan.price}</p></div>)}</div><p className="mt-2 text-center text-[10px] leading-4 text-ink/45 sm:text-xs">I-submit ang iyong payment screenshot at maghintay ng Admin approval.</p></div>
-          <div className="mt-4 flex flex-col gap-2 sm:flex-row"><Link to="/signup" onClick={closeSubscriptionPopup} className="btn-primary flex flex-1 items-center justify-center gap-2 py-2.5 text-sm">Sumali sa JOM HUB <ArrowRight size={16} /></Link><button type="button" onClick={closeSubscriptionPopup} className="btn-secondary flex-1 py-2.5 text-sm">I-explore ang homepage</button></div>
+          <div className="mt-3 rounded-xl border border-black/[0.06] p-3"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-teal-700 sm:text-xs">Merchant subscription options</p><div className="mt-2 grid grid-cols-3 gap-1.5 text-center">{plans.map((plan) => <div key={plan.duration} className={`rounded-lg px-1 py-2 ${plan.featured ? 'bg-teal-700 text-white' : 'bg-cream text-ink'}`}><p className="text-[9px] font-semibold opacity-70 sm:text-[11px]">{plan.duration}</p><p className="mt-0.5 whitespace-nowrap font-display text-sm font-bold sm:text-base">{plan.price}</p></div>)}</div><p className="mt-2 text-center text-[10px] leading-4 text-ink/45 sm:text-xs">Submit your payment screenshot and wait for Admin approval.</p></div>
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row"><Link to="/signup" onClick={closeSubscriptionPopup} className="btn-primary flex flex-1 items-center justify-center gap-2 py-2.5 text-sm">Join JOM HUB <ArrowRight size={16} /></Link><button type="button" onClick={closeSubscriptionPopup} className="btn-secondary flex-1 py-2.5 text-sm">Explore the homepage</button></div>
         </div>
       </div>
     </div>}
     {content.announcement?.enabled && <div style={{ background: content.announcement.background, color: content.announcement.color }} className="relative z-20 px-4 py-2.5 text-center text-xs font-semibold sm:text-sm"><span>{content.announcement.text}</span>{content.announcement.link_text && <Link to={safeInternalLink(content.announcement.link_url, '/signup')} className="ml-2 inline-flex items-center gap-1 font-bold underline decoration-white/30 underline-offset-2">{content.announcement.link_text} <ArrowRight size={13} /></Link>}</div>}
 
-    {/* ===== HERO SECTION - REDESIGNED WITH FILIPINO MODELS ===== */}
+    {/* ===== HERO SECTION ===== */}
     <section className="relative">
       <div className="absolute inset-x-0 top-0 -z-0 h-[700px] bg-[radial-gradient(circle_at_80%_15%,rgba(242,169,59,0.18),transparent_28%),radial-gradient(circle_at_10%_15%,rgba(22,121,75,0.14),transparent_28%)]" />
       <div className="relative mx-auto grid max-w-7xl items-center gap-8 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[1fr_1.05fr] lg:gap-14 lg:py-24">
@@ -164,11 +164,11 @@ export default function Home() {
           <p className="mt-4 max-w-xl text-sm leading-7 text-ink/65 sm:text-base lg:text-lg">{content.description}</p>
           <div className="mt-4 inline-flex max-w-full items-center gap-3 rounded-2xl border border-teal-100 bg-white/80 px-4 py-3 shadow-sm backdrop-blur">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-teal-700 text-white"><MailCheck size={20} /></span>
-            <div><p className="text-sm font-bold text-ink">Secure 6-digit email verification</p><p className="text-xs leading-5 text-ink/50">Isang one-time code na ipinadala sa iyong Gmail — walang password na kailangan.</p></div>
+            <div><p className="text-sm font-bold text-ink">Secure 6-digit email verification</p><p className="text-xs leading-5 text-ink/50">A one-time code sent to your Gmail — no password needed.</p></div>
           </div>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-            {!user && <Link to="/signup" style={{ backgroundColor: content.hero_accent }} className="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3.5 font-semibold text-white transition hover:opacity-90">{content.hero_button || 'Simulan ang negosyo'} <ArrowRight size={18} /></Link>}
-            {user ? <Link to="/catalog" className="btn-secondary inline-flex items-center justify-center gap-2 px-6 py-3.5">I-explore ang mga produkto <ShoppingBag size={17} /></Link> : <Link to="/login" className="btn-secondary inline-flex items-center justify-center gap-2 px-6 py-3.5">Mag-sign in para sa mga produkto <ShoppingBag size={17} /></Link>}
+            {!user && <Link to="/signup" style={{ backgroundColor: content.hero_accent }} className="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3.5 font-semibold text-white transition hover:opacity-90">{content.hero_button || 'Start your business'} <ArrowRight size={18} /></Link>}
+            {user ? <Link to="/catalog" className="btn-secondary inline-flex items-center justify-center gap-2 px-6 py-3.5">Explore products <ShoppingBag size={17} /></Link> : <Link to="/login" className="btn-secondary inline-flex items-center justify-center gap-2 px-6 py-3.5">Sign in to view products <ShoppingBag size={17} /></Link>}
           </div>
           <div className="mt-5 grid max-w-xl grid-cols-1 gap-2 text-sm font-medium text-ink/55 sm:grid-cols-3">
             {['Protected product catalog', 'Curated Reseller stores', 'Mobile-ready access'].map((item) => <span key={item} className="flex items-center gap-1.5"><CheckCircle2 size={16} className="shrink-0 text-teal-500" /> {item}</span>)}
@@ -176,27 +176,23 @@ export default function Home() {
         </div>
         <div className="relative mx-auto w-full max-w-2xl lg:max-w-none order-1 lg:order-2">
           <div className="absolute -inset-3 rotate-2 rounded-[2rem] bg-teal-100/80 hidden sm:block" />
-          <div className="relative overflow-hidden rounded-[1.75rem] shadow-2xl shadow-teal-900/20">
-            <picture>
-              <source media="(min-width: 1024px)" srcSet="https://images.unsplash.com/photo-1607748862156-7c548e5e5cfd?auto=format&fit=crop&w=1400&q=85" />
-              <source media="(min-width: 640px)" srcSet="https://images.unsplash.com/photo-1607748862156-7c548e5e5cfd?auto=format&fit=crop&w=800&q=80" />
-              <img
-                src="https://images.unsplash.com/photo-1607748862156-7c548e5e5cfd?auto=format&fit=crop&w=600&q=70"
-                alt="Filipina entrepreneur managing her online business"
-                className={`aspect-[4/3] w-full object-cover transition-opacity duration-300 ${heroLoaded ? 'opacity-100' : 'opacity-0'}`}
-                onLoad={() => setHeroLoaded(true)}
-                loading="eager"
-              />
-            </picture>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+          <div className={`relative overflow-hidden ${heroRadius} shadow-2xl shadow-teal-900/20`}>
+            <img
+              src={safeImageUrl(content.hero_image, fallback.hero_image)}
+              alt="Filipino market vendors running their small business in Baguio"
+              className={`aspect-[4/3] w-full object-cover transition-opacity duration-300 ${heroLoaded ? 'opacity-100' : 'opacity-0'}`}
+              onLoad={() => setHeroLoaded(true)}
+              loading="eager"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-teal-950/70 via-teal-950/10 to-transparent" />
           </div>
           {/* Floating Cards */}
-          <div className="absolute -bottom-4 left-2 right-2 flex gap-2 sm:left-4 sm:right-auto sm:w-auto sm:flex-col sm:gap-0">
+          <div className="absolute -bottom-4 left-2 right-2 flex gap-2 sm:left-4 sm:right-auto sm:w-auto sm:flex-col sm:gap-2">
             <div className="flex items-center gap-2 rounded-2xl border border-black/5 bg-white p-3 shadow-xl sm:p-4">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-mango-100 text-mango-600"><TrendingUp size={18} /></span>
               <div className="min-w-0">
-                <p className="text-[11px] font-medium text-ink/45">Para sa</p>
-                <p className="font-display text-sm font-bold text-ink">Pilipinong negosyo</p>
+                <p className="text-[11px] font-medium text-ink/45">Built for</p>
+                <p className="font-display text-sm font-bold text-ink">Filipino businesses</p>
               </div>
             </div>
             <div className="flex items-center gap-2 rounded-2xl border border-black/5 bg-white/95 p-3 shadow-xl backdrop-blur sm:p-4">
@@ -220,7 +216,7 @@ export default function Home() {
             <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-white/15 bg-white/10 shadow-inner backdrop-blur sm:h-20 sm:w-20"><Clock3 size={30} className="text-mango-300 sm:text-[34px]" /></span>
             <div><p className="font-display text-4xl font-extrabold tracking-tight text-mango-300 sm:text-5xl">24/7</p><h2 className="font-display text-lg font-bold sm:text-2xl">Business Access</h2></div>
           </div>
-          <div className="max-w-md border-t border-white/10 pt-4 sm:border-l sm:border-t-0 sm:pl-8 sm:pt-0"><p className="text-base font-semibold sm:text-lg">Pamahalaan kahit saan, kahit kailan.</p><p className="mt-1 text-sm leading-6 text-teal-50/65">Ma-access ang iyong products, orders, wallet, reports, at business workspace — mula sa desktop o mobile.</p></div>
+          <div className="max-w-md border-t border-white/10 pt-4 sm:border-l sm:border-t-0 sm:pl-8 sm:pt-0"><p className="text-base font-semibold sm:text-lg">Manage your business anywhere, anytime.</p><p className="mt-1 text-sm leading-6 text-teal-50/65">Access your products, orders, wallet, reports, and business workspace — from desktop or mobile.</p></div>
         </div>
       </div>
     </section>
@@ -230,15 +226,15 @@ export default function Home() {
       <div className="grid lg:grid-cols-[1.05fr_0.95fr] rounded-[2rem] border border-teal-100 bg-white shadow-2xl shadow-teal-900/[0.06] overflow-hidden">
         <div className="relative p-6 sm:p-10 lg:p-14">
           <span className="inline-flex items-center gap-2 rounded-full bg-mango-100 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-mango-700"><Stethoscope size={15} /> Clinic Referral System</span>
-          <h2 className="mt-5 max-w-xl font-display text-3xl font-extrabold leading-tight text-ink sm:text-4xl">Kumita sa pagre-refer ng customer sa clinic.</h2>
-          <p className="mt-4 max-w-xl text-sm leading-7 text-ink/60 sm:text-base">I-refer ang iyong customer sa partner dental o optical clinic at kumita ng referral fee. <strong>Walang upfront cost</strong> — ang clinic ang magbabayad pagkatapos ng appointment.</p>
+          <h2 className="mt-5 max-w-xl font-display text-3xl font-extrabold leading-tight text-ink sm:text-4xl">Earn by referring customers to a clinic.</h2>
+          <p className="mt-4 max-w-xl text-sm leading-7 text-ink/60 sm:text-base">Refer your customer to a partner dental or optical clinic and earn a referral fee. <strong>No upfront cost</strong> — the clinic pays you after the appointment.</p>
           <div className="mt-8 grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl border border-teal-100 bg-teal-50 p-4"><Stethoscope size={20} className="text-teal-700" /><h3 className="mt-3 text-sm font-bold text-ink">Dental & Optical Clinics</h3><p className="mt-1 text-xs leading-5 text-ink/50">Partner clinics na nag-aalok ng dental cleaning, eye checkup, at iba pa.</p></div>
-            <div className="rounded-2xl border border-mango-200 bg-mango-100/60 p-4"><TrendingUp size={20} className="text-mango-700" /><h3 className="mt-3 text-sm font-bold text-ink">Referral Fee</h3><p className="mt-1 text-xs leading-5 text-ink/50">Kumita ng referral fee na awtomatikong ililipad sa iyong wallet.</p></div>
+            <div className="rounded-2xl border border-teal-100 bg-teal-50 p-4"><Stethoscope size={20} className="text-teal-700" /><h3 className="mt-3 text-sm font-bold text-ink">Dental & Optical Clinics</h3><p className="mt-1 text-xs leading-5 text-ink/50">Partner clinics offering dental cleaning, eye checkups, and more.</p></div>
+            <div className="rounded-2xl border border-mango-200 bg-mango-100/60 p-4"><TrendingUp size={20} className="text-mango-700" /><h3 className="mt-3 text-sm font-bold text-ink">Referral Fee</h3><p className="mt-1 text-xs leading-5 text-ink/50">Earn a referral fee that is automatically transferred to your wallet.</p></div>
           </div>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link to="/clinics" className="btn-accent inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold">Tingnan ang mga clinic <ArrowRight size={16} /></Link>
-            <Link to="/signup" className="btn-secondary inline-flex items-center gap-2 px-5 py-2.5 text-sm">Mag-sign up bilang Reseller</Link>
+            <Link to="/clinics" className="btn-accent inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold">View partner clinics <ArrowRight size={16} /></Link>
+            <Link to="/signup" className="btn-secondary inline-flex items-center gap-2 px-5 py-2.5 text-sm">Sign up as a Reseller</Link>
           </div>
         </div>
         <div className="flex min-h-[280px] items-center justify-center bg-gradient-to-br from-mango-400 to-mango-600 p-6 sm:p-10">
@@ -246,12 +242,12 @@ export default function Home() {
             <div className="rounded-[1.75rem] border border-white/20 bg-white/15 p-5 shadow-2xl backdrop-blur-md text-ink">
               <div className="flex items-center gap-3">
                 <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white text-mango-600"><Stethoscope size={24} /></span>
-                <div><p className="text-xs text-white/70">CLINIC REFERRAL</p><p className="font-bold text-white">Kumita ng referral fee</p></div>
+                <div><p className="text-xs text-white/70">CLINIC REFERRAL</p><p className="font-bold text-white">Earn a referral fee</p></div>
               </div>
               <div className="mt-5 grid gap-3">
-                <div className="flex items-center gap-3 rounded-xl bg-white/90 p-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-teal-100 text-teal-700 text-xs font-bold">1</span><p className="text-xs font-semibold text-ink">Pumili ng clinic service</p></div>
-                <div className="flex items-center gap-3 rounded-xl bg-white/90 p-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-teal-100 text-teal-700 text-xs font-bold">2</span><p className="text-xs font-semibold text-ink">I-refer ang iyong customer</p></div>
-                <div className="flex items-center gap-3 rounded-xl bg-white/90 p-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-teal-100 text-teal-700 text-xs font-bold">3</span><p className="text-xs font-semibold text-ink">Kumita pagkatapos ng appointment</p></div>
+                <div className="flex items-center gap-3 rounded-xl bg-white/90 p-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-teal-100 text-teal-700 text-xs font-bold">1</span><p className="text-xs font-semibold text-ink">Choose a clinic service</p></div>
+                <div className="flex items-center gap-3 rounded-xl bg-white/90 p-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-teal-100 text-teal-700 text-xs font-bold">2</span><p className="text-xs font-semibold text-ink">Refer your customer</p></div>
+                <div className="flex items-center gap-3 rounded-xl bg-white/90 p-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-teal-100 text-teal-700 text-xs font-bold">3</span><p className="text-xs font-semibold text-ink">Earn after the appointment</p></div>
               </div>
             </div>
           </div>
@@ -274,21 +270,21 @@ export default function Home() {
                   <p className="text-3xl font-bold text-white">🚚</p>
                   <p className="mt-2 text-sm font-semibold text-white">Metro Manila · Cebu</p>
                 </div>
-                <p className="mt-3 text-xs text-white/60 text-center">Ikonekta ang iyong Lalamove API key para sa instant delivery quotes.</p>
+                <p className="mt-3 text-xs text-white/60 text-center">Connect your Lalamove API key for instant delivery quotes.</p>
               </div>
             </div>
           </div>
           <div className="p-6 sm:p-10 lg:p-14">
             <span className="inline-flex items-center gap-2 rounded-full bg-teal-100 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-teal-700"><Truck size={15} /> Lalamove Integration</span>
-            <h2 className="mt-5 max-w-xl font-display text-3xl font-extrabold leading-tight text-ink sm:text-4xl">Mabilis na pagpapadala gamit ang Lalamove.</h2>
-            <p className="mt-4 max-w-xl text-sm leading-7 text-ink/60 sm:text-base">Ikonekta ang iyong Lalamove account para makakuha ng real-time delivery quotes. Ang mga reseller ay maaring mag-opt-in para sa mas mabilis na pagpapadala.</p>
+            <h2 className="mt-5 max-w-xl font-display text-3xl font-extrabold leading-tight text-ink sm:text-4xl">Faster shipping with Lalamove.</h2>
+            <p className="mt-4 max-w-xl text-sm leading-7 text-ink/60 sm:text-base">Connect your Lalamove account to get real-time delivery quotes. Resellers can opt in for faster shipping on their orders.</p>
             <div className="mt-6 grid gap-3">
-              <div className="flex items-center gap-3 rounded-xl border border-teal-100 bg-white p-4"><Check size={18} className="shrink-0 text-teal-600" /><p className="text-sm text-ink/70">Real-time delivery pricing mula sa Lalamove API</p></div>
-              <div className="flex items-center gap-3 rounded-xl border border-teal-100 bg-white p-4"><Check size={18} className="shrink-0 text-teal-600" /><p className="text-sm text-ink/70">Suportado ang Metro Manila at Cebu</p></div>
-              <div className="flex items-center gap-3 rounded-xl border border-teal-100 bg-white p-4"><Check size={18} className="shrink-0 text-teal-600" /><p className="text-sm text-ink/70">Ikonekta ang inyong sariling Lalamove account</p></div>
+              <div className="flex items-center gap-3 rounded-xl border border-teal-100 bg-white p-4"><Check size={18} className="shrink-0 text-teal-600" /><p className="text-sm text-ink/70">Real-time delivery pricing from the Lalamove API</p></div>
+              <div className="flex items-center gap-3 rounded-xl border border-teal-100 bg-white p-4"><Check size={18} className="shrink-0 text-teal-600" /><p className="text-sm text-ink/70">Metro Manila and Cebu areas supported</p></div>
+              <div className="flex items-center gap-3 rounded-xl border border-teal-100 bg-white p-4"><Check size={18} className="shrink-0 text-teal-600" /><p className="text-sm text-ink/70">Connect your own Lalamove account</p></div>
             </div>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link to="/reseller/delivery" className="btn-primary inline-flex items-center gap-2 px-5 py-2.5 text-sm">I-set up ang Lalamove <ArrowRight size={16} /></Link>
+              <Link to="/reseller/delivery" className="btn-primary inline-flex items-center gap-2 px-5 py-2.5 text-sm">Set up Lalamove <ArrowRight size={16} /></Link>
             </div>
           </div>
         </div>
@@ -310,22 +306,22 @@ export default function Home() {
                   <p className="text-3xl font-bold text-white">🏠</p>
                   <p className="mt-2 text-sm font-semibold text-white">Condos · Houses · Lots</p>
                 </div>
-                <p className="mt-3 text-xs text-white/60 text-center">I-refer ang iyong customer sa partner real estate agents at kumita ng referral fee.</p>
+                <p className="mt-3 text-xs text-white/60 text-center">Refer your customer to a partner real estate agent and earn a referral fee.</p>
               </div>
             </div>
           </div>
           <div className="p-6 sm:p-10 lg:p-14">
             <span className="inline-flex items-center gap-2 rounded-full bg-mango-100 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-mango-700"><Building2 size={15} /> Real Estate Referral</span>
-            <h2 className="mt-5 max-w-xl font-display text-3xl font-extrabold leading-tight text-ink sm:text-4xl">Kumita sa pagre-refer ng property buyer.</h2>
-            <p className="mt-4 max-w-xl text-sm leading-7 text-ink/60 sm:text-base">I-refer ang iyong customer sa partner real estate agents para sa condo, house and lot, o commercial property. <strong>Walang upfront cost</strong> — kumita ng referral fee pagkatapos ng successful transaction.</p>
+            <h2 className="mt-5 max-w-xl font-display text-3xl font-extrabold leading-tight text-ink sm:text-4xl">Earn by referring property buyers.</h2>
+            <p className="mt-4 max-w-xl text-sm leading-7 text-ink/60 sm:text-base">Refer your customer to a partner real estate agent for a condo, house and lot, or commercial property. <strong>No upfront cost</strong> — earn a referral fee after a successful transaction.</p>
             <div className="mt-6 grid gap-3">
-              <div className="flex items-center gap-3 rounded-xl border border-teal-100 bg-white p-4"><Check size={18} className="shrink-0 text-teal-600" /><p className="text-sm text-ink/70">Partner real estate agents na may verified properties</p></div>
-              <div className="flex items-center gap-3 rounded-xl border border-teal-100 bg-white p-4"><Check size={18} className="shrink-0 text-teal-600" /><p className="text-sm text-ink/70">Condos, houses, lots, at commercial spaces</p></div>
-              <div className="flex items-center gap-3 rounded-xl border border-teal-100 bg-white p-4"><Check size={18} className="shrink-0 text-teal-600" /><p className="text-sm text-ink/70">Awtomatikong referral fee sa iyong wallet</p></div>
+              <div className="flex items-center gap-3 rounded-xl border border-teal-100 bg-white p-4"><Check size={18} className="shrink-0 text-teal-600" /><p className="text-sm text-ink/70">Partner real estate agents with verified properties</p></div>
+              <div className="flex items-center gap-3 rounded-xl border border-teal-100 bg-white p-4"><Check size={18} className="shrink-0 text-teal-600" /><p className="text-sm text-ink/70">Condos, houses, lots, and commercial spaces</p></div>
+              <div className="flex items-center gap-3 rounded-xl border border-teal-100 bg-white p-4"><Check size={18} className="shrink-0 text-teal-600" /><p className="text-sm text-ink/70">Referral fee credited automatically to your wallet</p></div>
             </div>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link to="/clinics" className="btn-accent inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold">Tingnan ang mga properties <ArrowRight size={16} /></Link>
-              <Link to="/signup" className="btn-secondary inline-flex items-center gap-2 px-5 py-2.5 text-sm">Mag-sign up bilang Reseller</Link>
+              <Link to="/clinics" className="btn-accent inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold">View properties <ArrowRight size={16} /></Link>
+              <Link to="/signup" className="btn-secondary inline-flex items-center gap-2 px-5 py-2.5 text-sm">Sign up as a Reseller</Link>
             </div>
           </div>
         </div>
@@ -336,8 +332,8 @@ export default function Home() {
     <section className="bg-white border-y border-black/[0.04] py-12 sm:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="text-center">
-          <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-teal-600">Pinagkakatiwalaan ng komunidad</p>
-          <h2 className="mt-3 font-display text-2xl font-bold text-ink sm:text-3xl">Mga kasosyo at partner ng JOM HUB</h2>
+          <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-teal-600">Trusted by the community</p>
+          <h2 className="mt-3 font-display text-2xl font-bold text-ink sm:text-3xl">Partners and collaborators of JOM HUB</h2>
         </div>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-6 sm:gap-10">
           <div className="flex items-center gap-3 rounded-2xl border border-teal-100 bg-teal-50/70 px-5 py-3">
@@ -364,8 +360,8 @@ export default function Home() {
     <section className="bg-[linear-gradient(180deg,#EDF7F1_0%,#FFFFFF_48%,#F7FAF7_100%)] py-16 sm:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="mx-auto max-w-3xl text-center">
-          <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-teal-600">Sinabi ng aming komunidad</p>
-          <h2 className="mt-3 font-display text-3xl font-extrabold leading-tight text-teal-950 sm:text-4xl">Pinagkakatiwalaan ng mga Pilipinong negosyante.</h2>
+          <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-teal-600">What our community says</p>
+          <h2 className="mt-3 font-display text-3xl font-extrabold leading-tight text-teal-950 sm:text-4xl">Trusted by Filipino entrepreneurs.</h2>
         </div>
         <div className="mt-10 mx-auto max-w-4xl">
           <div className="relative overflow-hidden rounded-[2rem] border border-teal-100 bg-white p-6 shadow-xl sm:p-10">
@@ -406,9 +402,9 @@ export default function Home() {
     <section className="bg-[linear-gradient(180deg,#FFFFFF_0%,#EDF7F1_100%)] py-16 sm:py-20" id="faq">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="mx-auto max-w-3xl text-center">
-          <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-teal-600">Mga madalas itanong</p>
-          <h2 className="mt-3 font-display text-3xl font-extrabold leading-tight text-teal-950 sm:text-4xl">May tanong? Narito ang sagot.</h2>
-          <p className="mt-4 text-sm leading-6 text-ink/60">Alamin ang mga pangunahing impormasyon tungkol sa JOM HUB — mula sa pag-sign up hanggang sa pag-kita ng referral fees.</p>
+          <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-teal-600">Frequently asked questions</p>
+          <h2 className="mt-3 font-display text-3xl font-extrabold leading-tight text-teal-950 sm:text-4xl">Have a question? Here are the answers.</h2>
+          <p className="mt-4 text-sm leading-6 text-ink/60">Learn the essentials about JOM HUB — from signing up to earning referral fees.</p>
         </div>
         <div className="mx-auto mt-10 max-w-3xl space-y-3">
           {faqs.map((faq, index) => (
@@ -435,7 +431,7 @@ export default function Home() {
           ))}
         </div>
         <div className="mx-auto mt-8 max-w-lg text-center">
-          <p className="text-sm text-ink/50">Hindi mo nakita ang sagot? I-contact ang aming admin sa <a href="mailto:nolascoaubrey32@gmail.com" className="font-semibold text-teal-700 underline">nolascoaubrey32@gmail.com</a></p>
+          <p className="text-sm text-ink/50">Didn't find your answer? Contact our admin at <a href="mailto:nolascoaubrey32@gmail.com" className="font-semibold text-teal-700 underline">nolascoaubrey32@gmail.com</a></p>
         </div>
       </div>
     </section>
@@ -445,30 +441,29 @@ export default function Home() {
     <RegistrationCalendar />
 
     {content.sections?.benefits !== false && <section id="benefits" className="mx-auto max-w-7xl scroll-mt-20 px-4 py-16 sm:px-6 sm:py-20">
-      <div className="mx-auto max-w-3xl text-center"><p className="text-xs font-bold uppercase tracking-[0.2em] text-teal-600">Ginawa para sa tunay na negosyo</p><h2 className="mt-3 font-display text-3xl font-bold text-ink sm:text-4xl">Lahat ng kailangan mo para bumili, magbenta, at lumago nang may kumpiyansa.</h2><p className="mt-4 text-ink/60">Pinapalitan ng JOM HUB ang scattered chats, manual records, at disconnected payment tracking — lahat nasa isang organized workspace.</p></div>
+      <div className="mx-auto max-w-3xl text-center"><p className="text-xs font-bold uppercase tracking-[0.2em] text-teal-600">Built for real business</p><h2 className="mt-3 font-display text-3xl font-bold text-ink sm:text-4xl">Everything you need to buy, sell, and grow with confidence.</h2><p className="mt-4 text-ink/60">JOM HUB replaces scattered chats, manual records, and disconnected payment tracking — all in one organized workspace.</p></div>
       <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{benefits.map(({ icon: Icon, title, text }) => <div key={title} className="group rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card transition hover:-translate-y-1 hover:border-teal-100 hover:shadow-soft"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-700 transition group-hover:bg-teal-600 group-hover:text-white"><Icon size={19} /></span><h3 className="mt-4 font-display text-base font-bold text-ink sm:text-lg">{title}</h3><p className="mt-2 text-sm leading-6 text-ink/60">{text}</p></div>)}</div>
     </section>}
 
     {content.sections?.process !== false && <section className="bg-teal-950 py-16 text-white sm:py-20">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6"><div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div className="max-w-2xl"><p className="text-xs font-bold uppercase tracking-[0.2em] text-mango-300">Paano gumagana ang JOM HUB</p><h2 className="mt-3 font-display text-3xl font-bold sm:text-4xl">Mas malinaw na daan mula sa pagtuklas hanggang sa pagbabayad.</h2></div><Link to="/catalog" className="inline-flex items-center gap-2 text-sm font-semibold text-mango-300">Tingnan ang marketplace <ArrowRight size={16} /></Link></div>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6"><div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div className="max-w-2xl"><p className="text-xs font-bold uppercase tracking-[0.2em] text-mango-300">How JOM HUB works</p><h2 className="mt-3 font-display text-3xl font-bold sm:text-4xl">A clearer path from discovery to payment.</h2></div><Link to="/catalog" className="inline-flex items-center gap-2 text-sm font-semibold text-mango-300">View the marketplace <ArrowRight size={16} /></Link></div>
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{transactionSteps.map(({ icon: Icon, title, text }, index) => <div key={title} className="relative rounded-2xl border border-white/10 bg-white/[0.07] p-5"><span className="absolute right-4 top-4 font-display text-3xl font-bold text-white/[0.08]">0{index + 1}</span><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-mango-500 text-ink"><Icon size={21} /></span><h3 className="mt-5 text-lg font-bold">{title}</h3><p className="mt-2 text-sm leading-6 text-white/60">{text}</p></div>)}</div>
       </div>
     </section>}
 
     {content.sections?.subscription !== false && <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20" id="subscribe">
-      <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center"><div><span className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1.5 text-xs font-bold text-teal-700"><Store size={14} /> Para sa Merchants</span><h2 className="mt-4 font-display text-3xl font-bold text-ink sm:text-4xl">Paano mag-subscribe at buksan ang iyong store</h2><p className="mt-4 leading-7 text-ink/60">Gumawa ng Merchant profile, pumili ng subscription, at mag-upload ng payment screenshot. Susuriin ng Admin ang application bago i-activate ang iyong store.</p>
-        <div className="mt-6 space-y-3">{['Ipasok ang iyong Gmail, i-type ang 6-digit OTP, at piliin ang Merchant.', 'Kumpletuhin ang iyong business details at mag-upload ng valid business permit.', 'Pumili ng 6 months, 1 year, o 2 years at i-upload ang payment proof.', 'Maghintay ng Admin approval, pagkatapos ay pamahalaan ang iyong products at orders.'].map((text, index) => <div key={text} className="flex gap-3"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-teal-600 text-xs font-bold text-white">{index + 1}</span><p className="pt-0.5 text-sm leading-6 text-ink/65">{text}</p></div>)}</div>
-        <Link to="/signup" className="mt-7 inline-flex items-center gap-2 font-semibold text-teal-700">Gumawa ng Merchant account <ArrowRight size={17} /></Link></div>
+      <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center"><div><span className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1.5 text-xs font-bold text-teal-700"><Store size={14} /> For Merchants</span><h2 className="mt-4 font-display text-3xl font-bold text-ink sm:text-4xl">How to subscribe and open your store</h2><p className="mt-4 leading-7 text-ink/60">Create a Merchant profile, choose a subscription, and upload your payment screenshot. Admin reviews your application before your store is activated.</p>
+        <div className="mt-6 space-y-3">{['Enter your Gmail, type the 6-digit OTP, and select Merchant.', 'Complete your business details and upload a valid business permit.', 'Choose 6 months, 1 year, or 2 years, and upload your payment proof.', 'Wait for Admin approval, then manage your products and orders.'].map((text, index) => <div key={text} className="flex gap-3"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-teal-600 text-xs font-bold text-white">{index + 1}</span><p className="pt-0.5 text-sm leading-6 text-ink/65">{text}</p></div>)}</div>
+        <Link to="/signup" className="mt-7 inline-flex items-center gap-2 font-semibold text-teal-700">Create a Merchant account <ArrowRight size={17} /></Link></div>
         <div className="grid gap-4 sm:grid-cols-3">{plans.map((plan) => <div key={plan.duration} className={`relative rounded-2xl border bg-white p-6 shadow-card ${plan.featured ? 'border-teal-500 ring-4 ring-teal-50' : 'border-black/[0.06]'}`}>{plan.featured && <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-teal-600 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white">Recommended</span>}<p className="text-sm font-semibold text-ink/60">{plan.duration}</p><p className="mt-2 font-display text-3xl font-bold text-ink">{plan.price}</p><p className="mt-2 text-xs leading-5 text-ink/45">{plan.note}</p><div className="mt-5 space-y-2 text-xs text-ink/60"><p className="flex gap-2"><Check size={14} className="text-teal-600" /> Store access</p><p className="flex gap-2"><Check size={14} className="text-teal-600" /> Business reports</p><p className="flex gap-2"><Check size={14} className="text-teal-600" /> Admin review</p></div></div>)}</div>
       </div>
     </section>}
 
-    {content.sections?.topup !== false && <section className="border-y border-black/5 bg-white py-16 sm:py-20" id="topup"><div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:items-center"><div className="rounded-[1.75rem] bg-mango-100/60 p-6 sm:p-8"><div className="grid gap-3 sm:grid-cols-2">{[{ icon: CircleDollarSign, title: 'Scan and pay', text: 'Gamitin ang JOM HUB InstaPay QR para kay AUBREY NOLASCO at ilagay ang amount.' }, { icon: FileImage, title: 'Mag-upload ng proof', text: 'I-upload ang screenshot at ang one-use reference number.' }, { icon: Clock3, title: 'Admin verification', text: 'Itinutugma ng Admin ang tunay na payment; blocked ang duplicate references.' }, { icon: Wallet, title: 'Wallet credit', text: 'Lumalabas ang approved funds sa wallet balance.' }].map(({ icon: Icon, title, text }) => <div key={title} className="rounded-2xl bg-white p-5 shadow-sm"><Icon size={20} className="text-mango-600" /><h3 className="mt-3 font-bold text-ink">{title}</h3><p className="mt-1 text-xs leading-5 text-ink/55">{text}</p></div>)}</div></div>
-        <div><span className="inline-flex items-center gap-2 rounded-full bg-mango-100 px-3 py-1.5 text-xs font-bold text-mango-600"><Wallet size={14} /> Para sa Resellers</span><h2 className="mt-4 font-display text-3xl font-bold text-ink sm:text-4xl">Paano gumagana ang Reseller registration</h2><p className="mt-4 leading-7 text-ink/60">Ilagay ang iyong Gmail, i-type ang 6-digit OTP, piliin ang Reseller, at kumpletuhin ang iyong contact at delivery address. Mag-submit ng initial top-up proof para sa Admin verification at account approval.</p><div className="mt-6 rounded-2xl border border-teal-100 bg-teal-50 p-5"><p className="font-semibold text-teal-900">Pagkatapos ng account approval</p><p className="mt-1 text-sm leading-6 text-ink/60">Mag-browse ng approved products, pamahalaan ang mga customer at orders, at gamitin ang Wallet para sa future top-ups.</p></div><Link to="/signup" className="mt-7 inline-flex items-center gap-2 font-semibold text-teal-700">Mag-register bilang Reseller <ArrowRight size={17} /></Link></div>
+    {content.sections?.topup !== false && <section className="border-y border-black/5 bg-white py-16 sm:py-20" id="topup"><div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:items-center"><div className="rounded-[1.75rem] bg-mango-100/60 p-6 sm:p-8"><div className="grid gap-3 sm:grid-cols-2">{[{ icon: CircleDollarSign, title: 'Scan and pay', text: 'Use the JOM HUB InstaPay QR to pay AUBREY NOLASCO and enter the amount.' }, { icon: FileImage, title: 'Upload proof', text: 'Upload the screenshot along with the one-use reference number.' }, { icon: Clock3, title: 'Admin verification', text: 'Admin matches the actual payment; duplicate references are blocked.' }, { icon: Wallet, title: 'Wallet credit', text: 'Approved funds appear in your wallet balance.' }].map(({ icon: Icon, title, text }) => <div key={title} className="rounded-2xl bg-white p-5 shadow-sm"><Icon size={20} className="text-mango-600" /><h3 className="mt-3 font-bold text-ink">{title}</h3><p className="mt-1 text-xs leading-5 text-ink/55">{text}</p></div>)}</div></div>
+        <div><span className="inline-flex items-center gap-2 rounded-full bg-mango-100 px-3 py-1.5 text-xs font-bold text-mango-600"><Wallet size={14} /> For Resellers</span><h2 className="mt-4 font-display text-3xl font-bold text-ink sm:text-4xl">How Reseller registration works</h2><p className="mt-4 leading-7 text-ink/60">Enter your Gmail, type the 6-digit OTP, select Reseller, and complete your contact and delivery address. Submit proof of your initial top-up for Admin verification and account approval.</p><div className="mt-6 rounded-2xl border border-teal-100 bg-teal-50 p-5"><p className="font-semibold text-teal-900">After account approval</p><p className="mt-1 text-sm leading-6 text-ink/60">Browse approved products, manage your customers and orders, and use your Wallet for future top-ups.</p></div><Link to="/signup" className="mt-7 inline-flex items-center gap-2 font-semibold text-teal-700">Register as a Reseller <ArrowRight size={17} /></Link></div>
       </div></section>}
 
-    {content.sections?.final_cta !== false && <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20"><div className="relative overflow-hidden rounded-[2rem] bg-teal-900 px-6 py-10 text-center text-white shadow-xl sm:px-12 sm:py-14"><div className="absolute left-1/2 top-0 h-48 w-96 -translate-x-1/2 rounded-full bg-teal-500/25 blur-3xl" /><div className="relative mx-auto max-w-2xl"><h2 className="font-display text-3xl font-bold sm:text-4xl">Handa ka nang palaguin ang iyong negosyo?</h2><p className="mt-4 text-sm leading-6 text-white/60 sm:text-base">Sumali sa JOM HUB bilang Merchant o Reseller at pamahalaan ang iyong marketplace activity sa isang propesyonal na workspace.</p><div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row"><Link to="/signup" className="inline-flex items-center justify-center gap-2 rounded-xl bg-mango-500 px-6 py-3 font-bold text-ink hover:bg-mango-600">Gumawa ng account <ArrowRight size={17} /></Link><Link to="/catalog" className="inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/10 px-6 py-3 font-semibold hover:bg-white/15">Tingnan ang mga produkto</Link></div></div></div></section>}
+    {content.sections?.final_cta !== false && <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20"><div className="relative overflow-hidden rounded-[2rem] bg-teal-900 px-6 py-10 text-center text-white shadow-xl sm:px-12 sm:py-14"><div className="absolute left-1/2 top-0 h-48 w-96 -translate-x-1/2 rounded-full bg-teal-500/25 blur-3xl" /><div className="relative mx-auto max-w-2xl"><h2 className="font-display text-3xl font-bold sm:text-4xl">Ready to grow your business?</h2><p className="mt-4 text-sm leading-6 text-white/60 sm:text-base">Join JOM HUB as a Merchant or Reseller and manage your marketplace activity in one professional workspace.</p><div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row"><Link to="/signup" className="inline-flex items-center justify-center gap-2 rounded-xl bg-mango-500 px-6 py-3 font-bold text-ink hover:bg-mango-600">Create an account <ArrowRight size={17} /></Link><Link to="/catalog" className="inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/10 px-6 py-3 font-semibold hover:bg-white/15">View products</Link></div></div></div></section>}
     <JomBits publicMode />
   </div>
 }
-
