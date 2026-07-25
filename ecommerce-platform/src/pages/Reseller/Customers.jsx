@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Users, Plus, Trash2, X } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Users, Plus, Trash2, X, RefreshCw, Eye, Send } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
-import EmptyState from '../../components/ui/EmptyState'
-import Spinner from '../../components/ui/Spinner'
+import DataTable from '../../components/ui/DataTable'
+import ActionPopup, { DetailRow, DetailSection } from '../../components/ui/ActionPopup'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { cleanText } from '../../utils/security'
 import { COMPLETE_ADDRESS_HELP, isCompleteAddress } from '../../utils/address'
 
@@ -14,18 +16,15 @@ export default function Customers() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ name: '', phone: '', address: '', notes: '' })
+  const [selectedCustomer, setSelectedCustomer] = useState(null)
+  const [showDetail, setShowDetail] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState(null)
 
-  useEffect(() => {
-    load()
-  }, [])
+  useEffect(() => { load() }, [])
 
   const load = async () => {
     setLoading(true)
-    const { data, error } = await supabase
-      .from('customers')
-      .select('*')
-      .eq('reseller_id', user.id)
-      .order('created_at', { ascending: false })
+    const { data, error } = await supabase.from('customers').select('*').eq('reseller_id', user.id).order('created_at', { ascending: false })
     if (error) toast.error(error.message)
     setCustomers(data || [])
     setLoading(false)
@@ -33,65 +32,107 @@ export default function Customers() {
 
   const handleAdd = async (e) => {
     e.preventDefault()
-    if (!isCompleteAddress(form.address)) return toast.error('Please enter the customer’s complete delivery address.')
+    if (!isCompleteAddress(form.address)) return toast.error('Please enter the customer’s complete address.')
     const payload = { reseller_id: user.id, name: cleanText(form.name, 160), phone: cleanText(form.phone, 30), address: cleanText(form.address, 500), notes: cleanText(form.notes, 1000) }
     const { error } = await supabase.from('customers').insert(payload)
-    if (error) {
-      toast.error(error.message)
-      return
-    }
-    toast.success('Customer added successfully.')
+    if (error) return toast.error(error.message)
+    toast.success('Customer added.')
     setForm({ name: '', phone: '', address: '', notes: '' })
     setShowForm(false)
     load()
   }
 
-  const handleDelete = async (id) => {
-    await supabase.from('customers').delete().eq('id', id)
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    await supabase.from('customers').delete().eq('id', deleteTarget.id)
+    setDeleteTarget(null)
+    toast.success('Customer removed.')
     load()
   }
 
+  const columns = [
+    { header: 'Name', accessor: 'name', sortable: true },
+    { header: 'Phone', accessor: 'phone', sortable: true },
+    { header: 'Address', accessor: 'address', sortable: true },
+    { header: 'Date Added', accessor: 'created_at', format: 'date', sortable: true }
+  ]
+
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="font-display font-bold text-2xl text-ink">Customer List</h1>
-        <button onClick={() => setShowForm((s) => !s)} className="btn-primary text-sm flex items-center gap-1.5">
-          {showForm ? <X size={16} /> : <Plus size={16} />}
-          {showForm ? 'Cancel' : 'New Customer'}
-        </button>
+    <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl font-bold text-ink">Customer List</h1>
+          <p className="mt-1 text-sm text-ink/50">Manage customers you serve and refer to clinics.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowForm(!showForm)} className="btn-primary text-sm flex items-center gap-1.5">
+            {showForm ? <X size={16} /> : <Plus size={16} />}
+            {showForm ? 'Cancel' : 'Add Customer'}
+          </button>
+          <button onClick={load} className="btn-secondary p-2.5">
+            <RefreshCw size={17} className={loading ? 'animate-spin' : ''} />
+          </button>
+        </div>
       </div>
 
       {showForm && (
         <form onSubmit={handleAdd} className="card p-5 mb-6 space-y-3">
-          <input required className="input-field" placeholder="Customer name" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
-          <input className="input-field" placeholder="Phone number" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} />
-          <div><label className="text-sm font-semibold text-ink/70">Complete Delivery Address</label><textarea required maxLength="500" rows={4} className="input-field mt-1 resize-none" placeholder="House/Unit No., Street, Barangay, City, Province, Postal Code, Landmark" value={form.address} onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))} /><p className="mt-1 text-[11px] leading-4 text-ink/45">{COMPLETE_ADDRESS_HELP}</p><div className={`mt-2 rounded-lg px-3 py-2 text-xs font-medium ${isCompleteAddress(form.address) ? 'bg-teal-50 text-teal-700' : 'bg-mango-100/60 text-ink/55'}`}>{isCompleteAddress(form.address) ? 'Complete delivery address' : 'Complete address required before saving'}</div></div>
-          <textarea className="input-field" placeholder="Notes (optional)" rows={2} value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />
+          <input required className="input-field" placeholder="Customer name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          <input className="input-field" placeholder="Phone number" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+          <div>
+            <label className="text-sm font-semibold text-ink/70">Complete Delivery Address</label>
+            <textarea required maxLength="500" rows={3} className="input-field mt-1 resize-none" placeholder="House/Unit No., Street, Barangay, City, Province, Postal Code" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+            <p className="mt-1 text-[11px] leading-4 text-ink/45">{COMPLETE_ADDRESS_HELP}</p>
+          </div>
+          <textarea className="input-field" placeholder="Notes (optional)" rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
           <button type="submit" disabled={!isCompleteAddress(form.address)} className="btn-primary w-full">Save Customer</button>
         </form>
       )}
 
-      {loading ? (
-        <div className="flex justify-center py-16"><Spinner /></div>
-      ) : customers.length === 0 ? (
-        <EmptyState icon={Users} title="No saved customers yet" message="Add your regular customers for faster checkout." />
-      ) : (
-        <div className="space-y-3">
-          {customers.map((c) => (
-            <div key={c.id} className="card p-4 flex items-start justify-between">
-              <div>
-                <p className="font-semibold text-ink">{c.name}</p>
-                <p className="text-sm text-ink/60">{c.phone}</p>
-                <p className="text-sm text-ink/60">{c.address}</p>
-                {c.notes && <p className="text-xs text-ink/40 mt-1">{c.notes}</p>}
-              </div>
-              <button onClick={() => handleDelete(c.id)} className="p-2 text-ink/40 hover:text-coral-500">
-                <Trash2 size={16} />
+      <DataTable
+        columns={columns}
+        data={customers}
+        loading={loading}
+        searchPlaceholder="Search by name, phone, address..."
+        emptyTitle="No customers yet"
+        emptyMessage="Add your regular customers for faster checkout and clinic referrals."
+        onView={(row) => { setSelectedCustomer(row); setShowDetail(true) }}
+        onDelete={(row) => setDeleteTarget(row)}
+      />
+
+      <ActionPopup open={showDetail} onClose={() => { setShowDetail(false); setSelectedCustomer(null) }} title={selectedCustomer?.name || 'Customer'} size="md">
+        {selectedCustomer && (
+          <>
+            <DetailSection title="Contact Info">
+              <DetailRow label="Name" value={selectedCustomer.name} />
+              <DetailRow label="Phone" value={selectedCustomer.phone || '—'} />
+              <DetailRow label="Address" value={selectedCustomer.address} />
+              {selectedCustomer.notes && <DetailRow label="Notes" value={selectedCustomer.notes} />}
+            </DetailSection>
+            <div className="mt-6 flex gap-2">
+              <Link
+                to="/clinics"
+                className="btn-accent flex items-center gap-1.5 text-sm px-4 py-2.5 rounded-xl"
+              >
+                <Send size={15} /> Refer to Clinic
+              </Link>
+              <button onClick={() => { setShowDetail(false); setDeleteTarget(selectedCustomer) }} className="flex items-center gap-1.5 rounded-xl bg-coral-100 px-4 py-2.5 text-sm font-semibold text-coral-700">
+                <Trash2 size={15} /> Delete
               </button>
             </div>
-          ))}
-        </div>
-      )}
+          </>
+        )}
+      </ActionPopup>
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        title="Delete customer?"
+        message={`Remove ${deleteTarget?.name || 'this customer'} from your list? This cannot be undone.`}
+        confirmText="Delete"
+        variant="danger"
+      />
     </div>
   )
 }

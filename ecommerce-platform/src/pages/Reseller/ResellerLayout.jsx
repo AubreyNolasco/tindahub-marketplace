@@ -1,15 +1,21 @@
-import { BarChart3, Boxes, ClipboardList, FileDown, FileUp, LayoutDashboard, MapPin, MessageSquare, UserRound, Users, WalletCards } from 'lucide-react'
+import { BarChart3, Boxes, ClipboardList, FileDown, FileUp, LayoutDashboard, MapPin, MessageSquare, Store, Stethoscope, Send, UserRound, Users, WalletCards, Truck, Building2 } from 'lucide-react'
 import WorkspaceLayout from '../../components/layout/WorkspaceLayout'
 
 const sections = [
   { label: 'Workspace', items: [
     { to: '/reseller', label: 'Overview', icon: LayoutDashboard, end: true },
     { to: '/reseller/orders', label: 'Orders', icon: ClipboardList },
+    { to: '/reseller/products', label: 'My Product List', icon: Store },
     { to: '/reseller/customers', label: 'Customers', icon: Users },
     { to: '/reseller/chats', label: 'Messages', icon: MessageSquare },
     { to: '/reseller/wallet', label: 'Wallet', icon: WalletCards },
+    { to: '/reseller/delivery', label: 'Delivery Settings', icon: Truck },
     { to: '/reseller/address', label: 'My Address', icon: MapPin },
     { to: '/reseller/account', label: 'Update Account', icon: UserRound }
+  ]},
+  { label: 'Service Referrals', items: [
+    { to: '/clinics', label: 'Browse Services', icon: Stethoscope },
+    { to: '/reseller/referrals', label: 'My Referrals', icon: Send }
   ]},
   { label: 'Reports', items: [
     { to: '/reseller/reports/sales', label: 'Sales Report', icon: BarChart3 },

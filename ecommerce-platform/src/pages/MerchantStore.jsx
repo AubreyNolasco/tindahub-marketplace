@@ -55,7 +55,7 @@ export default function MerchantStore() {
       {products.length === 0 ? (
         <EmptyState icon={Package} title="No products yet" message="This store has not listed any products yet." />
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 gap-2 min-[360px]:grid-cols-4 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
           {products.map((p) => <ProductCard key={p.id} product={p} />)}
         </div>
       )}

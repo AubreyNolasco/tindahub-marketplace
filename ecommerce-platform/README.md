@@ -7,6 +7,8 @@ JOM HUB is a role-based marketplace for Merchants, Resellers, Admin, and limited
 - Email OTP authentication and role onboarding
 - Merchant permit, subscription payment, and unified Admin activation
 - Reseller initial wallet top-up and Admin review
+- Reseller-curated customer storefronts with unique store-name links, profile/cover media, and optional contact channels
+- Logged-in-only marketplace discovery; customer storefronts expose only the Reseller's selected products
 - Merchant/Admin product publishing with safety screening and pricing controls
 - Server-verified wallet checkout with a capped 1% Reseller system fee
 - 3% Merchant success fee on completed product orders only

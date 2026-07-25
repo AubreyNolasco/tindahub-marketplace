@@ -134,7 +134,6 @@ function SubscriptionModal({ profile, onClose, onSaved }) {
 export default function Subscriptions() {
   const [profiles, setProfiles] = useState([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('all')
   const [editing, setEditing] = useState(null)
   const [requests, setRequests] = useState([])
   const [proofUrls, setProofUrls] = useState({})
@@ -146,16 +145,14 @@ export default function Subscriptions() {
   const load = async () => {
     setLoading(true)
     const [{ data, error }, { data: requestData, error: requestError }] = await Promise.all([
-      supabase.from('profiles').select('*, merchant_profiles!merchant_profiles_id_fkey(business_name), subscriptions(*)').in('role', ['merchant', 'reseller']).order('created_at', { ascending: false }),
+      supabase.from('profiles').select('*, merchant_profiles!merchant_profiles_id_fkey(business_name), subscriptions(*)').eq('role', 'merchant').order('created_at', { ascending: false }),
       supabase.from('subscription_requests').select('*, profiles!subscription_requests_owner_id_fkey(full_name,role, merchant_profiles!merchant_profiles_id_fkey(business_name))').order('created_at', { ascending: false })
     ])
     if (error || requestError) toast.error(error?.message || requestError?.message)
     setProfiles(data || [])
-    setRequests(requestData || [])
+    setRequests((requestData || []).filter((request) => request.profiles?.role === 'merchant'))
     setLoading(false)
   }
-
-  const filtered = filter === 'all' ? profiles : profiles.filter((p) => p.role === filter)
 
   const viewProof = async (request) => {
     const { data, error } = await supabase.storage.from('payment-proofs').createSignedUrl(request.proof_url, 300)
@@ -166,11 +163,11 @@ export default function Subscriptions() {
   const review = async (request, approved) => {
     const adminNotes = approved ? null : window.prompt('Reason for rejection (optional):') || null
     const { data: { user } } = await supabase.auth.getUser()
-    const { error } = approved && request.profiles?.role === 'merchant'
+    const { error } = approved
       ? await supabase.rpc('activate_merchant_application', { p_merchant_id: request.owner_id, p_subscription_request_id: request.id })
-      : await supabase.from('subscription_requests').update({ status: approved ? 'approved' : 'rejected', admin_notes: adminNotes, reviewed_by: user.id, reviewed_at: new Date().toISOString() }).eq('id', request.id)
+      : await supabase.from('subscription_requests').update({ status: 'rejected', admin_notes: adminNotes, reviewed_by: user.id, reviewed_at: new Date().toISOString() }).eq('id', request.id)
     if (error) return toast.error(error.message)
-    toast.success(approved ? request.profiles?.role === 'merchant' ? 'Subscription approved and Merchant account activated.' : 'Subscription approved.' : 'Subscription request rejected.')
+    toast.success(approved ? 'Subscription approved and Merchant account activated.' : 'Subscription request rejected.')
     load()
   }
 
@@ -205,25 +202,11 @@ export default function Subscriptions() {
         </div>
       )}
 
-      <div className="flex gap-2 mb-6">
-        {['all', 'merchant', 'reseller'].map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-full text-sm font-semibold capitalize ${
-              filter === f ? 'bg-teal-500 text-white' : 'bg-white text-ink/60 border border-black/10'
-            }`}
-          >
-            {f}
-          </button>
-        ))}
-      </div>
-
-      {filtered.length === 0 ? (
-        <EmptyState icon={CreditCard} title="No users found" message="No users match this filter." />
+      {profiles.length === 0 ? (
+        <EmptyState icon={CreditCard} title="No Merchants found" message="Merchant subscriptions will appear here." />
       ) : (
         <div className="space-y-3">
-          {filtered.map((p) => {
+          {profiles.map((p) => {
             const status = effectiveStatus(p.subscriptions)
             return (
               <div key={p.id} className="card p-5 flex items-center justify-between flex-wrap gap-3">

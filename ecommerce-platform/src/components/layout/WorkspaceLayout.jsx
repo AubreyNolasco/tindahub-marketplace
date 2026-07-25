@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
-import { AlertCircle, ChevronRight, ClipboardList, House, Menu, Package, PanelLeftClose, Store, UserRound, WalletCards, X } from 'lucide-react'
+import { AlertCircle, ChevronRight, ClipboardList, House, Menu, Package, PanelLeftClose, Stethoscope, Store, UserRound, WalletCards, X } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { isCompleteAddress } from '../../utils/address'
 import RoleNotifications from '../notifications/RoleNotifications'
@@ -18,9 +18,9 @@ export default function WorkspaceLayout({ title, subtitle, sections, children })
   const address = role === 'merchant' ? profile?.merchant_profiles?.business_address : profile?.address
   const needsAddress = (role === 'merchant' || role === 'reseller') && !isCompleteAddress(address)
   const mobileItems = role === 'merchant' ? [
-    {to:'/merchant',label:'Home',icon:House},{to:'/merchant/products',label:'Products',icon:Package},{to:'/merchant/orders',label:'Orders',icon:ClipboardList},{to:'/merchant/wallet',label:'Wallet',icon:WalletCards},{to:'/merchant/account',label:'Account',icon:UserRound}
+    {to:'/merchant',label:'Home',icon:House},{to:'/merchant/products',label:'Products',icon:Package},{to:'/merchant/orders',label:'Orders',icon:ClipboardList},{to:'/merchant/wallet',label:'Wallet',icon:WalletCards},{to:'/merchant/referrals',label:'Referrals',icon:Stethoscope}
   ] : [
-    {to:'/reseller',label:'Home',icon:House},{to:'/catalog',label:'Products',icon:Package},{to:'/reseller/orders',label:'Orders',icon:ClipboardList},{to:'/reseller/wallet',label:'Wallet',icon:WalletCards},{to:'/reseller/account',label:'Account',icon:UserRound}
+    {to:'/reseller',label:'Home',icon:House},{to:'/catalog',label:'Products',icon:Package},{to:'/reseller/orders',label:'Orders',icon:ClipboardList},{to:'/reseller/wallet',label:'Wallet',icon:WalletCards},{to:'/reseller/referrals',label:'Referrals',icon:Stethoscope}
   ]
 
   return <div className="min-h-[calc(100vh-4rem)] lg:flex">
