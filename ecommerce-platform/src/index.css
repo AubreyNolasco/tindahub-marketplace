@@ -100,11 +100,15 @@ p, h1, h2, h3, h4, a, button, label, td, th {
   .subscription-audience > div > h3 { margin-top: 0.5rem; font-size: 0.875rem; }
   .subscription-audience > div > p { display: none; }
 
-  /* Fix floating cards overlap on mobile */
-  .hero-floating-card {
+  /* Fix floating cards overlap on mobile — targets hero section absolute cards */
+  .hero-floating-card,
+  div.hero-image-container + div.absolute {
     position: relative !important;
     bottom: auto !important;
     margin-top: -2rem !important;
+  }
+  .hero-image-container + div.absolute > div {
+    flex: 1;
   }
 
   /* Better spacing on small screens */

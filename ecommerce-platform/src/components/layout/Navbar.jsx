@@ -52,7 +52,7 @@ export default function Navbar() {
             <Link to="/cart" className="relative p-2 rounded-full hover:bg-teal-50 transition-colors">
               <ShoppingCart size={20} className="text-ink/70" />
               {totalCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-coral-500 text-white text-[10px] font-bold rounded-full w-4.5 h-4.5 min-w-[18px] h-[18px] flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-coral-500 text-white text-[10px] font-bold rounded-full w-[18px] h-[18px] min-w-[18px] flex items-center justify-center">
                   {totalCount}
                 </span>
               )}
@@ -65,6 +65,7 @@ export default function Navbar() {
                 <User size={16} /> {typeof profile?.full_name === 'string' ? profile.full_name.split(' ')[0] : 'User'}
               </span>
               <button
+                type="button"
                 onClick={handleSignOut}
                 className="p-2 rounded-full hover:bg-coral-100 text-ink/60 hover:text-coral-600 transition-colors"
                 title="Sign out"
@@ -79,6 +80,7 @@ export default function Navbar() {
           )}
 
           <button
+            type="button"
             onClick={() => setMenuOpen((v) => !v)}
             className="grid h-11 w-11 place-items-center rounded-xl text-ink/70 transition-colors hover:bg-teal-50 md:hidden"
             aria-label="Toggle menu"
@@ -110,6 +112,7 @@ export default function Navbar() {
                 <User size={16} /> {typeof profile?.full_name === 'string' ? profile.full_name.split(' ')[0] : 'User'}
               </span>
               <button
+                type="button"
                 onClick={handleSignOut}
                 className="flex min-h-11 items-center gap-1.5 rounded-xl px-3 text-sm font-semibold text-coral-600 hover:bg-coral-50"
               >
