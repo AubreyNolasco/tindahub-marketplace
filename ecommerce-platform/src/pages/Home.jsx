@@ -250,7 +250,7 @@ export default function Home() {
             <div className="rounded-[1.75rem] border border-white/25 bg-white/20 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl text-ink transition-transform duration-300 hover:scale-[1.02]">
               <div className="flex items-center gap-3">
                 <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white/90 text-mango-700 shadow-lg"><Stethoscope size={24} /></span>
-                <div><p className="text-xs text-white/80">CLINIC REFERRAL</p><p className="font-bold text-white drop-shadow-sm">Earn a referral fee</p></div>
+                <div><p className="text-xs font-semibold text-ink/60">CLINIC REFERRAL</p><p className="font-bold text-ink">Earn a referral fee</p></div>
               </div>
               <div className="mt-5 grid gap-3">
                 <div className="flex items-center gap-3 rounded-xl bg-white/95 p-3 shadow-sm transition hover:shadow-md"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-teal-100 text-teal-700 text-xs font-bold">1</span><p className="text-xs font-semibold text-ink">Choose a clinic service</p></div>
