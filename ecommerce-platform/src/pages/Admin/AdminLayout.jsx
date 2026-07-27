@@ -102,7 +102,7 @@ export default function AdminLayout() {
     <div className="min-h-[calc(100vh-4rem)] lg:flex">
       <Sidebar open={menuOpen} collapsed={collapsed} onClose={() => setMenuOpen(false)} onToggleCollapse={() => setCollapsed((value) => !value)} visibleSections={visibleSections} currentPath={location.pathname} />
       <section className="min-w-0 flex-1 bg-[radial-gradient(circle_at_top_right,rgba(22,121,75,0.08),transparent_30%),#F7FAF7]">
-        <div className="sticky top-16 z-30 flex h-14 items-center justify-between gap-3 border-b border-black/5 bg-white/90 px-3 backdrop-blur sm:px-5 lg:px-8">
+        <div className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-black/5 bg-white/90 px-3 backdrop-blur sm:px-5 lg:px-8">
           <button onClick={() => setMenuOpen(true)} className="flex shrink-0 items-center gap-2 rounded-xl px-2 py-2 text-sm font-semibold text-teal-700 hover:bg-teal-50 lg:hidden"><Menu size={19} /><span className="hidden sm:inline">Menu</span></button>
           <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-ink">{currentItem?.label || 'Admin'}</p><p className="hidden text-[11px] text-ink/40 lg:block">Admin Center</p></div>
           <div className="flex shrink-0 items-center gap-2"><InteractivePageGuide /><AdminNotifications /></div>
