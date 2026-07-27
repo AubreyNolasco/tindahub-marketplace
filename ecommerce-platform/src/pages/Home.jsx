@@ -237,17 +237,25 @@ export default function Home() {
             <Link to="/signup" className="btn-secondary inline-flex items-center gap-2 px-5 py-2.5 text-sm">Sign up as a Reseller</Link>
           </div>
         </div>
-        <div className="flex min-h-[280px] items-center justify-center bg-gradient-to-br from-mango-400 to-mango-600 p-6 sm:p-10">
-          <div className="w-full max-w-sm">
-            <div className="rounded-[1.75rem] border border-white/20 bg-white/15 p-5 shadow-2xl backdrop-blur-md text-ink">
+        <div className="relative flex min-h-[280px] items-center justify-center overflow-hidden p-6 sm:p-10">
+          <img
+            src="/hero/dental-clinic.jpg"
+            alt="Modern dental clinic interior"
+            className="absolute inset-0 h-full w-full object-cover"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-mango-800/85 via-mango-700/75 to-amber-900/85" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_70%,rgba(242,169,59,0.25),transparent_50%)]" />
+          <div className="relative w-full max-w-sm">
+            <div className="rounded-[1.75rem] border border-white/25 bg-white/20 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl text-ink transition-transform duration-300 hover:scale-[1.02]">
               <div className="flex items-center gap-3">
-                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white text-mango-600"><Stethoscope size={24} /></span>
-                <div><p className="text-xs text-white/70">CLINIC REFERRAL</p><p className="font-bold text-white">Earn a referral fee</p></div>
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white/90 text-mango-700 shadow-lg"><Stethoscope size={24} /></span>
+                <div><p className="text-xs text-white/80">CLINIC REFERRAL</p><p className="font-bold text-white drop-shadow-sm">Earn a referral fee</p></div>
               </div>
               <div className="mt-5 grid gap-3">
-                <div className="flex items-center gap-3 rounded-xl bg-white/90 p-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-teal-100 text-teal-700 text-xs font-bold">1</span><p className="text-xs font-semibold text-ink">Choose a clinic service</p></div>
-                <div className="flex items-center gap-3 rounded-xl bg-white/90 p-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-teal-100 text-teal-700 text-xs font-bold">2</span><p className="text-xs font-semibold text-ink">Refer your customer</p></div>
-                <div className="flex items-center gap-3 rounded-xl bg-white/90 p-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-teal-100 text-teal-700 text-xs font-bold">3</span><p className="text-xs font-semibold text-ink">Earn after the appointment</p></div>
+                <div className="flex items-center gap-3 rounded-xl bg-white/95 p-3 shadow-sm transition hover:shadow-md"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-teal-100 text-teal-700 text-xs font-bold">1</span><p className="text-xs font-semibold text-ink">Choose a clinic service</p></div>
+                <div className="flex items-center gap-3 rounded-xl bg-white/95 p-3 shadow-sm transition hover:shadow-md"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-teal-100 text-teal-700 text-xs font-bold">2</span><p className="text-xs font-semibold text-ink">Refer your customer</p></div>
+                <div className="flex items-center gap-3 rounded-xl bg-white/95 p-3 shadow-sm transition hover:shadow-md"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-teal-100 text-teal-700 text-xs font-bold">3</span><p className="text-xs font-semibold text-ink">Earn after the appointment</p></div>
               </div>
             </div>
           </div>
@@ -259,18 +267,26 @@ export default function Home() {
     <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 sm:pb-20">
       <div className="relative overflow-hidden rounded-[2rem] border border-teal-100 bg-gradient-to-br from-teal-50 to-white shadow-2xl shadow-teal-900/[0.06]">
         <div className="grid lg:grid-cols-[1fr_1fr]">
-          <div className="flex min-h-[250px] items-center justify-center bg-gradient-to-br from-teal-700 to-teal-950 p-6 sm:p-10">
-            <div className="w-full max-w-sm">
-              <div className="rounded-[1.75rem] border border-white/15 bg-white/10 p-5 shadow-2xl backdrop-blur-md">
+          <div className="relative flex min-h-[250px] items-center justify-center overflow-hidden p-6 sm:p-10">
+            <img
+              src="/hero/lalamove-delivery.jpg"
+              alt="Motorcycle delivery rider on a city street"
+              className="absolute inset-0 h-full w-full object-cover"
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-gradient-to-br from-teal-900/90 via-teal-800/85 to-teal-950/95" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(22,121,75,0.3),transparent_50%)]" />
+            <div className="relative w-full max-w-sm">
+              <div className="rounded-[1.75rem] border border-white/25 bg-white/15 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl transition-transform duration-300 hover:scale-[1.02]">
                 <div className="flex items-center gap-3">
-                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white text-teal-700"><Truck size={24} /></span>
-                  <div><p className="text-xs text-white/70">LALAMOVE</p><p className="font-bold text-white">Real-time delivery</p></div>
+                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white/90 text-teal-700 shadow-lg"><Truck size={24} /></span>
+                  <div><p className="text-xs text-white/80">LALAMOVE</p><p className="font-bold text-white drop-shadow-sm">Real-time delivery</p></div>
                 </div>
-                <div className="mt-4 rounded-xl bg-white/20 p-4 text-center">
+                <div className="mt-4 rounded-xl bg-white/20 p-4 text-center backdrop-blur-sm">
                   <p className="text-3xl font-bold text-white">🚚</p>
                   <p className="mt-2 text-sm font-semibold text-white">Metro Manila · Cebu</p>
                 </div>
-                <p className="mt-3 text-xs text-white/60 text-center">Connect your Lalamove API key for instant delivery quotes.</p>
+                <p className="mt-3 text-xs text-white/70 text-center">Connect your Lalamove API key for instant delivery quotes.</p>
               </div>
             </div>
           </div>
@@ -295,18 +311,26 @@ export default function Home() {
     <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 sm:pb-20">
       <div className="relative overflow-hidden rounded-[2rem] border border-teal-100 bg-gradient-to-br from-teal-50 to-white shadow-2xl shadow-teal-900/[0.06]">
         <div className="grid lg:grid-cols-[1fr_1fr]">
-          <div className="flex min-h-[250px] items-center justify-center bg-gradient-to-br from-mango-500 to-mango-600 p-6 sm:p-10">
-            <div className="w-full max-w-sm">
-              <div className="rounded-[1.75rem] border border-white/20 bg-white/15 p-5 shadow-2xl backdrop-blur-md">
+          <div className="relative flex min-h-[250px] items-center justify-center overflow-hidden p-6 sm:p-10">
+            <img
+              src="/hero/real-estate-property.jpg"
+              alt="Modern house exterior with stone facade"
+              className="absolute inset-0 h-full w-full object-cover"
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-gradient-to-br from-mango-800/85 via-amber-800/80 to-mango-900/90" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(242,169,59,0.2),transparent_50%)]" />
+            <div className="relative w-full max-w-sm">
+              <div className="rounded-[1.75rem] border border-white/25 bg-white/15 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl transition-transform duration-300 hover:scale-[1.02]">
                 <div className="flex items-center gap-3">
-                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white text-mango-600"><Building2 size={24} /></span>
-                  <div><p className="text-xs text-white/70">REAL ESTATE</p><p className="font-bold text-white">Property referral fees</p></div>
+                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white/90 text-mango-700 shadow-lg"><Building2 size={24} /></span>
+                  <div><p className="text-xs text-white/80">REAL ESTATE</p><p className="font-bold text-white drop-shadow-sm">Property referral fees</p></div>
                 </div>
-                <div className="mt-4 rounded-xl bg-white/20 p-4 text-center">
+                <div className="mt-4 rounded-xl bg-white/20 p-4 text-center backdrop-blur-sm">
                   <p className="text-3xl font-bold text-white">🏠</p>
                   <p className="mt-2 text-sm font-semibold text-white">Condos · Houses · Lots</p>
                 </div>
-                <p className="mt-3 text-xs text-white/60 text-center">Refer your customer to a partner real estate agent and earn a referral fee.</p>
+                <p className="mt-3 text-xs text-white/70 text-center">Refer your customer to a partner real estate agent and earn a referral fee.</p>
               </div>
             </div>
           </div>

@@ -9,6 +9,32 @@ export function validateImage(file) {
   return null
 }
 
+// Resizes/re-encodes an image client-side before upload so raw camera photos
+// (often 3-8 MB) don't get stored at full resolution. Falls back to the
+// original file on any error, for non-image types (PDFs), or if the result
+// isn't actually smaller.
+export async function compressImage(file, { maxDimension = 1600, quality = 0.82, skipBelowBytes = 350 * 1024 } = {}) {
+  if (!file || !file.type?.startsWith('image/') || file.type === 'image/svg+xml') return file
+  if (file.size <= skipBelowBytes) return file
+  try {
+    const bitmap = await createImageBitmap(file)
+    const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height))
+    const width = Math.max(1, Math.round(bitmap.width * scale))
+    const height = Math.max(1, Math.round(bitmap.height * scale))
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
+    const ctx = canvas.getContext('2d')
+    ctx.drawImage(bitmap, 0, 0, width, height)
+    bitmap.close?.()
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality))
+    if (!blob || blob.size >= file.size) return file
+    return new File([blob], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg', lastModified: Date.now() })
+  } catch {
+    return file
+  }
+}
+
 export function safeUploadPath(userId, prefix, file) {
   const extension = IMAGE_EXTENSIONS[file.type]
   if (!userId || !extension) throw new Error('Invalid upload information.')

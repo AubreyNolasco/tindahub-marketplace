@@ -20,3 +20,11 @@
 - [x] Build passes (1821 modules, 7.47s)
 - [x] Fixed `Home` import naming conflict
 
+### Step 5: Add background images to front-page sections ✅
+- [x] CLINIC REFERRAL — added `/hero/dental-clinic.jpg` background with dark overlay & glassmorphism card
+- [x] LALAMOVE — added `/hero/lalamove-delivery.jpg` background with dark overlay & glassmorphism card
+- [x] REAL ESTATE — added `/hero/real-estate-property.jpg` background with dark overlay & glassmorphism card
+- [x] Enhanced all 3 sections with backdrop-blur-xl, hover scale animations, drop shadows, and radial highlight overlays
+- [x] Build passes (1821 modules, 8.06s)
+- [x] All 36 tests pass
+

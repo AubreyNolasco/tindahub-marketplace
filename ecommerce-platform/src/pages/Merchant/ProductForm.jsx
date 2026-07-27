@@ -4,7 +4,7 @@ import { Loader2, Plus, ShieldAlert, Trash2, Upload, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
-import { cleanText, safeUploadPath, validateImage } from '../../utils/security'
+import { cleanText, compressImage, safeUploadPath, validateImage } from '../../utils/security'
 import { isCompleteAddress } from '../../utils/address'
 import { findProductSafetyViolation, PROHIBITED_PRODUCT_RULES } from '../../config/productSafety'
 
@@ -112,10 +112,11 @@ export default function ProductForm({ admin = false }) {
       let images = existingImage ? [existingImage] : []
 
       if (imageFile) {
-        const path = safeUploadPath(user.id, 'product', imageFile)
+        const compressed = await compressImage(imageFile)
+        const path = safeUploadPath(user.id, 'product', compressed)
         const { error: uploadErr } = await supabase.storage
           .from('product-images')
-          .upload(path, imageFile, { upsert: true })
+          .upload(path, compressed, { upsert: true })
         if (uploadErr) throw uploadErr
         const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(path)
         images = [urlData.publicUrl]

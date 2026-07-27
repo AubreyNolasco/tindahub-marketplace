@@ -4,7 +4,7 @@ import { Check, Database, Loader2, ShieldCheck, Upload } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../lib/supabase";
-import { cleanText, safeUploadPath, validateImage, validatePaymentReference } from "../../utils/security";
+import { cleanText, compressImage, safeUploadPath, validateImage, validatePaymentReference } from "../../utils/security";
 import BankTransferQr from "../../components/payment/BankTransferQr";
 import { ensurePaymentReferenceAvailable, paymentReferenceErrorMessage } from "../../lib/paymentReference";
 
@@ -66,10 +66,11 @@ export default function ChooseSubscription() {
     try {
       await ensurePaymentReferenceAvailable(reference);
       const plan = PLANS.find((item) => item.months === planMonths);
-      const path = safeUploadPath(user.id, "subscription", proof);
+      const compressedProof = await compressImage(proof);
+      const path = safeUploadPath(user.id, "subscription", compressedProof);
       const { error: uploadError } = await supabase.storage
         .from("payment-proofs")
-        .upload(path, proof);
+        .upload(path, compressedProof);
       if (uploadError) throw uploadError;
       const { error } = await supabase
         .from("subscription_requests")

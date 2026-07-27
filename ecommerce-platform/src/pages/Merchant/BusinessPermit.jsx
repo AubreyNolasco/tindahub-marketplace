@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import Spinner from '../../components/ui/Spinner'
 import { formatDate } from '../../utils/format'
+import { compressImage } from '../../utils/security'
 
 const allowed = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
 const validatePermit = (file) =>
@@ -38,12 +39,13 @@ export default function BusinessPermit() {
     if (validation) return toast.error(validation)
     setSaving(true)
 
-    const extension = file.name.split('.').pop()?.toLowerCase() || 'file'
+    const compressed = await compressImage(file)
+    const extension = compressed.name.split('.').pop()?.toLowerCase() || 'file'
     const path = `${user.id}/permit-${Date.now()}.${extension}`
 
     const { error: uploadError } = await supabase.storage
       .from('business-permits')
-      .upload(path, file)
+      .upload(path, compressed)
     if (uploadError) {
       setSaving(false)
       if (uploadError.message?.includes('bucket')) {
