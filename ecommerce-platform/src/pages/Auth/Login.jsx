@@ -38,6 +38,17 @@ export default function Login() {
     supabase.rpc('get_test_accounts_status').then(({ data, error }) => {
       if (!error && data?.enabled) setTestAccountsEnabled(true)
     }).catch(() => {})
+    const params = new URLSearchParams(window.location.search)
+    const tester = params.get('tester')
+    if (tester === 'merchant' || tester === 'reseller') {
+      const email = tester === 'merchant' ? 'merchant@gmail.com' : 'reseller@gmail.com'
+      const timer = setTimeout(() => {
+        supabase.rpc('get_test_accounts_status').then(({ data }) => {
+          if (data?.enabled) signInTest(email)
+        }).catch(() => {})
+      }, 500)
+      return () => clearTimeout(timer)
+    }
   }, [])
 
   if (loading) return <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-cream"><Spinner /></div>
