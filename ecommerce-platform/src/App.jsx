@@ -10,6 +10,7 @@ import ScrollToTop from './components/system/ScrollToTop'
 import PostLoginGuide from './components/onboarding/PostLoginGuide'
 import DeviceAccessGuard from './components/auth/DeviceAccessGuard'
 import MfaGuard from './components/auth/MfaGuard'
+import DemoModeBanner from './components/system/DemoModeBanner'
 
 import Home from './pages/Home'
 import NotFound from './pages/NotFound'
@@ -115,6 +116,7 @@ export default function App() {
           <DeviceAccessGuard />
           <div className="min-h-screen bg-cream flex flex-col">
             <Navbar />
+            <DemoModeBanner />
             <Toaster
               position="top-center"
               toastOptions={{
