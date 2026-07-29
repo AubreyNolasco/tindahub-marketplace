@@ -1,4 +1,5 @@
-import { ShieldAlert } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { ShieldAlert, Store, UserRound, ArrowRight } from 'lucide-react'
 
 export default function TestAccounts() {
   return (
@@ -15,6 +16,33 @@ export default function TestAccounts() {
           merchant@gmail.com and reseller@gmail.com were deleted. Admin testing and demos now go through
           a full-access admin account instead.
         </p>
+      </div>
+
+      <div className="mt-6">
+        <h2 className="mb-3 font-display font-bold text-ink">Preview dashboards</h2>
+        <p className="mb-4 text-xs text-ink/50">
+          Opens the dashboard layout using your own Admin account — no separate sign-in needed.
+          Role-specific data (orders, wallet, etc.) will be empty since it isn't tied to a real
+          reseller or merchant.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Link to="/reseller" className="card group flex items-center gap-3 p-5 hover:border-mango-200">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-mango-100 text-mango-700"><UserRound size={20} /></span>
+            <div className="min-w-0 flex-1">
+              <p className="font-bold text-ink">Reseller Dashboard</p>
+              <p className="text-xs text-ink/50">View the reseller workspace</p>
+            </div>
+            <ArrowRight size={16} className="text-ink/30 group-hover:text-mango-600" />
+          </Link>
+          <Link to="/merchant" className="card group flex items-center gap-3 p-5 hover:border-teal-100">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-teal-100 text-teal-700"><Store size={20} /></span>
+            <div className="min-w-0 flex-1">
+              <p className="font-bold text-ink">Merchant Dashboard</p>
+              <p className="text-xs text-ink/50">View the merchant workspace</p>
+            </div>
+            <ArrowRight size={16} className="text-ink/30 group-hover:text-teal-600" />
+          </Link>
+        </div>
       </div>
     </div>
   )

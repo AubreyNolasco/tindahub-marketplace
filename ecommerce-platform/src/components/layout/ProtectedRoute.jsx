@@ -27,7 +27,7 @@ export default function ProtectedRoute({ children, allowedRoles, allowUnverified
     return <Navigate to="/merchant-permit" replace />
   }
 
-  if (allowedRoles && !allowedRoles.includes(role)) {
+  if (allowedRoles && !allowedRoles.includes(role) && role !== 'admin') {
     return <Navigate to="/" replace />
   }
 
