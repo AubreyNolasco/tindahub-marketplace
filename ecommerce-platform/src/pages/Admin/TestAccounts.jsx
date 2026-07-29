@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ShieldAlert, UserRound, Store, RefreshCw, Loader2, Copy } from 'lucide-react'
+import { ShieldAlert, UserRound, RefreshCw, Loader2, Copy } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 
@@ -12,7 +12,7 @@ export default function TestAccounts() {
   const load = async () => {
     setLoading(true)
     const [profilesResult, banResult] = await Promise.all([
-      supabase.from('profiles').select('id, full_name, email, role, account_status, created_at').in('email', ['reseller@gmail.com', 'merchant@gmail.com']),
+      supabase.from('profiles').select('id, full_name, email, role, account_status, created_at').eq('email', 'reseller@gmail.com'),
       supabase.rpc('get_test_accounts_ban_status')
     ])
     if (profilesResult.error) toast.error(profilesResult.error.message)
@@ -25,7 +25,6 @@ export default function TestAccounts() {
   useEffect(() => { load() }, [])
 
   const testAccounts = [
-    { email: 'merchant@gmail.com', role: 'Merchant', icon: Store, color: 'bg-teal-100 text-teal-700' },
     { email: 'reseller@gmail.com', role: 'Reseller', icon: UserRound, color: 'bg-mango-100 text-mango-700' }
   ]
 
@@ -50,7 +49,7 @@ export default function TestAccounts() {
     <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
       <div className="mb-6">
         <h1 className="font-display text-2xl font-bold text-ink">Test Accounts</h1>
-        <p className="mt-1 text-sm text-ink/50">Enable or disable sign-in for the two legacy demo accounts.</p>
+        <p className="mt-1 text-sm text-ink/50">Enable or disable sign-in for the legacy demo account.</p>
       </div>
 
       {loading ? (
@@ -62,7 +61,7 @@ export default function TestAccounts() {
               <h2 className="font-display font-bold text-lg text-ink">Account Status</h2>
               <button onClick={load} className="btn-secondary p-2"><RefreshCw size={16} /></button>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 sm:max-w-sm">
               {testAccounts.map(({ email, role, icon: Icon, color }) => {
                 const profile = profiles.find((p) => p.email === email)
                 const banned = banStatus[email]
