@@ -40,7 +40,11 @@ export default function WorkspaceLayout({ title, subtitle, sections, children })
       </nav>
       {!collapsed && <div className="border-t border-line p-4"><div className="rounded-xl bg-surface-inset px-3 py-3 text-xs leading-5 text-fg-muted">Secure workspace for your account activity and reports.</div></div>}
     </aside>
-    <section className="min-w-0 flex-1 bg-bg pb-20 lg:pb-0">
+    {/* Static (not bg-bg): this section wraps every page's <Outlet/>, most
+        of which still use static text-ink content, not text-fg. Flipping
+        this background dark would repeat the same invisible-text bug across
+        all of them — see the .card/body notes in index.css. */}
+    <section className="min-w-0 flex-1 bg-[radial-gradient(circle_at_top_right,rgba(22,121,75,0.08),transparent_30%),#F7FAF7] pb-20 lg:pb-0">
       <div className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-line bg-surface/90 px-3 backdrop-blur sm:px-5 lg:px-8">
         <button onClick={() => setOpen(true)} className="flex shrink-0 items-center gap-2 rounded-xl px-2 py-2 text-sm font-semibold text-teal-700 hover:bg-teal-50 dark:text-teal-300 dark:hover:bg-teal-500/10 lg:hidden"><Menu size={19} /><span className="hidden sm:inline">Menu</span></button>
         <div className="hidden min-w-0 flex-1 lg:block"><p className="truncate text-sm font-semibold text-fg">{current?.label || title}</p><p className="text-[11px] text-fg-muted">{role === 'merchant' ? 'Merchant workspace' : 'Reseller workspace'}</p></div>

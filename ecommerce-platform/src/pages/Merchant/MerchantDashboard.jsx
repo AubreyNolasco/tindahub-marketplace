@@ -81,7 +81,7 @@ export default function MerchantDashboard() {
   const setupSteps=[{label:'Store approved',done:merchant?.status==='approved',to:'/pending-approval'},{label:'Pickup address',done:isCompleteAddress(merchant?.business_address),to:'/merchant/address'},{label:'Subscription active',done:Boolean(merchant?.subscription_active),to:'/choose-subscription'},{label:'Product published',done:stats.products>0,to:'/merchant/products'},{label:'First order received',done:stats.orders>0,to:'/merchant/orders'}]
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+    <div className="mx-auto min-h-full max-w-7xl space-y-6 bg-bg px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
       <PageHeader
         title={merchant?.business_name || 'Your Store'}
         description="Manage products, orders, earnings, and store performance."

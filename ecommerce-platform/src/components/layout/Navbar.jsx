@@ -29,7 +29,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-40 border-b border-black/[0.05] bg-[#f7faf7]/90 shadow-[0_8px_30px_rgba(7,59,37,0.05)] backdrop-blur-xl dark:border-white/10 dark:bg-[#07120d]/90">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-3 sm:px-6">
         <Link to="/" className="block shrink-0" onClick={() => setMenuOpen(false)} aria-label="JOM HUB home">
-          <img src="/rmhub-logo.svg" alt="JOM HUB" className="h-9 w-auto sm:h-12" />
+          <img src={theme === 'dark' ? '/rmhub-logo-dark.svg' : '/rmhub-logo.svg'} alt="JOM HUB" className="h-9 w-auto sm:h-12" />
         </Link>
 
         <nav className="hidden items-center gap-1 rounded-full border border-black/[0.05] bg-white/70 p-1.5 text-sm font-semibold text-ink/70 shadow-sm md:flex dark:border-white/10 dark:bg-slate-900/70 dark:text-slate-200">

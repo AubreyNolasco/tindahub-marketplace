@@ -100,7 +100,7 @@ export default function AdminDashboard() {
     : {title:'Review platform activity',description:'All approval queues are clear. Review the latest protected system changes.',to:'/admin/activity-log',action:'Open audit log',complete:true}
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+    <div className="mx-auto min-h-full max-w-7xl space-y-6 bg-bg px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
       <PageHeader
         title="Marketplace overview"
         description="Monitor operations, review account requests, and keep JOM HUB running smoothly."

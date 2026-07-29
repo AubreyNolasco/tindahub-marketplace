@@ -41,16 +41,24 @@ html {
   accent-color: #16794B;
 }
 
+/* Deliberately static (not var-based): most pages still use the original
+   static text-ink/text-black classes, not the new text-fg tokens. Flipping
+   body's own background here would make that text unreadable in dark mode
+   wherever a page doesn't set its own explicit background. Only the pages
+   and components that have been migrated to the new token system (see
+   src/components/ui, the 3 role dashboards, and the WorkspaceLayout/
+   AdminLayout shells, which set their own explicit bg-bg/bg-surface) render
+   dark. Everything else stays on its original light styling regardless of
+   the .dark class, by design, until it's migrated (see redesign roadmap). */
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeSpeed;
-  background: var(--bg);
-  color: var(--fg);
+  background: #F7FAF7;
+  color: #142019;
   min-width: 320px;
   min-height: 100vh;
   min-height: 100dvh;
-  transition: background-color .2s ease, color .2s ease;
 }
 
 img, video, canvas, svg {
@@ -114,31 +122,21 @@ button, a, input, select, textarea {
     @apply bg-teal-600 text-white font-semibold px-5 py-2.5 rounded-xl shadow-sm shadow-teal-900/10 transition-all duration-200 hover:-translate-y-0.5 hover:bg-teal-700 hover:shadow-lg hover:shadow-teal-900/15 active:translate-y-0 disabled:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed;
   }
   .btn-secondary {
-    @apply text-teal-700 font-semibold px-5 py-2.5 rounded-xl border border-teal-100 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-teal-300 hover:bg-teal-50 active:translate-y-0;
-    background: var(--surface);
-  }
-  .dark .btn-secondary {
-    @apply text-teal-300 border-teal-800 hover:border-teal-600;
-  }
-  .dark .btn-secondary:hover {
-    background: var(--surface-inset);
+    @apply bg-white text-teal-700 font-semibold px-5 py-2.5 rounded-xl border border-teal-100 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-teal-300 hover:bg-teal-50 active:translate-y-0;
   }
   .btn-accent {
     @apply bg-mango-500 text-ink font-semibold px-5 py-2.5 rounded-xl shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-mango-600 hover:shadow-lg active:translate-y-0;
   }
   .input-field {
-    @apply w-full px-4 py-3 rounded-xl border shadow-sm placeholder:text-fg-muted focus:outline-none focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 transition-all;
-    background: var(--surface);
-    border-color: var(--line);
-    color: var(--fg);
+    @apply w-full px-4 py-3 rounded-xl border border-black/10 bg-white text-ink shadow-sm shadow-black/[0.02] placeholder:text-ink/30 focus:outline-none focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 transition-all;
   }
+  /* Static like body above — .card is used by ~65 pages that still pair it
+     with static text-ink content, not the new text-fg tokens. The new
+     Card.jsx component (src/components/ui/Card.jsx) does NOT use this
+     class for its background, precisely so it can be dark-mode-aware
+     without dragging every legacy .card usage into the same bug. */
   .card {
-    @apply rounded-xl2 shadow-card border transition-colors duration-200;
-    background: var(--surface);
-    border-color: var(--line);
-  }
-  .dark .card {
-    box-shadow: var(--shadow-2);
+    @apply bg-white rounded-xl2 shadow-card border border-black/[0.06];
   }
   .badge {
     @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold;

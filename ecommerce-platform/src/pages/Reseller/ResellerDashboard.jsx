@@ -94,7 +94,7 @@ export default function ResellerDashboard() {
   const setupSteps=[{label:'Account approved',done:profile?.account_status==='approved',to:'/pending-approval'},{label:'Address completed',done:isCompleteAddress(profile?.address),to:'/reseller/address'},{label:'Wallet funded',done:stats.wallet>0,to:'/reseller/wallet'},{label:'Customer added',done:stats.customers>0,to:'/reseller/customers'},{label:'First order placed',done:stats.orders>0,to:'/reseller/orders'}]
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+    <div className="mx-auto min-h-full max-w-7xl space-y-6 bg-bg px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
       <PageHeader
         title={`Welcome, ${profile?.full_name?.split(' ')[0] || 'Reseller'}`}
         description="Track purchases, wallet funds, customers, and order activity."
