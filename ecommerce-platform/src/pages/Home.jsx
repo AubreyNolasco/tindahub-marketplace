@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
   ArrowRight, BadgeCheck, BarChart3, Building2, Check, CheckCircle2,
-  CircleDollarSign, Clock3, FileImage, HelpCircle, Key,
-  MessageCircle, PackageCheck, Phone, ShieldCheck, ShoppingBag,
+  CircleDollarSign, Clock3, FileImage, MessageCircle, PackageCheck,
+  ShieldCheck, ShoppingBag,
   Sparkles, Store, TrendingUp, UsersRound, Wallet, X, MailCheck,
   LockKeyhole, Smartphone, Star, Stethoscope, Truck, Handshake, Quote,
   ChevronDown

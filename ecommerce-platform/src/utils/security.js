@@ -67,7 +67,7 @@ export function containsContactInfo(value) {
     /(?:^|\D)\d{8,15}(?:\D|$)/,
     /(?:https?:\/\/|www\.|[a-z0-9-]+\.(?:com|net|org|ph|io|me)(?:\/|\s|$))/i,
     /(?:^|\s)@[a-z0-9._-]{3,}/i,
-    /(?:facebook|fb|messenger|instagram|insta|telegram|whatsapp|viber|wechat|signal|discord|tiktok)\s*[:\-]?\s*(?:id|user(?:name)?|account|handle|number|no\.)/i,
+    /(?:facebook|fb|messenger|instagram|insta|telegram|whatsapp|viber|wechat|signal|discord|tiktok)\s*[:-]?\s*(?:id|user(?:name)?|account|handle|number|no\.)/i,
     /(?:text|call|message|contact|dm|pm)\s+(?:me|us)\s+(?:at|on|via)/i
   ]
   return patterns.some((pattern) => pattern.test(text))
@@ -75,7 +75,7 @@ export function containsContactInfo(value) {
 
 export function containsAddressInfo(value) {
   const text = String(value ?? '').toLowerCase().replace(/\s+/g, ' ').trim()
-  const addressWords = /\b(?:address|lokasyon|location|pickup|pick[- ]?up|deliver(?:y)?|house|unit|building|bldg|floor|street|st\.?|road|rd\.?|avenue|ave\.?|barangay|brgy\.?|city|province|subdivision|village|phase|block|blk\.?|lot|purok|sitio|postal|zip(?:code)?)\b/i
+  const addressWords = /\b(?:address|lokasyon|location|pickup|pick[ -]?up|deliver(?:y)?|house|unit|building|bldg|floor|street|st\.?|road|rd\.?|avenue|ave\.?|barangay|brgy\.?|city|province|subdivision|village|phase|block|blk\.?|lot|purok|sitio|postal|zip(?:code)?)\b/i
   const locationPattern = /\b(?:unit|house|building|bldg|floor|block|blk|lot|phase|purok|sitio|barangay|brgy)\s*(?:no\.?\s*)?[a-z0-9-]+/i
   const structuredAddress = /\d+[a-z]?\s+[a-z][a-z .'-]{2,}(?:street|st\.?|road|rd\.?|avenue|ave\.?|subdivision|village)\b/i
   return locationPattern.test(text) || structuredAddress.test(text) || (addressWords.test(text) && /\d|\b(?:near|beside|across|corner|landmark)\b/i.test(text))

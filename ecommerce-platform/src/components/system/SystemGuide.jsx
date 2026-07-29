@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import {
   HelpCircle, X, Store, Search, ShoppingCart, Wallet, Package,
   Check, Stethoscope, Users, Send, Clock, DollarSign, Truck,
-  Ruler, Calculator, MapPin, PackageCheck, ChevronRight, ExternalLink
+  Ruler, Calculator, MapPin, PackageCheck, ChevronRight
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 
@@ -143,14 +143,6 @@ export default function SystemGuide({ pageKey = 'product-flow', trigger = null }
 // Simple hook-based version for inline use
 export function PageGuideButton({ pageKey, label = 'Guide' }) {
   const [showGuide, setShowGuide] = useState(false)
-  const [guideData, setGuideData] = useState(null)
-
-  useEffect(() => {
-    if (!showGuide || !pageKey) return
-    supabase.rpc('get_app_guide', { p_page_key: pageKey }).then(({ data }) => {
-      if (data) setGuideData(data)
-    })
-  }, [showGuide, pageKey])
 
   return (
     <>
@@ -165,7 +157,7 @@ export function PageGuideButton({ pageKey, label = 'Guide' }) {
           pageKey={pageKey}
           trigger={null}
           open={true}
-          onClose={() => { setShowGuide(false); setGuideData(null) }}
+          onClose={() => { setShowGuide(false) }}
         />
       )}
     </>

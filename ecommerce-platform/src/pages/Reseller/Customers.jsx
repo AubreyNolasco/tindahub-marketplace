@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Users, Plus, Trash2, X, RefreshCw, Eye, Send } from 'lucide-react'
+import { Plus, Trash2, X, RefreshCw, Send } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'

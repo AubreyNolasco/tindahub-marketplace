@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
-import { AlertCircle, ChevronRight, ClipboardList, House, Menu, Package, PanelLeftClose, Handshake, Store, UserRound, WalletCards, X } from 'lucide-react'
+import { AlertCircle, ChevronRight, ClipboardList, House, Menu, Package, PanelLeftClose, Handshake, Store, WalletCards, X } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { isCompleteAddress } from '../../utils/address'
 import RoleNotifications from '../notifications/RoleNotifications'

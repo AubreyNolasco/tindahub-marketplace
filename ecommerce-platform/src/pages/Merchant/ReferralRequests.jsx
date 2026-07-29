@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CheckCircle, XCircle, Clock, UserRound, Phone, MapPin, MessageSquare, RefreshCw } from 'lucide-react'
+import { CheckCircle, XCircle, Clock, UserRound, Phone, MapPin, RefreshCw } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
@@ -22,7 +22,7 @@ const STATUS_LABELS = {
 }
 
 export default function ReferralRequests() {
-  const { user } = useAuth()
+  useAuth()
   const [referrals, setReferrals] = useState([])
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(null)

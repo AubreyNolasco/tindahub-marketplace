@@ -25,12 +25,6 @@ const realEstateFeatures = [
   { icon: WalletCards, title: 'Referral Fee', text: 'Earn a referral fee after a successful property viewing or transaction.' }
 ]
 
-const deliveryFeatures = [
-  { icon: Truck, title: 'Lalamove API', text: 'Connect your Lalamove account for real-time delivery quotes.' },
-  { icon: Boxes, title: 'Package Tracking', text: 'Track your delivery from pick-up until it reaches the customer.' },
-  { icon: BadgeCheck, title: 'Flexible Options', text: 'Choose between standard shipping and Lalamove same-day delivery.' }
-]
-
 export default function GrowthSection() {
   return <>
     {/* MERCHANT-RESELLER GROWTH SECTION */}

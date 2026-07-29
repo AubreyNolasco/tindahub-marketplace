@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { AlertCircle, ArrowRight, BarChart3, Boxes, ClipboardList, Package, Plus, RefreshCw, ShoppingBag, Store, Wallet } from 'lucide-react'
+import { AlertCircle, ArrowRight, BarChart3, Boxes, ClipboardList, Package, Plus, RefreshCw, Store, Wallet } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'

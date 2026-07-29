@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { MessageSquareText, Star, Trash2 } from 'lucide-react'
+import { MessageSquareText, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'

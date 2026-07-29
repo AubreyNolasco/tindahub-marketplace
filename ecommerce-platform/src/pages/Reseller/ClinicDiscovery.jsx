@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Handshake, Building2, UserRound, Phone, MapPin, Clock, DollarSign, Send, X, Loader2 } from 'lucide-react'
+import { Handshake, Building2, UserRound, Clock, DollarSign, Send, X, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'

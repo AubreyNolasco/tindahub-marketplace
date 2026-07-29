@@ -10,7 +10,7 @@ export function AuthProvider({ children }) {
   const [deviceAccessStatus, setDeviceAccessStatus] = useState('signed_out')
   const [loading, setLoading] = useState(true)
 
-  const loadProfile = useCallback(async (userId, userEmail = '', provider = '') => {
+  const loadProfile = useCallback(async (userId, _userEmail = '', provider = '') => {
     setProfileError(null)
     if (!userId) {
       setProfile(null)

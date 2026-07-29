@@ -1,14 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Package, Check, X, Truck, ShieldAlert, RefreshCw, DollarSign, Eye, Printer } from 'lucide-react'
+import { Check, X, Truck, ShieldAlert, RefreshCw, Eye, Printer } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { peso, formatDate, ORDER_STATUS_STYLES as BADGE_STYLES, ORDER_STATUS_LABELS } from '../../utils/format'
 import DataTable from '../../components/ui/DataTable'
 import ActionPopup, { DetailRow, DetailSection } from '../../components/ui/ActionPopup'
-import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { PageGuideButton } from '../../components/system/SystemGuide'
-import EmptyState from '../../components/ui/EmptyState'
 import DeliveryModal from '../../components/order/DeliveryModal'
 import OrderCaseModal from '../../components/order/OrderCaseModal'
 import ShippingFeeModal from '../../components/order/ShippingFeeModal'
@@ -25,7 +23,6 @@ export default function Orders() {
   const { user } = useAuth()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
-  const [proofUrls, setProofUrls] = useState({})
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [showDetail, setShowDetail] = useState(false)
   const [deliveryOrder, setDeliveryOrder] = useState(null)

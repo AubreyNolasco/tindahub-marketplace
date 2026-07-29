@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 
 export default function DeliverySettings() {
-  const { user } = useAuth()
+  useAuth()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [showSecret, setShowSecret] = useState(false)

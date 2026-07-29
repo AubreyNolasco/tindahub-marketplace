@@ -1,4 +1,4 @@
-import { BarChart3, Boxes, ClipboardList, FileDown, FileUp, LayoutDashboard, MapPin, MessageSquare, Store, Handshake, Send, UserRound, Users, WalletCards, Truck, Building2 } from 'lucide-react'
+import { BarChart3, Boxes, ClipboardList, FileDown, FileUp, LayoutDashboard, MapPin, MessageSquare, Store, Handshake, Send, UserRound, Users, WalletCards, Truck } from 'lucide-react'
 import WorkspaceLayout from '../../components/layout/WorkspaceLayout'
 
 const sections = [
