@@ -31,8 +31,6 @@ p, h1, h2, h3, h4, a, button, label, td, th {
 }
 
 /* ===== RESPONSIVE IMPROVEMENTS ===== */
-
-/* Extra small devices (under 360px) */
 @media (max-width: 359px) {
   .container, .max-w-7xl, .max-w-6xl, .max-w-5xl, .max-w-4xl, .max-w-3xl {
     padding-left: 0.75rem !important;
@@ -79,7 +77,6 @@ p, h1, h2, h3, h4, a, button, label, td, th {
   }
 }
 
-/* Mobile (360px - 639px) */
 @media (max-width: 639px) {
   input, select, textarea {
     font-size: 16px;
@@ -98,71 +95,19 @@ p, h1, h2, h3, h4, a, button, label, td, th {
   .subscription-audience > div > span { width: 2.25rem; height: 2.25rem; }
   .subscription-audience > div > h3 { margin-top: 0.5rem; font-size: 0.875rem; }
   .subscription-audience > div > p { display: none; }
+}
 
-  /* Fix floating cards overlap on mobile — targets hero section absolute cards */
-  .hero-floating-card,
-  div.hero-image-container + div.absolute {
-    position: relative !important;
-    bottom: auto !important;
-    margin-top: -2rem !important;
-  }
-  .hero-image-container + div.absolute > div {
-    flex: 1;
-  }
-
-  /* Better spacing on small screens */
-  .py-20 {
-    padding-top: 3rem !important;
-    padding-bottom: 3rem !important;
-  }
-  .py-16 {
-    padding-top: 2.5rem !important;
-    padding-bottom: 2.5rem !important;
-  }
-  .sm\\:px-10, .sm\\:px-8, .sm\\:px-6 {
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
-  }
-
-  /* Grid adjustments for 4-col on mobile */
-  .grid-cols-4, .xl\\:grid-cols-4 {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-  .grid-cols-3, .lg\\:grid-cols-3 {
-    grid-template-columns: repeat(2, 1fr) !important;
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #06110d;
+    color: #f3f7f2;
   }
 }
 
-/* Tablet (640px - 1023px) */
-@media (min-width: 640px) and (max-width: 1023px) {
-  .grid-cols-4, .xl\\:grid-cols-4 {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-  .grid-cols-3, .lg\\:grid-cols-3 {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-  .md\\:p-8 {
-    padding: 1.5rem !important;
-  }
-  .md\\:px-10 {
-    padding-left: 1.5rem !important;
-    padding-right: 1.5rem !important;
-  }
-}
-
-/* Desktop (1024px+) */
-@media (min-width: 1024px) {
-  .card-hover-grid {
-    grid-template-columns: repeat(3, 1fr) !important;
-  }
-}
-
-/* Prevent layout shift from scrollbar */
 html {
   scrollbar-gutter: stable;
 }
 
-/* Touch-friendly improvements */
 @media (hover: none) and (pointer: coarse) {
   .btn-primary:hover, .btn-secondary:hover, .btn-accent:hover {
     transform: none !important;
@@ -173,18 +118,8 @@ html {
   .group:hover {
     transform: none !important;
   }
-  
-  /* Increase touch targets */
-  button, a, [role="button"], select, input[type="checkbox"], input[type="radio"] {
-    cursor: default;
-  }
-  input[type="checkbox"], input[type="radio"] {
-    min-width: 20px;
-    min-height: 20px;
-  }
 }
 
-/* ===== Reduced Motion ===== */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {
@@ -195,18 +130,15 @@ html {
   }
 }
 
-/* ===== Tap Highlight ===== */
 button, a, input, select, textarea {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* ===== Focus ===== */
 :focus-visible {
   outline: 3px solid rgba(35, 139, 87, 0.28);
   outline-offset: 3px;
 }
 
-/* ===== Scrollbar ===== */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: #F0F5F1; }
 ::-webkit-scrollbar-thumb { background: #9BCBAD; border: 3px solid #F0F5F1; border-radius: 999px; }
@@ -217,7 +149,6 @@ button, a, input, select, textarea {
   color: #16211E;
 }
 
-/* ===== Tailwind Components ===== */
 @layer components {
   .btn-primary {
     @apply bg-teal-600 text-white font-semibold px-5 py-2.5 rounded-xl shadow-sm shadow-teal-900/10 transition-all duration-200 hover:-translate-y-0.5 hover:bg-teal-700 hover:shadow-lg hover:shadow-teal-900/15 active:translate-y-0 disabled:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed;
@@ -248,7 +179,6 @@ button, a, input, select, textarea {
   .legal-content a { @apply font-semibold text-teal-700 underline; }
 }
 
-/* ===== Utility: Skeleton Loading ===== */
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }

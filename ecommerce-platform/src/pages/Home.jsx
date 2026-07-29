@@ -45,8 +45,21 @@ const benefits = [
   { icon: FileImage, title: 'Printable records', text: 'Keep system-generated receipts for marketplace orders, top-ups, and withdrawals.' },
   { icon: LockKeyhole, title: 'Secure activity history', text: 'Sensitive changes are recorded and available for Admin review.' },
   { icon: Smartphone, title: 'Mobile-friendly workspace', text: 'Resellers and Merchants can move seamlessly between Home, Products, Orders, Wallet, and Account.' },
-  { icon: Stethoscope, title: 'Clinic & real estate referrals', text: 'Refer your customers to partner clinics or real estate agents and earn a referral fee — no upfront cost.' },
+  { icon: Handshake, title: 'Clinic & real estate referrals', text: 'Refer your customers to partner clinics or real estate agents and earn a referral fee — no upfront cost.' },
   { icon: Truck, title: 'Lalamove integration', text: 'Connect to Lalamove for real-time delivery quotes and faster shipping.' }
+]
+
+const featuredHighlights = [
+  { title: 'Merchant storefronts', description: 'Launch polished digital stores with pricing, inventory, and secure order handling.', icon: Store },
+  { title: 'Reseller growth', description: 'Discover trusted products, manage your cart, and scale with wallet-backed payments.', icon: UsersRound },
+  { title: 'Referral income', description: 'Turn partner clinics, real estate agents, and delivery tools into recurring revenue.', icon: Handshake }
+]
+
+const categoryCards = [
+  { title: 'Merchants', description: 'Open a professional storefront and manage orders with confidence.', icon: Store, href: '/signup' },
+  { title: 'Resellers', description: 'Browse, compare, and place orders with transparent pricing.', icon: ShoppingBag, href: '/signup' },
+  { title: 'Clinics', description: 'Refer customers and earn commission after confirmed appointments.', icon: Stethoscope, href: '/clinics' },
+  { title: 'Real estate', description: 'Connect to property referrals and grow your network.', icon: Building2, href: '/clinics' }
 ]
 
 const plans = [
@@ -204,6 +217,45 @@ export default function Home() {
             </div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <section className="mx-auto max-w-7xl px-4 pb-8 sm:px-6 sm:pb-10">
+      <div className="rounded-[2rem] border border-black/[0.06] bg-white/80 p-6 shadow-card backdrop-blur-xl sm:p-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-teal-700">Featured experiences</p>
+            <h2 className="mt-2 font-display text-2xl font-semibold tracking-[-0.02em] text-ink sm:text-3xl">Premium tools for your next growth step.</h2>
+          </div>
+          <Link to="/catalog" className="inline-flex items-center gap-2 text-sm font-semibold text-teal-700">Explore the marketplace <ArrowRight size={16} /></Link>
+        </div>
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
+          {featuredHighlights.map(({ title, description, icon: Icon }) => (
+            <article key={title} className="rounded-[1.5rem] border border-black/[0.06] bg-gradient-to-br from-white to-teal-50/70 p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+              <span className="grid h-11 w-11 place-items-center rounded-xl bg-teal-700 text-white"><Icon size={18} /></span>
+              <h3 className="mt-4 font-display text-lg font-semibold text-ink">{title}</h3>
+              <p className="mt-2 text-sm leading-7 text-ink/65">{description}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="max-w-2xl">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-teal-700">Categories</p>
+          <h2 className="mt-2 font-display text-2xl font-semibold tracking-[-0.02em] text-ink sm:text-3xl">Built for every role in the ecosystem.</h2>
+        </div>
+      </div>
+      <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {categoryCards.map(({ title, description, icon: Icon, href }) => (
+          <Link key={title} to={href} className="group rounded-[1.5rem] border border-black/[0.06] bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-teal-200 hover:shadow-md">
+            <span className="grid h-12 w-12 place-items-center rounded-[1rem] bg-teal-50 text-teal-700 transition group-hover:bg-teal-700 group-hover:text-white"><Icon size={20} /></span>
+            <h3 className="mt-4 font-display text-lg font-semibold text-ink">{title}</h3>
+            <p className="mt-2 text-sm leading-7 text-ink/65">{description}</p>
+          </Link>
+        ))}
       </div>
     </section>
 

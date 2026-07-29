@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Pencil, Trash2, Stethoscope, X, Loader2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Handshake, X, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
@@ -153,7 +153,7 @@ export default function ClinicServices() {
       {loading ? (
         <div className="flex justify-center py-16"><Spinner /></div>
       ) : services.length === 0 ? (
-        <EmptyState icon={Stethoscope} title="No clinic services yet" message="Add your first service so Resellers can refer customers." action={<button onClick={() => { resetForm(); setShowForm(true) }} className="btn-primary">Add Service</button>} />
+        <EmptyState icon={Handshake} title="No services yet" message="Add your first service so Resellers can refer customers." action={<button onClick={() => { resetForm(); setShowForm(true) }} className="btn-primary">Add Service</button>} />
       ) : (
         <div className="space-y-4">
           {services.map((service) => (

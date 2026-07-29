@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Stethoscope, Building2, UserRound, Phone, MapPin, Clock, DollarSign, Send, X, Loader2 } from 'lucide-react'
+import { Handshake, Building2, UserRound, Phone, MapPin, Clock, DollarSign, Send, X, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
@@ -77,7 +77,7 @@ export default function ClinicDiscovery() {
       {loading ? (
         <div className="flex justify-center py-24"><Spinner /></div>
       ) : clinics.length === 0 ? (
-        <EmptyState icon={Stethoscope} title="No providers available" message="Partner clinics and service providers will appear here once merchants set up their services." />
+        <EmptyState icon={Handshake} title="No providers available" message="Partner clinics and service providers will appear here once merchants set up their services." />
       ) : (
         <div className="space-y-8">
           {clinics.map((clinic) => {
