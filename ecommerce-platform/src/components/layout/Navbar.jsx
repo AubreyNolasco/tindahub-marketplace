@@ -34,7 +34,7 @@ export default function Navbar() {
         <nav className="hidden md:flex items-center gap-1 rounded-full border border-black/[0.05] bg-cream/80 p-1.5 text-sm font-semibold text-ink/65">
           <Link to="/" className="flex items-center gap-1.5 rounded-full px-4 py-2 transition hover:bg-white hover:text-teal-700 hover:shadow-sm"><House size={16} /> Home</Link>
           {user && <Link to="/catalog" className="flex items-center gap-1.5 rounded-full px-4 py-2 transition hover:bg-white hover:text-teal-700 hover:shadow-sm"><Package size={16} /> Products</Link>}
-          {user && <Link to="/clinics" className="flex items-center gap-1.5 rounded-full px-4 py-2 transition hover:bg-white hover:text-teal-700 hover:shadow-sm"><Stethoscope size={16} /> Clinics</Link>}
+          {user && <Link to="/clinics" className="flex items-center gap-1.5 rounded-full px-4 py-2 transition hover:bg-white hover:text-teal-700 hover:shadow-sm"><Stethoscope size={16} /> Services</Link>}
           {user && (
             <Link to={dashLink} className="hover:text-teal-600 transition-colors flex items-center gap-1">
               <LayoutDashboard size={16} /> Workspace
@@ -94,7 +94,7 @@ export default function Navbar() {
         <nav className="max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-black/5 bg-white px-3 py-3 text-sm font-medium text-ink/70 shadow-lg md:hidden sm:px-6">
           <Link to="/" className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600" onClick={() => setMenuOpen(false)}><House size={17} /> Home</Link>
           {user && <Link to="/catalog" className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600" onClick={() => setMenuOpen(false)}><Package size={17} /> Products</Link>}
-          {user && <Link to="/clinics" className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600" onClick={() => setMenuOpen(false)}><Stethoscope size={17} /> Clinics</Link>}
+          {user && <Link to="/clinics" className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600" onClick={() => setMenuOpen(false)}><Stethoscope size={17} /> Services</Link>}
           {user && (
             <Link to={dashLink} className="flex min-h-11 items-center gap-3 rounded-xl px-3 transition-colors hover:bg-teal-50 hover:text-teal-600" onClick={() => setMenuOpen(false)}>
               <LayoutDashboard size={16} /> Dashboard
