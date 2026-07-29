@@ -23,9 +23,16 @@ export default function PendingApproval() {
             ? 'Your payment application was not approved. Contact Admin for details and resubmission instructions.'
             : role === 'merchant'
               ? 'Admin is reviewing your subscription and payment screenshot. Your Merchant account will become available after approval.'
-              : 'Admin is reviewing your initial wallet top-up. Your Reseller account and wallet will become available after approval.'}
+              : 'Admin is reviewing your initial wallet top-up and identity verification. Your Reseller account and wallet will become available after both are approved.'}
         </p>
         {role === 'merchant' && !rejected && <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center"><Link to="/merchant-permit" className="btn-primary">Submit Business Permit</Link><Link to="/choose-subscription" className="btn-secondary">Choose Subscription</Link></div>}
+        {role === 'reseller' && !rejected && profile?.id_verification_status !== 'approved' && (
+          <div className="mt-6 flex justify-center">
+            <Link to="/verify-id" className="btn-primary">
+              {profile?.id_verification_status === 'pending' ? 'View Verification Status' : 'Verify Your Identity'}
+            </Link>
+          </div>
+        )}
         <button onClick={signOut} className="btn-secondary mt-6">Sign out</button>
       </div>
     </div>
