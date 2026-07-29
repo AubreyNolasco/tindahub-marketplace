@@ -44,6 +44,7 @@ import ResellerStorefront from './pages/ResellerStorefront'
 import ClinicDiscovery from './pages/Reseller/ClinicDiscovery'
 import MyReferrals from './pages/Reseller/MyReferrals'
 import DeliverySettings from './pages/Reseller/DeliverySettings'
+import IdVerification from './pages/Reseller/IdVerification'
 
 import MerchantLayout from './pages/Merchant/MerchantLayout'
 import ServiceSettings from './pages/Merchant/ServiceSettings'
@@ -100,6 +101,7 @@ import ApprovalCenter from './pages/Admin/ApprovalCenter'
 import OrderCases from './pages/Admin/OrderCases'
 import ActivityLog from './pages/Admin/ActivityLog'
 import TestAccounts from './pages/Admin/TestAccounts'
+import ResellerVerifications from './pages/Admin/ResellerVerifications'
 
 export default function App() {
   return (
@@ -148,6 +150,7 @@ export default function App() {
                 <Route path="/pending-approval" element={<PendingApproval />} />
                 <Route path="/choose-subscription" element={<ChooseSubscription />} />
                 <Route path="/merchant-permit" element={<ProtectedRoute allowedRoles={['merchant']} allowUnverifiedMerchant><BusinessPermit /></ProtectedRoute>} />
+                <Route path="/verify-id" element={<IdVerification />} />
                 <Route path="/clinics" element={<ProtectedRoute allowedRoles={['reseller','merchant','admin']}><ClinicDiscovery /></ProtectedRoute>} />
 
                 {/* Reseller */}
@@ -203,6 +206,7 @@ export default function App() {
                   <Route path="staff" element={<AdminPermissionRoute adminOnly><StaffManagement /></AdminPermissionRoute>} />
                   <Route path="full-access" element={<AdminPermissionRoute adminOnly><AdminFullAccess /></AdminPermissionRoute>} />
                   <Route path="approval-center" element={<AdminPermissionRoute adminOnly><ApprovalCenter /></AdminPermissionRoute>} />
+                  <Route path="reseller-verifications" element={<AdminPermissionRoute adminOnly><ResellerVerifications /></AdminPermissionRoute>} />
                   <Route path="order-cases" element={<AdminPermissionRoute adminOnly><OrderCases /></AdminPermissionRoute>} />
                   <Route path="activity-log" element={<AdminPermissionRoute adminOnly><ActivityLog /></AdminPermissionRoute>} />
                   <Route path="test-accounts" element={<AdminPermissionRoute adminOnly><TestAccounts /></AdminPermissionRoute>} />

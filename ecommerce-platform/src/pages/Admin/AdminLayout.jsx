@@ -3,7 +3,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   BarChart3, Boxes, Building2, ChevronRight, CircleDollarSign,
   ClipboardList, CreditCard, FileChartColumn, FileDown,
-  FileUp, FolderTree, House, LayoutDashboard, Menu, MessageSquare,
+  FileUp, FolderTree, House, IdCard, LayoutDashboard, Menu, MessageSquare,
   Megaphone, PanelLeftClose, Presentation, ReceiptText, ShieldAlert, ShieldCheck, Star, UsersRound, WalletCards, X, History, CalendarDays, UserCog, Scale, BookOpenCheck, KeyRound, Activity, Workflow, Bug
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
@@ -20,6 +20,7 @@ const sections = [
       { to: '/admin/staff', label: 'Staff Access', icon: UserCog, adminOnly: true },
       { to: '/admin/full-access', label: 'Full Access', icon: KeyRound, adminOnly: true },
       { to: '/admin/approval-center', label: 'Approval Center', icon: ShieldCheck, adminOnly: true },
+      { to: '/admin/reseller-verifications', label: 'Reseller ID Verification', icon: IdCard, adminOnly: true },
       { to: '/admin/order-cases', label: 'Order Cases', icon: ShieldAlert, adminOnly: true },
       { to: '/admin/products', label: 'Products', icon: Boxes, adminOnly: true },
       { to: '/admin/legal', label: 'Legal Settings', icon: Scale, adminOnly: true },
