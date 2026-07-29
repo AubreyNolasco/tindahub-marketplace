@@ -68,7 +68,7 @@ export default function MfaGuard() {
   const challenge = state.status === 'challenge'
 
   return (
-    <div className="fixed inset-0 z-[260] grid place-items-center overflow-y-auto bg-ink/80 p-4 backdrop-blur-md">
+    <div className="fixed inset-0 z-[260] grid place-items-center overflow-y-auto bg-scrim/80 p-4 backdrop-blur-md">
       <section className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl sm:p-7" role="dialog" aria-modal="true" aria-labelledby="mfa-title">
         <span className="grid h-13 w-13 place-items-center rounded-2xl bg-teal-50 text-teal-700">
           {state.status === 'checking' ? <Loader2 className="animate-spin" /> : challenge ? <KeyRound /> : <ShieldCheck />}

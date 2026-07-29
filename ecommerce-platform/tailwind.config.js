@@ -5,7 +5,17 @@ export default {
   theme: {
     extend: {
       colors: {
-        ink: '#142019',
+        // Theme-aware: every text-ink / bg-ink / border-ink usage across
+        // the whole app (not just the new components) now resolves to the
+        // same light/dark tokens as text-fg, so text stays readable
+        // everywhere regardless of theme without having to migrate each
+        // page individually. See src/index.css :root / .dark for values.
+        ink: 'var(--fg)',
+        // Always-dark, theme-independent — used for modal/drawer backdrop
+        // scrims (bg-scrim/60 etc). These must stay a dark dimming layer
+        // in both themes; unlike ink, they should NOT flip light in dark
+        // mode (that would look like a light haze instead of a dim).
+        scrim: '#0b1210',
         // Semantic surface/text tokens — resolve to CSS variables (see
         // src/index.css :root / .dark) so components built against these
         // (bg-surface, border-line, text-fg, ...) flip automatically in

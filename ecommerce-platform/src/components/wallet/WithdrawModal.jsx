@@ -62,7 +62,7 @@ export default function WithdrawModal({ open, onClose, onSubmitted }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-ink/40 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-scrim/40 backdrop-blur-sm">
       <div className="w-full max-w-md card p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-display font-bold text-xl text-ink">Request a Withdrawal</h2>

@@ -78,7 +78,7 @@ function SubscriptionModal({ profile, onClose, onSaved }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-ink/40 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-scrim/40 backdrop-blur-sm">
       <div className="card max-h-[calc(100dvh-1.5rem)] w-full max-w-lg overflow-y-auto p-4 sm:p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-display font-bold text-xl text-ink">Manage Subscription</h2>

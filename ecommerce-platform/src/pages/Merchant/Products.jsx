@@ -112,7 +112,7 @@ export default function Products({ admin = false }) {
                   <Package className="text-teal-300" size={32} />
                 )}
                 {!p.is_active && (
-                  <span className="absolute top-2 right-2 badge bg-ink/70 text-white flex items-center gap-1">
+                  <span className="absolute top-2 right-2 badge bg-scrim/70 text-white flex items-center gap-1">
                     <EyeOff size={12} /> Hidden
                   </span>
                 )}

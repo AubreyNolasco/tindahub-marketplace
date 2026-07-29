@@ -55,6 +55,6 @@ export default function HomepageEditor() {
 
       <section className="hidden p-6 xl:block"><div className="mb-4 flex items-center justify-between"><p className="text-xs font-bold uppercase tracking-wider text-ink/40">Live preview</p><div className="flex rounded-lg bg-white p-1 shadow-sm"><button onClick={() => setMobilePreview(false)} className={`rounded-md p-2 ${!mobilePreview ? 'bg-teal-50 text-teal-700' : 'text-ink/35'}`}><Monitor size={16} /></button><button onClick={() => setMobilePreview(true)} className={`rounded-md p-2 ${mobilePreview ? 'bg-teal-50 text-teal-700' : 'text-ink/35'}`}><Smartphone size={16} /></button></div></div><HeroPreview value={form} mobile={mobilePreview} /></section>
     </div>
-    {previewOpen && <div className="fixed inset-0 z-50 overflow-y-auto bg-ink/60 p-4 backdrop-blur-sm"><div className="mx-auto max-w-4xl"><div className="mb-3 flex justify-end"><button onClick={() => setPreviewOpen(false)} className="rounded-full bg-white p-2 text-ink"><X size={20} /></button></div><HeroPreview value={form} mobile={false} /></div></div>}
+    {previewOpen && <div className="fixed inset-0 z-50 overflow-y-auto bg-scrim/60 p-4 backdrop-blur-sm"><div className="mx-auto max-w-4xl"><div className="mb-3 flex justify-end"><button onClick={() => setPreviewOpen(false)} className="rounded-full bg-white p-2 text-ink"><X size={20} /></button></div><HeroPreview value={form} mobile={false} /></div></div>}
   </div>
 }

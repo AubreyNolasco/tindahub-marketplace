@@ -47,7 +47,7 @@ export default function DeliveryModal({order,open,onClose,onSaved}){
     onSaved?.();onClose()
   }
 
-  return <div className="fixed inset-0 z-[90] grid place-items-center bg-ink/60 p-4">
+  return <div className="fixed inset-0 z-[90] grid place-items-center bg-scrim/60 p-4">
     <div className="card max-h-[90vh] w-full max-w-lg overflow-y-auto p-6">
       <div className="flex justify-between"><div><h2 className="font-display text-xl font-bold">Dispatch order</h2><p className="text-xs text-ink/45">The Reseller accepted the shipping fee. Complete the dispatch details.</p></div><button type="button" onClick={onClose}><X size={18}/></button></div>
       <div className="mt-4 rounded-xl bg-teal-50 p-3 text-sm text-teal-900"><strong>Accepted shipping fee:</strong> {peso(order.proposed_shipping_fee)}</div>

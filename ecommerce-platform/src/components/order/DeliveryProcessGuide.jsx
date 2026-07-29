@@ -37,7 +37,7 @@ export default function DeliveryProcessGuide({ audience }) {
 
   return <>
     <button type="button" onClick={() => setOpen(true)} className="btn-secondary mb-5 inline-flex items-center gap-2 px-4 py-2 text-sm"><Truck size={17} /> Delivery process guide</button>
-    {open && <div className="fixed inset-0 z-[90] flex items-center justify-center bg-ink/65 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label={guide.title}>
+    {open && <div className="fixed inset-0 z-[90] flex items-center justify-center bg-scrim/65 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label={guide.title}>
       <div className="max-h-[92vh] w-full max-w-xl overflow-y-auto rounded-3xl bg-white shadow-2xl">
         <div className="relative bg-gradient-to-br from-teal-950 to-teal-700 px-6 py-7 text-white sm:px-8">
           <button type="button" onClick={close} className="absolute right-5 top-5 rounded-xl bg-white/10 p-2 text-white/80 hover:bg-white/20" aria-label="Close delivery guide"><X size={19} /></button>

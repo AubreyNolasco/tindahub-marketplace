@@ -33,7 +33,7 @@ export default function SubscriptionExpiryModal() {
   if (!isExpired && !isExpiringSoon) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-ink/40 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-scrim/40 backdrop-blur-sm">
       <div className="w-full max-w-sm card p-6 text-center">
         <div className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 ${isExpired ? 'bg-coral-100' : 'bg-mango-100'}`}>
           <AlertTriangle className={isExpired ? 'text-coral-600' : 'text-mango-600'} size={26} />

@@ -41,7 +41,7 @@ export default function CommandPalette({ sections = [] }) {
 
       {open && (
         <div
-          className="fixed inset-0 z-[200] grid place-items-start justify-center bg-ink/65 p-4 pt-[12vh] backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 z-[200] grid place-items-start justify-center bg-scrim/65 p-4 pt-[12vh] backdrop-blur-sm animate-fade-in"
           onMouseDown={(e) => { if (e.target === e.currentTarget) setOpen(false) }}
         >
           <Command label="Command palette" className="w-full max-w-xl overflow-hidden rounded-2xl bg-surface shadow-2xl animate-scale-in">

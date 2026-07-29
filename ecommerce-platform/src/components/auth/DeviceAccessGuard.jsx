@@ -89,7 +89,7 @@ export default function DeviceAccessGuard() {
   const checking = !state || state.status === 'checking'
 
   return (
-    <div className="fixed inset-0 z-[200] grid place-items-center bg-ink/70 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[200] grid place-items-center bg-scrim/70 p-4 backdrop-blur-sm">
       <section className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
         <span className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-50 text-teal-700">
           {activePrompt || error || limited ? <ShieldAlert /> : <Loader2 className="animate-spin" />}

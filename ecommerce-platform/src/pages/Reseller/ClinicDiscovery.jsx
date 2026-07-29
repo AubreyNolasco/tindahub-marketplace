@@ -123,7 +123,7 @@ export default function ClinicDiscovery() {
 
       {/* Referral Modal */}
       {showRefer && (
-        <div className="fixed inset-0 z-[100] grid place-items-center bg-ink/65 p-3 backdrop-blur-sm" role="dialog" aria-modal="true">
+        <div className="fixed inset-0 z-[100] grid place-items-center bg-scrim/65 p-3 backdrop-blur-sm" role="dialog" aria-modal="true">
           <div className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-white shadow-2xl">
             <div className="flex items-start justify-between bg-gradient-to-br from-teal-950 to-teal-700 px-6 py-5 text-white">
               <div>

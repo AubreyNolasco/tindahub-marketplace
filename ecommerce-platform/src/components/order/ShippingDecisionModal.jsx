@@ -17,7 +17,7 @@ export default function ShippingDecisionModal({ order, open, onClose, onSaved })
     toast.success(accept ? 'Shipping fee accepted. The Merchant can now dispatch the order.' : 'Order pickup declined. Your note was sent to the Merchant.')
     setNote(''); onSaved?.(); onClose()
   }
-  return <div className="fixed inset-0 z-[90] grid place-items-center bg-ink/60 p-4"><div className="card w-full max-w-md p-6">
+  return <div className="fixed inset-0 z-[90] grid place-items-center bg-scrim/60 p-4"><div className="card w-full max-w-md p-6">
     <div className="flex items-start justify-between gap-4"><div><h2 className="font-display text-xl font-bold">Review shipping fee</h2><p className="mt-1 text-sm text-ink/55">Merchant submitted <strong className="text-ink">{peso(order.proposed_shipping_fee)}</strong>.</p></div><button type="button" onClick={onClose} aria-label="Close"><X size={18}/></button></div>
     {order.shipping_fee_merchant_note && <p className="mt-4 rounded-xl bg-teal-50 p-3 text-xs leading-5 text-teal-900"><strong>Merchant note:</strong> {order.shipping_fee_merchant_note}</p>}
     <label className="mt-4 block text-sm font-semibold">Note <span className="font-normal text-ink/45">(required when declining)</span><textarea rows="3" maxLength="500" value={note} onChange={(event)=>setNote(event.target.value)} className="input-field mt-1 resize-none" placeholder="Reason or confirmation note" /></label>

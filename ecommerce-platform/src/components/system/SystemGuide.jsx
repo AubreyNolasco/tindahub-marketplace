@@ -39,7 +39,7 @@ export default function SystemGuide({ pageKey = 'product-flow', trigger = null }
     <>
       {finalTrigger}
       {open && (
-        <div className="fixed inset-0 z-[100] grid place-items-center bg-ink/65 p-3 backdrop-blur-sm" role="dialog" aria-modal="true">
+        <div className="fixed inset-0 z-[100] grid place-items-center bg-scrim/65 p-3 backdrop-blur-sm" role="dialog" aria-modal="true">
           <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white shadow-2xl">
             {/* Header */}
             <div className="sticky top-0 z-10 flex items-start justify-between gap-4 bg-gradient-to-br from-teal-950 to-teal-700 rounded-t-3xl px-6 pt-5 pb-5 text-white">

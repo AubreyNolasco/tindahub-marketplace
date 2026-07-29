@@ -67,7 +67,7 @@ const sections = [
 function Sidebar({ open, collapsed, onClose, onToggleCollapse, visibleSections, currentPath, theme }) {
   return (
     <>
-      {open && <button type="button" aria-label="Close admin navigation" onClick={onClose} className="fixed inset-x-0 bottom-0 top-16 z-40 bg-ink/40 backdrop-blur-sm lg:hidden" />}
+      {open && <button type="button" aria-label="Close admin navigation" onClick={onClose} className="fixed inset-x-0 bottom-0 top-16 z-40 bg-scrim/40 backdrop-blur-sm lg:hidden" />}
       <aside className={`fixed bottom-0 left-0 top-16 z-50 flex w-[min(19rem,calc(100vw-1.5rem))] flex-col border-r border-line bg-surface text-fg shadow-2xl transition-transform duration-300 lg:sticky lg:z-20 lg:h-[calc(100vh-4rem)] lg:shrink-0 lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'} ${collapsed ? 'lg:w-[84px]' : 'lg:w-64'}`}>
         <div className={`flex h-[76px] items-center border-b border-line bg-teal-50 dark:bg-teal-500/10 ${collapsed ? 'justify-center px-3' : 'justify-between px-5'}`}>
           {!collapsed ? <div className="min-w-0"><img src={theme === 'dark' ? '/rmhub-logo-dark.svg' : '/rmhub-logo.svg'} alt="JOM HUB" className="h-9 w-auto" /><p className="mt-1 flex items-center gap-1.5 text-[11px] font-semibold text-fg-muted"><ShieldCheck size={13} className="text-mango-600" /> Admin Center</p></div> : <img src="/rmhub-mark.svg" alt="JOM HUB" className="h-10 w-10" />}
@@ -105,8 +105,7 @@ export default function AdminLayout() {
   return (
     <div className="min-h-[calc(100vh-4rem)] lg:flex">
       <Sidebar open={menuOpen} collapsed={collapsed} onClose={() => setMenuOpen(false)} onToggleCollapse={() => setCollapsed((value) => !value)} visibleSections={visibleSections} currentPath={location.pathname} theme={theme} />
-      {/* Static — see the matching note in WorkspaceLayout.jsx */}
-      <section className="min-w-0 flex-1 bg-[radial-gradient(circle_at_top_right,rgba(22,121,75,0.08),transparent_30%),#F7FAF7]">
+      <section className="min-w-0 flex-1 bg-bg">
         <div className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-line bg-surface/90 px-3 backdrop-blur sm:px-5 lg:px-8">
           <button onClick={() => setMenuOpen(true)} className="flex shrink-0 items-center gap-2 rounded-xl px-2 py-2 text-sm font-semibold text-teal-700 hover:bg-teal-50 dark:text-teal-300 dark:hover:bg-teal-500/10 lg:hidden"><Menu size={19} /><span className="hidden sm:inline">Menu</span></button>
           <div className="hidden min-w-0 flex-1 lg:block"><p className="truncate text-sm font-semibold text-fg">{currentItem?.label || 'Admin'}</p><p className="text-[11px] text-fg-muted">Admin Center</p></div>

@@ -44,7 +44,7 @@ export default function ShippingFeeModal({ order, open, onClose, onSaved }) {
     toast.success(quotationId ? `Lalamove quote ${peso(fee)} sent to the Reseller — booking is automatic once they accept.` : `Shipping fee ${peso(fee)} sent to the Reseller for confirmation.`)
     onSaved?.(); onClose()
   }
-  return <div className="fixed inset-0 z-[90] grid place-items-center bg-ink/60 p-4"><form onSubmit={submit} className="card w-full max-w-md p-6">
+  return <div className="fixed inset-0 z-[90] grid place-items-center bg-scrim/60 p-4"><form onSubmit={submit} className="card w-full max-w-md p-6">
     <div className="flex items-start justify-between gap-4"><div><h2 className="font-display text-xl font-bold">Confirm packaging fee</h2><p className="mt-1 text-xs leading-5 text-ink/50">Enter the courier fee after the order is packaged. Dispatch stays locked until the Reseller accepts.</p></div><button type="button" onClick={onClose} aria-label="Close"><X size={18}/></button></div>
     {order.shipping_fee_confirmation_status === 'declined' && <div className="mt-4 rounded-xl bg-coral-50 p-3 text-xs text-coral-800"><strong>Reseller declined:</strong> {order.shipping_fee_reseller_note}</div>}
     <button type="button" disabled={quoting} onClick={getQuote} className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl border border-teal-200 bg-teal-50 py-2.5 text-sm font-semibold text-teal-700 disabled:opacity-60">

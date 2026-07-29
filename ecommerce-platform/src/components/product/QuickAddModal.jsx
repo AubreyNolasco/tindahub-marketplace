@@ -30,7 +30,7 @@ export default function QuickAddModal({ product, quantity, initialSellingPrice, 
   const canAdd = product.stock_quantity >= minimum
 
   return (
-    <div className="fixed inset-0 z-50 bg-ink/50 p-4 flex items-center justify-center" role="dialog" aria-modal="true" aria-label="Add product to cart">
+    <div className="fixed inset-0 z-50 bg-scrim/50 p-4 flex items-center justify-center" role="dialog" aria-modal="true" aria-label="Add product to cart">
       <div className="card w-full max-w-md p-5 relative max-h-[90vh] overflow-y-auto">
         <button onClick={onClose} className="absolute right-4 top-4 p-1.5 rounded-lg hover:bg-black/5 text-ink/60" aria-label="Close"><X size={20} /></button>
         <div className="flex gap-4 pr-8">

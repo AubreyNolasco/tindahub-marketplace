@@ -21,7 +21,7 @@ export default function ConfirmDialog({
 
   return (
     <Modal open={open} onClose={onClose} title={title} icon={AlertTriangle} iconTone={iconTone} size="sm">
-      <p className="text-sm leading-6 text-ink/60">{message}</p>
+      <p className="text-sm leading-6 text-fg-muted">{message}</p>
       <div className="mt-5 flex gap-3">
         <button onClick={onClose} disabled={loading} className="btn-secondary flex-1 py-2.5 text-sm">
           {cancelText}
