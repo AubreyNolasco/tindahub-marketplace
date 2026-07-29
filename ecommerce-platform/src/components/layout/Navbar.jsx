@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { ShoppingCart, House, Package, LayoutDashboard, ShieldCheck, LogOut, User, Handshake, Menu, X } from 'lucide-react'
+import { ShoppingCart, House, Package, LayoutDashboard, ShieldCheck, LogOut, User, Handshake, Menu, X, Sun, Moon } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useCart } from '../../contexts/CartContext'
 import { getAdminHomePath } from '../../config/adminPermissions'
+import { useTheme } from '../../hooks/useTheme'
 
 export default function Navbar() {
   const { user, profile, role, signOut } = useAuth()
@@ -11,6 +12,7 @@ export default function Navbar() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
+  const { theme, toggleTheme } = useTheme()
   const customerStorefront = pathname.startsWith('/store/') || pathname.startsWith('/reseller-store/')
 
   const handleSignOut = async () => {
@@ -47,6 +49,16 @@ export default function Navbar() {
         </nav>
 
         <div className="flex items-center gap-1 sm:gap-3">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="rounded-full p-2 text-ink/70 transition-colors hover:bg-teal-50 dark:text-slate-200 dark:hover:bg-slate-800"
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-label="Toggle color theme"
+          >
+            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+
           {(role === 'reseller' || role === 'merchant') && (
             <Link to="/cart" className="relative rounded-full p-2 transition-colors hover:bg-teal-50 dark:hover:bg-slate-800">
               <ShoppingCart size={20} className="text-ink/70 dark:text-slate-200" />

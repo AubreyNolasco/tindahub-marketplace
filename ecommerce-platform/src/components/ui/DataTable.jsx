@@ -96,7 +96,7 @@ export default function DataTable({
         {Array.from({ length: loadingRows }).map((_, i) => (
           <div key={i} className="flex gap-4">
             {columns.map((_, j) => (
-              <div key={j} className="h-10 flex-1 rounded-lg bg-ink/5" />
+              <div key={j} className="h-10 flex-1 rounded-lg bg-surface-inset" />
             ))}
           </div>
         ))}
@@ -109,7 +109,7 @@ export default function DataTable({
       {/* Search */}
       {searchable && (
         <div className="relative mb-4">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink/35" />
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-fg-muted" />
           <input
             type="text"
             placeholder={searchPlaceholder}
@@ -121,44 +121,44 @@ export default function DataTable({
       )}
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-2xl border border-black/[0.06] bg-white shadow-sm">
+      <div className="overflow-x-auto rounded-2xl border border-line bg-surface shadow-sm">
         <table className="w-full min-w-[600px] text-left text-sm">
           <thead>
-            <tr className="border-b border-black/[0.06] bg-cream/80">
+            <tr className="border-b border-line bg-surface-inset/80">
               {columns.map((col) => (
                 <th
                   key={col.accessor || col.header}
-                  className={`px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-ink/50 ${col.sortable !== false ? 'cursor-pointer select-none hover:text-ink/80' : ''}`}
+                  className={`px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-fg-muted ${col.sortable !== false ? 'cursor-pointer select-none hover:text-fg' : ''}`}
                   onClick={() => col.sortable !== false && col.accessor && toggleSort(col.accessor)}
                 >
                   <span className="inline-flex items-center gap-1.5">
                     {col.header}
                     {col.sortable !== false && col.accessor && (
-                      <ArrowUpDown size={12} className={`transition-colors ${sortKey === col.accessor ? 'text-teal-600' : 'text-ink/20'}`} />
+                      <ArrowUpDown size={12} className={`transition-colors ${sortKey === col.accessor ? 'text-teal-600' : 'text-fg-muted/40'}`} />
                     )}
                   </span>
                 </th>
               ))}
               {(actions.length > 0 || onView || onEdit || onDelete) && (
-                <th className="px-4 py-3.5 text-right text-xs font-bold uppercase tracking-wider text-ink/50 w-[100px]">
+                <th className="px-4 py-3.5 text-right text-xs font-bold uppercase tracking-wider text-fg-muted w-[100px]">
                   Actions
                 </th>
               )}
             </tr>
           </thead>
-          <tbody className="divide-y divide-black/[0.04]">
+          <tbody className="divide-y divide-line">
             {paged.length === 0 ? (
               <tr>
                 <td colSpan={columns.length + (actions.length > 0 || onView || onEdit || onDelete ? 1 : 0)} className="px-4 py-16 text-center">
-                  <p className="font-semibold text-ink/70">{emptyTitle}</p>
-                  <p className="mt-1 text-sm text-ink/45">{emptyMessage}</p>
+                  <p className="font-semibold text-fg">{emptyTitle}</p>
+                  <p className="mt-1 text-sm text-fg-muted">{emptyMessage}</p>
                 </td>
               </tr>
             ) : (
               paged.map((row, rowIndex) => (
-                <tr key={row.id || rowIndex} className="transition-colors hover:bg-teal-50/50 group">
+                <tr key={row.id || rowIndex} className="transition-colors hover:bg-teal-50/50 dark:hover:bg-teal-500/10 group">
                   {columns.map((col) => (
-                    <td key={col.accessor || col.header} className="px-4 py-3.5 text-ink/80">
+                    <td key={col.accessor || col.header} className="px-4 py-3.5 text-fg/90">
                       {renderCell(row, col)}
                     </td>
                   ))}
@@ -214,7 +214,7 @@ export default function DataTable({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-between text-sm text-ink/60">
+        <div className="mt-4 flex items-center justify-between text-sm text-fg-muted">
           <p>
             Showing {(page - 1) * ITEMS_PER_PAGE + 1}–{Math.min(page * ITEMS_PER_PAGE, sorted.length)} of {sorted.length}
           </p>
@@ -222,15 +222,15 @@ export default function DataTable({
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="grid h-9 w-9 place-items-center rounded-xl border border-black/10 disabled:opacity-30 hover:bg-teal-50"
+              className="grid h-9 w-9 place-items-center rounded-xl border border-line disabled:opacity-30 hover:bg-teal-50 dark:hover:bg-teal-500/10"
             >
               <ChevronLeft size={16} />
             </button>
-            <span className="min-w-[3rem] text-center font-semibold text-ink">{page}/{totalPages}</span>
+            <span className="min-w-[3rem] text-center font-semibold text-fg">{page}/{totalPages}</span>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="grid h-9 w-9 place-items-center rounded-xl border border-black/10 disabled:opacity-30 hover:bg-teal-50"
+              className="grid h-9 w-9 place-items-center rounded-xl border border-line disabled:opacity-30 hover:bg-teal-50 dark:hover:bg-teal-500/10"
             >
               <ChevronRight size={16} />
             </button>

@@ -1,21 +1,50 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  ArrowRight, Banknote, Building2, CheckCircle2, CircleDollarSign,
+  ArrowRight, Banknote, Building2, CircleDollarSign,
   ClipboardCheck, Landmark, RefreshCw, ShieldAlert, ShoppingBag,
-  TrendingUp, Users, Wallet, Zap, CalendarDays
+  TrendingUp, Users, Wallet, CalendarDays, CheckCircle2, Activity
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { peso } from '../../utils/format'
 import NextActionCard from '../../components/dashboard/NextActionCard'
+import PageHeader from '../../components/ui/PageHeader'
+import StatCard from '../../components/ui/StatCard'
+import AnalyticsPanel from '../../components/ui/AnalyticsPanel'
+import Card from '../../components/ui/Card'
+import Badge from '../../components/ui/Badge'
+import Button from '../../components/ui/Button'
 
 const initialStats = { merchants: 0, approvedMerchants: 0, pendingMerchants: 0, resellers: 0, orders: 0, gmv: 0, pendingTopups: 0, pendingWithdrawals: 0, pendingSubscriptions: 0, pendingRegistrations: 0, platformWallet: 0 }
+
+// Buckets real order totals into a 14-day trend for the revenue chart —
+// derived from the same non-cancelled-orders query the GMV stat already
+// uses, not synthetic data.
+function buildDailyTrend(orders, days = 14) {
+  const buckets = new Map()
+  const now = new Date()
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(now)
+    d.setDate(d.getDate() - i)
+    buckets.set(d.toISOString().slice(0, 10), 0)
+  }
+  for (const order of orders) {
+    if (!order.created_at) continue
+    const key = new Date(order.created_at).toISOString().slice(0, 10)
+    if (buckets.has(key)) buckets.set(key, buckets.get(key) + Number(order.total || 0))
+  }
+  return Array.from(buckets.entries()).map(([key, value]) => ({
+    label: new Date(key).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }),
+    value: Math.round(value)
+  }))
+}
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(initialStats)
   const [loading, setLoading] = useState(true)
   const [recentRegistrations, setRecentRegistrations] = useState([])
+  const [revenueTrend, setRevenueTrend] = useState([])
 
   useEffect(() => { load() }, [])
 
@@ -26,7 +55,7 @@ export default function AdminDashboard() {
       supabase.from('merchant_profiles').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
       supabase.from('merchant_profiles').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
       supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'reseller'),
-      supabase.from('orders').select('total').neq('status', 'cancelled'),
+      supabase.from('orders').select('total, created_at').neq('status', 'cancelled'),
       supabase.from('topup_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
       supabase.from('withdrawal_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
       supabase.from('subscription_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
@@ -44,23 +73,24 @@ export default function AdminDashboard() {
       pendingTopups: topups.count || 0, pendingWithdrawals: withdrawals.count || 0,
       pendingSubscriptions: subscriptions.count || 0, pendingRegistrations: registrations.count || 0, platformWallet: wallet.data?.balance || 0
     })
+    setRevenueTrend(buildDailyTrend(orders.data || []))
     setRecentRegistrations(registrations.data || [])
     setLoading(false)
   }
 
   const actionCount = stats.pendingMerchants + stats.pendingTopups + stats.pendingWithdrawals + stats.pendingSubscriptions + stats.pendingRegistrations
   const metrics = [
-    { label: 'Gross marketplace value', value: peso(stats.gmv), detail: `${stats.orders} non-cancelled orders`, icon: TrendingUp, tone: 'bg-teal-50 text-teal-700', link: '/admin/reports/sales' },
-    { label: 'Platform wallet', value: peso(stats.platformWallet), detail: 'Recorded platform revenue', icon: Wallet, tone: 'bg-mango-100 text-mango-600', link: '/admin/wallet' },
-    { label: 'Active merchants', value: stats.approvedMerchants, detail: `${stats.merchants} total merchant accounts`, icon: Building2, tone: 'bg-teal-50 text-teal-700', link: '/admin/merchants' },
-    { label: 'Registered resellers', value: stats.resellers, detail: 'Marketplace buyer network', icon: Users, tone: 'bg-coral-100 text-coral-600', link: '/admin' }
+    { label: 'Gross marketplace value', value: loading ? '—' : peso(stats.gmv), detail: `${stats.orders} non-cancelled orders`, icon: TrendingUp, tone: 'teal', to: '/admin/reports/sales' },
+    { label: 'Platform wallet', value: loading ? '—' : peso(stats.platformWallet), detail: 'Recorded platform revenue', icon: Wallet, tone: 'mango', to: '/admin/wallet' },
+    { label: 'Active merchants', value: loading ? '—' : stats.approvedMerchants, detail: `${stats.merchants} total merchant accounts`, icon: Building2, tone: 'teal', to: '/admin/merchants' },
+    { label: 'Registered resellers', value: loading ? '—' : stats.resellers, detail: 'Marketplace buyer network', icon: Users, tone: 'coral', to: '/admin' }
   ]
   const queues = [
-    { label: 'Merchant applications', value: stats.pendingMerchants, icon: ShieldAlert, link: '/admin/merchants', color: 'text-coral-600 bg-coral-100' },
-    { label: 'Subscription payments', value: stats.pendingSubscriptions, icon: ClipboardCheck, link: '/admin/subscriptions', color: 'text-teal-700 bg-teal-50' },
-    { label: 'Wallet top-ups', value: stats.pendingTopups, icon: Banknote, link: '/admin/topups', color: 'text-mango-600 bg-mango-100' },
-    { label: 'Withdrawals', value: stats.pendingWithdrawals, icon: Landmark, link: '/admin/withdrawals', color: 'text-ink/70 bg-black/5' }
-    ,{ label: 'Schedule registrations', value: stats.pendingRegistrations, icon: CalendarDays, link: '/admin/registrations', color: 'text-teal-700 bg-teal-50' }
+    { label: 'Merchant applications', value: stats.pendingMerchants, icon: ShieldAlert, link: '/admin/merchants', color: 'text-coral-600 bg-coral-100 dark:bg-coral-500/15 dark:text-coral-300' },
+    { label: 'Subscription payments', value: stats.pendingSubscriptions, icon: ClipboardCheck, link: '/admin/subscriptions', color: 'text-teal-700 bg-teal-50 dark:bg-teal-500/15 dark:text-teal-300' },
+    { label: 'Wallet top-ups', value: stats.pendingTopups, icon: Banknote, link: '/admin/topups', color: 'text-mango-600 bg-mango-100 dark:bg-mango-500/15 dark:text-mango-300' },
+    { label: 'Withdrawals', value: stats.pendingWithdrawals, icon: Landmark, link: '/admin/withdrawals', color: 'text-fg-muted bg-surface-inset' },
+    { label: 'Schedule registrations', value: stats.pendingRegistrations, icon: CalendarDays, link: '/admin/registrations', color: 'text-teal-700 bg-teal-50 dark:bg-teal-500/15 dark:text-teal-300' }
   ]
   const nextAction = stats.pendingMerchants > 0 ? {title:'Review Merchant applications',description:`${stats.pendingMerchants} Merchant application${stats.pendingMerchants===1?'':'s'} require verification.`,to:'/admin/approval-center',action:'Open approvals'}
     : stats.pendingSubscriptions > 0 ? {title:'Verify subscription payments',description:`${stats.pendingSubscriptions} subscription payment${stats.pendingSubscriptions===1?'':'s'} are waiting for review.`,to:'/admin/subscriptions',action:'Review payments'}
@@ -70,52 +100,88 @@ export default function AdminDashboard() {
     : {title:'Review platform activity',description:'All approval queues are clear. Review the latest protected system changes.',to:'/admin/activity-log',action:'Open audit log',complete:true}
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-      <section className="relative mb-6 overflow-hidden rounded-[1.75rem] bg-teal-900 px-6 py-7 text-white shadow-xl shadow-teal-900/10 sm:px-8 sm:py-9">
-        <div className="absolute -right-16 -top-20 h-64 w-64 rounded-full bg-teal-500/25 blur-2xl" />
-        <div className="absolute -bottom-24 right-36 h-52 w-52 rounded-full bg-mango-500/15 blur-2xl" />
-        <div className="relative flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/80"><Zap size={13} className="text-mango-300" /> Marketplace command center</div>
-            <h1 className="font-display text-2xl font-bold sm:text-3xl">Good day, Administrator</h1>
-            <p className="mt-2 max-w-xl text-sm leading-6 text-white/60">Monitor operations, review account requests, and keep JOM HUB running smoothly from one workspace.</p>
-          </div>
-          <button onClick={load} disabled={loading} className="inline-flex w-fit items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15 disabled:opacity-50"><RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> Refresh data</button>
-        </div>
-      </section>
+    <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <PageHeader
+        title="Marketplace overview"
+        description="Monitor operations, review account requests, and keep JOM HUB running smoothly."
+        actions={<Button variant="secondary" size="sm" icon={RefreshCw} loading={loading} onClick={load}>Refresh</Button>}
+      />
 
-      {!loading&&<NextActionCard {...nextAction}/>}<div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {metrics.map(({ label, value, detail, icon: Icon, tone, link }) => (
-          <Link key={label} to={link} className="group rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card transition duration-200 hover:-translate-y-0.5 hover:border-teal-100 hover:shadow-soft">
-            <div className="flex items-start justify-between"><span className={`flex h-11 w-11 items-center justify-center rounded-xl ${tone}`}><Icon size={21} /></span><ArrowRight size={17} className="text-ink/20 transition group-hover:translate-x-0.5 group-hover:text-teal-600" /></div>
-            <p className="mt-5 font-display text-2xl font-bold tracking-tight text-ink">{loading ? '—' : value}</p>
-            <p className="mt-1 text-sm font-semibold text-ink/75">{label}</p>
-            <p className="mt-1 text-xs text-ink/45">{detail}</p>
-          </Link>
-        ))}
+      {!loading && <NextActionCard {...nextAction} />}
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {metrics.map((metric) => <StatCard key={metric.label} {...metric} />)}
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
-        <section className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-card">
-          <div className="flex items-center justify-between border-b border-black/5 px-5 py-4 sm:px-6"><div><h2 className="font-display font-bold text-ink">Approval queue</h2><p className="mt-0.5 text-xs text-ink/45">Items that may require your attention</p></div><span className={`badge ${actionCount ? 'bg-coral-100 text-coral-600' : 'bg-teal-50 text-teal-700'}`}>{actionCount} pending</span></div>
-          <div className="divide-y divide-black/5">{queues.map(({ label, value, icon: Icon, link, color }) => (
-            <Link key={label} to={link} className="group flex items-center gap-4 px-5 py-4 transition hover:bg-teal-50/60 sm:px-6">
-              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${color}`}><Icon size={19} /></span>
-              <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-ink">{label}</p><p className="text-xs text-ink/45">Open review workspace</p></div>
-              <span className="font-display text-xl font-bold text-ink">{loading ? '—' : value}</span><ArrowRight size={16} className="text-ink/25 transition group-hover:translate-x-1 group-hover:text-teal-600" />
-            </Link>
-          ))}</div>
-        </section>
+      <div className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
+        <AnalyticsPanel
+          title="Gross marketplace value"
+          description="Last 14 days, non-cancelled orders"
+          data={revenueTrend}
+          valueFormatter={(v) => `₱${(v / 1000).toFixed(0)}k`}
+        />
 
-        <section className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card sm:p-6">
-          <div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-700"><CheckCircle2 size={20} /></span><div><h2 className="font-display font-bold text-ink">Marketplace status</h2><p className="text-xs text-ink/45">Live operational summary</p></div></div>
+        <Card padded={false}>
+          <div className="flex items-center justify-between border-b border-line px-5 py-4 sm:px-6">
+            <div>
+              <h2 className="font-display font-bold text-fg">Approval queue</h2>
+              <p className="mt-0.5 text-xs text-fg-muted">Items that may need your attention</p>
+            </div>
+            <Badge tone={actionCount ? 'danger' : 'success'}>{actionCount} pending</Badge>
+          </div>
+          <div className="divide-y divide-line">
+            {queues.map(({ label, value, icon: Icon, link, color }) => (
+              <Link key={label} to={link} className="group flex items-center gap-4 px-5 py-4 transition hover:bg-teal-50/60 dark:hover:bg-teal-500/5 sm:px-6">
+                <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${color}`}><Icon size={19} /></span>
+                <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-fg">{label}</p><p className="text-xs text-fg-muted">Open review workspace</p></div>
+                <span className="font-mono text-xl font-bold tabular-nums text-fg">{loading ? '—' : value}</span>
+                <ArrowRight size={16} className="text-fg-muted/60 transition group-hover:translate-x-1 group-hover:text-teal-600" />
+              </Link>
+            ))}
+          </div>
+        </Card>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-700 dark:bg-teal-500/15 dark:text-teal-300"><CheckCircle2 size={20} /></span>
+            <div><h2 className="font-display font-bold text-fg">Marketplace status</h2><p className="text-xs text-fg-muted">Live operational summary</p></div>
+          </div>
           <div className="mt-6 space-y-5">
-            <div><div className="mb-2 flex justify-between text-xs"><span className="font-medium text-ink/60">Merchant approval rate</span><span className="font-bold text-ink">{stats.merchants ? Math.round(stats.approvedMerchants / stats.merchants * 100) : 0}%</span></div><div className="h-2 overflow-hidden rounded-full bg-black/5"><div className="h-full rounded-full bg-teal-500 transition-all" style={{ width: `${stats.merchants ? stats.approvedMerchants / stats.merchants * 100 : 0}%` }} /></div></div>
-            <div className="grid grid-cols-2 gap-3"><Link to="/admin/reports/ordered" className="rounded-xl bg-cream p-4 transition hover:bg-teal-50"><ShoppingBag size={18} className="text-teal-600" /><p className="mt-3 text-xl font-bold text-ink">{stats.orders}</p><p className="text-xs text-ink/50">Total orders</p></Link><Link to="/admin/reports/sales" className="rounded-xl bg-cream p-4 transition hover:bg-teal-50"><CircleDollarSign size={18} className="text-mango-600" /><p className="mt-3 text-xl font-bold text-ink">{stats.merchants + stats.resellers}</p><p className="text-xs text-ink/50">Marketplace users</p></Link></div>
+            <div>
+              <div className="mb-2 flex justify-between text-xs"><span className="font-medium text-fg-muted">Merchant approval rate</span><span className="font-bold text-fg">{stats.merchants ? Math.round(stats.approvedMerchants / stats.merchants * 100) : 0}%</span></div>
+              <div className="h-2 overflow-hidden rounded-full bg-surface-inset"><div className="h-full rounded-full bg-teal-500 transition-all" style={{ width: `${stats.merchants ? stats.approvedMerchants / stats.merchants * 100 : 0}%` }} /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Link to="/admin/reports/ordered" className="rounded-xl bg-surface-inset p-4 transition hover:bg-teal-50 dark:hover:bg-teal-500/10"><ShoppingBag size={18} className="text-teal-600" /><p className="mt-3 text-xl font-bold text-fg">{stats.orders}</p><p className="text-xs text-fg-muted">Total orders</p></Link>
+              <Link to="/admin/reports/sales" className="rounded-xl bg-surface-inset p-4 transition hover:bg-teal-50 dark:hover:bg-teal-500/10"><CircleDollarSign size={18} className="text-mango-600" /><p className="mt-3 text-xl font-bold text-fg">{stats.merchants + stats.resellers}</p><p className="text-xs text-fg-muted">Marketplace users</p></Link>
+            </div>
           </div>
-        </section>
+        </Card>
+
+        <Card padded={false}>
+          <div className="flex items-center justify-between border-b border-line px-5 py-4 sm:px-6">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-700 dark:bg-teal-500/15 dark:text-teal-300"><Activity size={19} /></span>
+              <div><h2 className="font-display font-bold text-fg">Recent schedule registrations</h2><p className="mt-0.5 text-xs text-fg-muted">Visitors waiting for admin contact</p></div>
+            </div>
+            <Link to="/admin/registrations" className="shrink-0 text-sm font-semibold text-teal-700 dark:text-teal-300">View all</Link>
+          </div>
+          {recentRegistrations.length === 0 ? (
+            <p className="px-6 py-8 text-center text-sm text-fg-muted">No pending registrations.</p>
+          ) : (
+            <div className="divide-y divide-line">
+              {recentRegistrations.map((registration) => (
+                <Link key={registration.id} to="/admin/registrations" className="flex flex-col gap-2 px-5 py-4 transition hover:bg-teal-50/50 dark:hover:bg-teal-500/5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                  <div><p className="font-semibold text-fg">{registration.full_name}</p><p className="text-xs text-fg-muted">{registration.email} · {registration.phone}</p></div>
+                  <p className="text-sm font-semibold text-teal-700 dark:text-teal-300">{new Date(`${registration.preferred_date}T${registration.preferred_time}`).toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                </Link>
+              ))}
+            </div>
+          )}
+        </Card>
       </div>
-      <section className="mt-6 overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-card"><div className="flex items-center justify-between border-b border-black/5 px-5 py-4 sm:px-6"><div><h2 className="font-display font-bold text-ink">Recent schedule registrations</h2><p className="mt-0.5 text-xs text-ink/45">Visitors waiting for admin contact</p></div><Link to="/admin/registrations" className="text-sm font-semibold text-teal-700">View all</Link></div>{recentRegistrations.length === 0 ? <p className="px-6 py-8 text-center text-sm text-ink/45">No pending registrations.</p> : <div className="divide-y divide-black/5">{recentRegistrations.map((registration) => <Link key={registration.id} to="/admin/registrations" className="flex flex-col gap-2 px-5 py-4 transition hover:bg-teal-50/50 sm:flex-row sm:items-center sm:justify-between sm:px-6"><div><p className="font-semibold text-ink">{registration.full_name}</p><p className="text-xs text-ink/45">{registration.email} · {registration.phone}</p></div><p className="text-sm font-semibold text-teal-700">{new Date(`${registration.preferred_date}T${registration.preferred_time}`).toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short' })}</p></Link>)}</div>}</section>
     </div>
   )
 }

@@ -2,19 +2,55 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== Design tokens (light + dark) =====
+   Semantic surface/text tokens consumed via Tailwind's bg-bg / bg-surface /
+   bg-surface-inset / border-line / text-fg / text-fg-muted utilities (see
+   tailwind.config.js). Brand hues (teal/mango/coral) stay fixed across
+   themes — only neutrals/surfaces/shadows flip. The .dark class is applied
+   to <html> by public/theme-init.js (before first paint) and toggled at
+   runtime by the theme switch in Navbar.jsx. */
+:root {
+  --bg: #F7FAF7;
+  --surface: #FFFFFF;
+  --surface-inset: #F0F5F1;
+  --line: rgba(22, 33, 30, 0.08);
+  --fg: #142019;
+  --fg-muted: rgba(20, 32, 25, 0.6);
+  --shadow-1: 0 1px 2px rgba(22, 33, 30, 0.04);
+  --shadow-2: 0 4px 16px rgba(22, 33, 30, 0.08);
+  --shadow-3: 0 12px 40px rgba(22, 33, 30, 0.14);
+}
+
+.dark {
+  color-scheme: dark;
+  --bg: #06110d;
+  --surface: #0e1b15;
+  --surface-inset: #0a1510;
+  --line: rgba(232, 240, 234, 0.09);
+  --fg: #e8f0ea;
+  --fg-muted: rgba(232, 240, 234, 0.6);
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-2: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-3: 0 12px 40px rgba(0, 0, 0, 0.55);
+}
+
+/* ===== Base ===== */
 html {
   scroll-behavior: smooth;
-  color-scheme: light;
-  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  accent-color: #16794B;
 }
 
 body {
   -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  background: #F7FAF7;
-  color: #142019;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeSpeed;
+  background: var(--bg);
+  color: var(--fg);
   min-width: 320px;
+  min-height: 100vh;
   min-height: 100dvh;
+  transition: background-color .2s ease, color .2s ease;
 }
 
 img, video, canvas, svg {
@@ -27,158 +63,110 @@ main, section, article, aside, nav, form, div {
 }
 
 p, h1, h2, h3, h4, a, button, label, td, th {
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
-/* ===== RESPONSIVE IMPROVEMENTS ===== */
-@media (max-width: 359px) {
-  .container, .max-w-7xl, .max-w-6xl, .max-w-5xl, .max-w-4xl, .max-w-3xl {
-    padding-left: 0.75rem !important;
-    padding-right: 0.75rem !important;
-  }
-  h1, .text-4xl, .text-3xl, .text-2xl, .font-display.text-4xl {
-    font-size: 1.5rem !important;
-    line-height: 1.2 !important;
-  }
-  .font-display.text-3xl, .text-3xl {
-    font-size: 1.375rem !important;
-    line-height: 1.2 !important;
-  }
-  .font-display.text-2xl, .text-2xl {
-    font-size: 1.25rem !important;
-  }
-  .text-lg {
-    font-size: 0.95rem !important;
-  }
-  .text-base {
-    font-size: 0.875rem !important;
-  }
-  .px-8, .px-6 {
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
-  }
-  .py-8, .py-16 {
-    padding-top: 1.5rem !important;
-    padding-bottom: 1.5rem !important;
-  }
-  .gap-6, .gap-8, .gap-10, .gap-12 {
-    gap: 0.75rem !important;
-  }
-  .h-52, .h-56, .h-64 {
-    height: 8rem !important;
-  }
-  .w-52, .w-56, .w-64 {
-    width: 8rem !important;
-  }
-  .btn-primary, .btn-secondary, .btn-accent {
-    font-size: 0.8rem !important;
-    padding-left: 0.75rem !important;
-    padding-right: 0.75rem !important;
-  }
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
 }
-
-@media (max-width: 639px) {
-  input, select, textarea {
-    font-size: 16px;
-  }
-
-  .card {
-    max-width: 100%;
-    border-radius: 1rem;
-  }
-
-  button, [role="button"], .btn-primary, .btn-secondary, .btn-accent { min-height: 44px; }
-  main { width: 100%; overflow-x: hidden; }
-  table th, table td { white-space: nowrap; }
-
-  .subscription-audience > div { padding: 0.75rem; }
-  .subscription-audience > div > span { width: 2.25rem; height: 2.25rem; }
-  .subscription-audience > div > h3 { margin-top: 0.5rem; font-size: 0.875rem; }
-  .subscription-audience > div > p { display: none; }
+::-webkit-scrollbar-track {
+  background: var(--surface-inset);
 }
-
-@media (prefers-color-scheme: dark) {
-  body {
-    background: #06110d;
-    color: #f3f7f2;
-  }
+::-webkit-scrollbar-thumb {
+  background: #9BCBAD;
+  border: 3px solid var(--surface-inset);
+  border-radius: 999px;
 }
-
-html {
-  scrollbar-gutter: stable;
+::-webkit-scrollbar-thumb:hover {
+  background: #238B57;
 }
-
-@media (hover: none) and (pointer: coarse) {
-  .btn-primary:hover, .btn-secondary:hover, .btn-accent:hover {
-    transform: none !important;
-  }
-  a:hover, button:hover {
-    transform: none !important;
-  }
-  .group:hover {
-    transform: none !important;
-  }
+.dark ::-webkit-scrollbar-thumb {
+  background: #1e5a3a;
 }
-
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
-  }
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #238B57;
 }
-
-button, a, input, select, textarea {
-  -webkit-tap-highlight-color: transparent;
-}
-
-:focus-visible {
-  outline: 3px solid rgba(35, 139, 87, 0.28);
-  outline-offset: 3px;
-}
-
-::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: #F0F5F1; }
-::-webkit-scrollbar-thumb { background: #9BCBAD; border: 3px solid #F0F5F1; border-radius: 999px; }
-::-webkit-scrollbar-thumb:hover { background: #238B57; }
 
 ::selection {
   background-color: #F2A93B;
   color: #16211E;
 }
+.dark ::selection {
+  color: #06110d;
+}
 
+/* ===== Focus & Tap ===== */
+:focus-visible {
+  outline: 3px solid #16794B;
+  outline-offset: 3px;
+}
+
+button, a, input, select, textarea {
+  -webkit-tap-highlight-color: rgba(22, 121, 75, 0.2);
+}
+
+/* ===== Tailwind Component Classes ===== */
 @layer components {
   .btn-primary {
     @apply bg-teal-600 text-white font-semibold px-5 py-2.5 rounded-xl shadow-sm shadow-teal-900/10 transition-all duration-200 hover:-translate-y-0.5 hover:bg-teal-700 hover:shadow-lg hover:shadow-teal-900/15 active:translate-y-0 disabled:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed;
   }
   .btn-secondary {
-    @apply bg-white text-teal-700 font-semibold px-5 py-2.5 rounded-xl border border-teal-100 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-teal-300 hover:bg-teal-50 active:translate-y-0;
+    @apply text-teal-700 font-semibold px-5 py-2.5 rounded-xl border border-teal-100 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-teal-300 hover:bg-teal-50 active:translate-y-0;
+    background: var(--surface);
+  }
+  .dark .btn-secondary {
+    @apply text-teal-300 border-teal-800 hover:border-teal-600;
+  }
+  .dark .btn-secondary:hover {
+    background: var(--surface-inset);
   }
   .btn-accent {
     @apply bg-mango-500 text-ink font-semibold px-5 py-2.5 rounded-xl shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-mango-600 hover:shadow-lg active:translate-y-0;
   }
   .input-field {
-    @apply w-full px-4 py-3 rounded-xl border border-black/10 bg-white text-ink shadow-sm shadow-black/[0.02] placeholder:text-ink/30 focus:outline-none focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 transition-all;
+    @apply w-full px-4 py-3 rounded-xl border shadow-sm placeholder:text-fg-muted focus:outline-none focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 transition-all;
+    background: var(--surface);
+    border-color: var(--line);
+    color: var(--fg);
   }
   .card {
-    @apply bg-white rounded-xl2 shadow-card border border-black/[0.06];
+    @apply rounded-xl2 shadow-card border transition-colors duration-200;
+    background: var(--surface);
+    border-color: var(--line);
+  }
+  .dark .card {
+    box-shadow: var(--shadow-2);
   }
   .badge {
     @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold;
   }
-}
-@layer components {
-  .legal-content h2 { @apply mt-8 first:mt-0 font-display text-xl font-bold text-teal-900 sm:text-2xl; }
-  .legal-content h3 { @apply mt-6 font-display text-lg font-bold text-ink; }
-  .legal-content p { @apply mt-3 text-sm leading-7 text-ink/70 sm:text-base; }
-  .legal-content ul, .legal-content ol { @apply mt-3 space-y-2 pl-6 text-sm leading-7 text-ink/70 sm:text-base; }
-  .legal-content ul { @apply list-disc; }
-  .legal-content ol { @apply list-decimal; }
-  .legal-content a { @apply font-semibold text-teal-700 underline; }
+  .legal-content h2 {
+    @apply mt-8 first:mt-0 font-display text-xl font-bold text-teal-900 sm:text-2xl;
+  }
+  .legal-content h3 {
+    @apply mt-6 font-display text-lg font-bold text-ink;
+  }
+  .legal-content p {
+    @apply mt-3 text-sm leading-7 text-ink/70 sm:text-base;
+  }
+  .legal-content ul, .legal-content ol {
+    @apply mt-3 space-y-2 pl-6 text-sm leading-7 text-ink/70 sm:text-base;
+  }
+  .legal-content ul {
+    @apply list-disc;
+  }
+  .legal-content ol {
+    @apply list-decimal;
+  }
+  .legal-content a {
+    @apply font-semibold text-teal-700 underline;
+  }
 }
 
+/* ===== Skeleton Loading ===== */
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
@@ -189,13 +177,16 @@ button, a, input, select, textarea {
   animation: shimmer 1.5s ease-in-out infinite;
   border-radius: 0.75rem;
 }
+.dark .skeleton {
+  background: linear-gradient(90deg, #0e1b15 25%, #16281f 50%, #0e1b15 75%);
+  background-size: 200% 100%;
+}
 
-/* ===== Utility: Tap feedback ===== */
+/* ===== Utilities ===== */
 .tap-highlight:active {
   background-color: rgba(22, 121, 75, 0.08);
 }
 
-/* ===== Utility: Hide scrollbar ===== */
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -204,7 +195,7 @@ button, a, input, select, textarea {
   scrollbar-width: none;
 }
 
-/* ===== Safe area for notched devices ===== */
+/* ===== Safe Area ===== */
 @supports (padding-top: env(safe-area-inset-top)) {
   .safe-top {
     padding-top: env(safe-area-inset-top);
@@ -220,11 +211,174 @@ button, a, input, select, textarea {
   }
 }
 
-/* ===== Print styles ===== */
-@media print {
-  .no-print { display: none !important; }
-  body { background: white !important; }
-  main { max-width: 100% !important; padding: 0 !important; }
-  .card { box-shadow: none !important; border: 1px solid #ddd !important; }
+/* ===== Responsive: Extra Small (< 360px) ===== */
+@media (max-width: 359px) {
+  .container, .max-w-7xl, .max-w-6xl, .max-w-5xl, .max-w-4xl, .max-w-3xl {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  h1, .text-4xl, .text-3xl, .text-2xl {
+    font-size: 1.5rem;
+    line-height: 1.2;
+  }
+  .text-lg {
+    font-size: 0.95rem;
+  }
+  .text-base {
+    font-size: 0.875rem;
+  }
+  .px-8, .px-6 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .py-8, .py-16 {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+  .gap-6, .gap-8, .gap-10, .gap-12 {
+    gap: 0.75rem;
+  }
+  .h-52, .h-56, .h-64 {
+    height: 8rem;
+  }
+  .w-52, .w-56, .w-64 {
+    width: 8rem;
+  }
 }
 
+/* ===== Responsive: Mobile (360px - 639px) ===== */
+@media (max-width: 639px) {
+  input, select, textarea {
+    font-size: 16px;
+  }
+  .card {
+    max-width: 100%;
+    border-radius: 1rem;
+  }
+  main {
+    width: 100%;
+    overflow-x: hidden;
+  }
+  table th, table td {
+    white-space: nowrap;
+  }
+  .subscription-audience > div {
+    padding: 0.75rem;
+  }
+  .subscription-audience > div > span {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+  .subscription-audience > div > h3 {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+  }
+  .subscription-audience > div > p {
+    display: none;
+  }
+  .hero-floating-card,
+  div.hero-image-container + div.absolute {
+    position: relative;
+    bottom: auto;
+    margin-top: -2rem;
+  }
+  .hero-image-container + div.absolute > div {
+    flex: 1;
+  }
+  .py-20 {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+  }
+  .py-16 {
+    padding-top: 2.5rem;
+    padding-bottom: 2.5rem;
+  }
+  .grid-cols-4, .xl\:grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .grid-cols-3, .lg\:grid-cols-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ===== Responsive: Tablet (640px - 1023px) ===== */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .grid-cols-4, .xl\:grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .grid-cols-3, .lg\:grid-cols-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .md\:p-8 {
+    padding: 1.5rem;
+  }
+  .md\:px-10 {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+/* ===== Responsive: Desktop (1024px+) ===== */
+@media (min-width: 1024px) {
+  .card-hover-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ===== Touch: Disable hover transforms ===== */
+@media (hover: none) and (pointer: coarse) {
+  .btn-primary:hover,
+  .btn-secondary:hover,
+  .btn-accent:hover,
+  a:hover,
+  button:hover,
+  .group:hover {
+    transform: none;
+  }
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-width: 20px;
+    min-height: 20px;
+  }
+}
+
+/* ===== Reduced Motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+  }
+}
+
+/* Dark mode is handled via the .dark class (see :root/.dark tokens above
+   and public/theme-init.js) instead of a prefers-color-scheme media query,
+   so a manual toggle can override the system preference. */
+
+/* ===== Print ===== */
+@media print {
+  .no-print {
+    display: none;
+  }
+  body {
+    background: white;
+    color: black;
+  }
+  main {
+    max-width: 100%;
+    padding: 0;
+  }
+  .card {
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+  * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}

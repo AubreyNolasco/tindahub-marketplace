@@ -1,10 +1,25 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,jsx}'],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
         ink: '#142019',
+        // Semantic surface/text tokens — resolve to CSS variables (see
+        // src/index.css :root / .dark) so components built against these
+        // (bg-surface, border-line, text-fg, ...) flip automatically in
+        // dark mode instead of needing per-component dark: overrides.
+        bg: 'var(--bg)',
+        surface: {
+          DEFAULT: 'var(--surface)',
+          inset: 'var(--surface-inset)'
+        },
+        line: 'var(--line)',
+        fg: {
+          DEFAULT: 'var(--fg)',
+          muted: 'var(--fg-muted)'
+        },
         teal: {
           50: '#ECF8EF',
           100: '#D4EFDA',
@@ -46,7 +61,20 @@ export default {
       },
       boxShadow: {
         soft: '0 4px 24px rgba(22, 33, 30, 0.06)',
-        card: '0 2px 12px rgba(22, 33, 30, 0.08)'
+        card: '0 2px 12px rgba(22, 33, 30, 0.08)',
+        'elevation-1': 'var(--shadow-1)',
+        'elevation-2': 'var(--shadow-2)',
+        'elevation-3': 'var(--shadow-3)'
+      },
+      keyframes: {
+        'fade-in': { from: { opacity: '0' }, to: { opacity: '1' } },
+        'scale-in': { from: { opacity: '0', transform: 'scale(.96)' }, to: { opacity: '1', transform: 'scale(1)' } },
+        'slide-up': { from: { opacity: '0', transform: 'translateY(8px)' }, to: { opacity: '1', transform: 'translateY(0)' } }
+      },
+      animation: {
+        'fade-in': 'fade-in .15s ease-out',
+        'scale-in': 'scale-in .15s ease-out',
+        'slide-up': 'slide-up .2s ease-out'
       }
     }
   },
