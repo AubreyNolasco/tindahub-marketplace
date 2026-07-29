@@ -84,18 +84,6 @@ export default function AdminDashboard() {
         </div>
       </section>
 
-      <section className="mb-6 rounded-2xl border border-mango-300 bg-mango-100 px-5 py-4 sm:px-6">
-        <div className="flex items-center gap-2">
-          <ShieldAlert size={18} className="text-mango-600" />
-          <h2 className="font-display font-bold text-ink">Test accounts (disabled)</h2>
-        </div>
-        <p className="mt-1 text-xs text-ink/60">These were hard-coded with auto-approval and free wallet balance. Banned as part of the security hardening — sign-in is blocked.</p>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          <div className="rounded-xl bg-white/70 px-4 py-3"><p className="text-sm font-semibold text-ink">Reseller test</p><p className="text-xs text-ink/60">reseller@gmail.com</p></div>
-          <div className="rounded-xl bg-white/70 px-4 py-3"><p className="text-sm font-semibold text-ink">Merchant test</p><p className="text-xs text-ink/60">merchant@gmail.com</p></div>
-        </div>
-      </section>
-
       {!loading&&<NextActionCard {...nextAction}/>}<div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {metrics.map(({ label, value, detail, icon: Icon, tone, link }) => (
           <Link key={label} to={link} className="group rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card transition duration-200 hover:-translate-y-0.5 hover:border-teal-100 hover:shadow-soft">
