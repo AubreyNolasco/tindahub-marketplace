@@ -9,6 +9,7 @@ export default function DeliverySettings() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [showSecret, setShowSecret] = useState(false)
+  const [hasCredentials, setHasCredentials] = useState(false)
   const [form, setForm] = useState({
     api_key: '',
     api_secret: '',
@@ -20,35 +21,35 @@ export default function DeliverySettings() {
     load()
   }, [])
 
+  // The API secret is never sent back to the browser after it's saved —
+  // only a has_credentials flag. Re-entering key/secret always overwrites.
   const load = async () => {
     setLoading(true)
     const { data, error } = await supabase.rpc('get_lalamove_settings')
-    if (error && error.message !== 'NOT_AUTHENTICATED') toast.error(error.message)
+    if (error) toast.error(error.message)
     if (data) {
-      setForm({
-        api_key: data.api_key || '',
-        api_secret: data.api_secret || '',
-        market: data.market || 'PH_MNL',
-        is_enabled: data.is_enabled || false
-      })
+      setHasCredentials(!!data.has_credentials)
+      setForm((prev) => ({ ...prev, market: data.market || 'PH_MNL', is_enabled: data.is_enabled || false }))
     }
     setLoading(false)
   }
 
   const handleSave = async (e) => {
     e.preventDefault()
-    if (form.is_enabled && (!form.api_key || !form.api_secret)) {
+    if (form.is_enabled && !hasCredentials && (!form.api_key || !form.api_secret)) {
       return toast.error('Enter your API key and secret before enabling Lalamove.')
     }
     setSaving(true)
-    const { error } = await supabase.rpc('save_lalamove_settings', {
+    const { data, error } = await supabase.rpc('save_lalamove_settings', {
       p_api_key: form.api_key || null,
       p_api_secret: form.api_secret || null,
       p_market: form.market,
       p_is_enabled: form.is_enabled
     })
     setSaving(false)
-    if (error) return toast.error(error.message)
+    if (error) return toast.error(error.message === 'LALAMOVE_CREDENTIALS_REQUIRED' ? 'Enter your API key and secret before enabling Lalamove.' : error.message)
+    setHasCredentials(!!data?.has_credentials)
+    setForm((prev) => ({ ...prev, api_key: '', api_secret: '' }))
     toast.success(form.is_enabled ? 'Lalamove integration enabled!' : 'Settings saved.')
   }
 
@@ -104,7 +105,12 @@ export default function DeliverySettings() {
         {/* API Credentials */}
         <div className={`space-y-4 transition-opacity ${!form.is_enabled ? 'opacity-50 pointer-events-none' : ''}`}>
           <div className="card p-5 space-y-4">
-            <h2 className="font-display font-bold text-ink">API Credentials</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="font-display font-bold text-ink">API Credentials</h2>
+              {hasCredentials && (
+                <span className="rounded-full bg-teal-50 px-2.5 py-1 text-xs font-semibold text-teal-700">Connected</span>
+              )}
+            </div>
             <p className="text-xs text-ink/45">
               Get your API key and secret from the{' '}
               <a
@@ -115,6 +121,7 @@ export default function DeliverySettings() {
               >
                 Lalamove Developer Console <ExternalLink size={12} />
               </a>
+              {hasCredentials && ' — leave the fields below blank to keep your saved credentials, or enter new ones to replace them.'}
             </p>
 
             <div>
@@ -124,7 +131,7 @@ export default function DeliverySettings() {
                 value={form.api_key}
                 onChange={(e) => setForm({ ...form, api_key: e.target.value })}
                 className="input-field mt-1"
-                placeholder="lalamove_api_key_..."
+                placeholder={hasCredentials ? 'Saved — enter a new key to replace' : 'lalamove_api_key_...'}
               />
             </div>
 
@@ -136,7 +143,7 @@ export default function DeliverySettings() {
                   value={form.api_secret}
                   onChange={(e) => setForm({ ...form, api_secret: e.target.value })}
                   className="input-field w-full pr-10"
-                  placeholder="••••••••••••"
+                  placeholder={hasCredentials ? 'Saved — enter a new secret to replace' : '••••••••••••'}
                 />
                 <button
                   type="button"

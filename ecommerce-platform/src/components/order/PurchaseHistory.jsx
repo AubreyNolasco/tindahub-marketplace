@@ -30,7 +30,7 @@ export default function PurchaseHistory() {
     setLoading(true)
     const { data, error } = await supabase
       .from('orders')
-      .select('*, merchant_profiles(business_name), order_items(*), order_cases(id,case_type,status,created_at), customer_payment_records(*)')
+      .select('*, merchant_profiles(business_name), order_items(*), order_cases(id,case_type,status,created_at), customer_payment_records(*), lalamove_bookings(status,lalamove_order_id,driver_info,failure_reason,updated_at)')
       .eq('reseller_id', user.id)
       .order('created_at', { ascending: false })
     if (error) toast.error(error.message)
@@ -142,6 +142,9 @@ export default function PurchaseHistory() {
                 <DetailRow label="Tracking" value={selectedOrder.tracking_number || '—'} />
                 <DetailRow label="ETA" value={selectedOrder.estimated_delivery_at ? new Date(selectedOrder.estimated_delivery_at).toLocaleString('en-PH') : '—'} />
                 <DetailRow label="Fee" value={selectedOrder.actual_shipping_fee != null ? peso(selectedOrder.actual_shipping_fee) : '—'} />
+                {selectedOrder.lalamove_bookings?.[0] && (
+                  <DetailRow label="Lalamove status" value={selectedOrder.lalamove_bookings[0].status.replace(/_/g, ' ')} />
+                )}
                 {selectedOrder.dispatch_proof_url && (
                   <button onClick={() => viewDispatchProof(selectedOrder)} className="btn-secondary mt-2 text-xs">View Dispatch Proof</button>
                 )}

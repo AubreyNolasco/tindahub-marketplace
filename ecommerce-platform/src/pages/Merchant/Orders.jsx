@@ -35,7 +35,7 @@ export default function Orders() {
     setLoading(true)
     const { data, error } = await supabase
       .from('orders')
-      .select('*, order_items(*), payments(*), customers(name, phone, address, notes), order_cases(*)')
+      .select('*, order_items(*), payments(*), customers(name, phone, address, notes), order_cases(*), lalamove_bookings(status,lalamove_order_id,driver_info,failure_reason,updated_at)')
       .eq('merchant_id', user.id)
       .order('created_at', { ascending: false })
     if (error) toast.error(error.message)
@@ -208,6 +208,9 @@ export default function Orders() {
                 <DetailRow label="Provider" value={selectedOrder.delivery_provider} />
                 <DetailRow label="Tracking" value={selectedOrder.tracking_number || '—'} />
                 <DetailRow label="ETA" value={selectedOrder.estimated_delivery_at ? formatDate(selectedOrder.estimated_delivery_at) : '—'} />
+                {selectedOrder.lalamove_bookings?.[0] && (
+                  <DetailRow label="Lalamove status" value={selectedOrder.lalamove_bookings[0].status.replace(/_/g, ' ')} />
+                )}
                 {selectedOrder.dispatch_proof_url && (
                   <button onClick={() => viewDispatchProof(selectedOrder)} className="btn-secondary mt-2 text-xs">View Dispatch Proof</button>
                 )}
