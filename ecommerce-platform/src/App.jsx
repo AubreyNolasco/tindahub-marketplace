@@ -13,6 +13,12 @@ import MfaGuard from './components/auth/MfaGuard'
 import DemoModeBanner from './components/system/DemoModeBanner'
 
 import Home from './pages/Home'
+import HowItWorks from './pages/HowItWorks'
+import ForMerchants from './pages/ForMerchants'
+import ForResellers from './pages/ForResellers'
+import Services from './pages/Services'
+import Testimonials from './pages/Testimonials'
+import Faq from './pages/Faq'
 import NotFound from './pages/NotFound'
 import Catalog from './pages/Catalog'
 import ProductDetail from './pages/ProductDetail'
@@ -140,7 +146,13 @@ export default function App() {
             />
             <main className="flex-1">
               <Routes>
-                <Route path="/" element={<Home />} />
+<Route path="/" element={<Home />} />
+                <Route path="/how-it-works" element={<HowItWorks />} />
+                <Route path="/for-merchants" element={<ForMerchants />} />
+                <Route path="/for-resellers" element={<ForResellers />} />
+                <Route path="/services" element={<Services />} />
+                <Route path="/testimonials" element={<Testimonials />} />
+                <Route path="/faq" element={<Faq />} />
                 <Route path="/catalog" element={<ProtectedRoute allowedRoles={['reseller','merchant','admin','staff']}><Catalog /></ProtectedRoute>} />
                 <Route path="/product/:id" element={<ProtectedRoute allowedRoles={['reseller','merchant','admin','staff']}><ProductDetail /></ProtectedRoute>} />
                 <Route path="/merchant-store/:id" element={<ProtectedRoute allowedRoles={['reseller','merchant','admin','staff']}><MerchantStore /></ProtectedRoute>} />
