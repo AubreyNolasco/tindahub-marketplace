@@ -68,6 +68,7 @@ import MerchantOrderedReport from './pages/Merchant/Reports/OrderedReport'
 import AdminLayout from './pages/Admin/AdminLayout'
 import AdminDashboard from './pages/Admin/AdminDashboard'
 import Merchants from './pages/Admin/Merchants'
+import MerchantFollowups from './pages/Admin/MerchantFollowups'
 import Payments from './pages/Admin/Payments'
 import TopupRequests from './pages/Admin/TopupRequests'
 import WithdrawalRequests from './pages/Admin/WithdrawalRequests'
@@ -151,7 +152,7 @@ export default function App() {
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/pending-approval" element={<PendingApproval />} />
                 <Route path="/choose-subscription" element={<ChooseSubscription />} />
-                <Route path="/merchant-permit" element={<ProtectedRoute allowedRoles={['merchant']} allowUnverifiedMerchant><BusinessPermit /></ProtectedRoute>} />
+                <Route path="/merchant-permit" element={<ProtectedRoute allowedRoles={['merchant']}><BusinessPermit /></ProtectedRoute>} />
                 <Route path="/verify-id" element={<IdVerification />} />
                 <Route path="/clinics" element={<ProtectedRoute allowedRoles={['reseller','merchant','admin']}><ClinicDiscovery /></ProtectedRoute>} />
 
@@ -221,6 +222,7 @@ export default function App() {
                   <Route path="merchant-presentation" element={<AdminPermissionRoute adminOnly><ProcessPresentation audience="merchant" /></AdminPermissionRoute>} />
                   <Route path="reseller-presentation" element={<AdminPermissionRoute adminOnly><ProcessPresentation audience="reseller" /></AdminPermissionRoute>} />
                   <Route path="merchants" element={<AdminPermissionRoute permission="merchants"><Merchants /></AdminPermissionRoute>} />
+                  <Route path="merchant-followups" element={<AdminPermissionRoute permission="merchants"><MerchantFollowups /></AdminPermissionRoute>} />
                   <Route path="payments" element={<AdminPermissionRoute permission="payments"><Payments /></AdminPermissionRoute>} />
                   <Route path="topups" element={<AdminPermissionRoute permission="topups"><TopupRequests /></AdminPermissionRoute>} />
                   <Route path="withdrawals" element={<AdminPermissionRoute permission="withdrawals"><WithdrawalRequests /></AdminPermissionRoute>} />

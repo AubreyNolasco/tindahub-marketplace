@@ -191,7 +191,8 @@ export default function Checkout() {
           )}
         </div>
 
-        <button type="submit" disabled={submitting || insufficientBalance || quoteLoading || !quote} className="btn-primary w-full flex items-center justify-center gap-2 py-3">
+        {role === 'reseller' && profile?.account_status !== 'approved' && <p className="text-xs font-semibold text-coral-600">Placing orders is locked until Admin approves your ID verification and initial wallet top-up.</p>}
+        <button type="submit" disabled={submitting || insufficientBalance || quoteLoading || !quote || (role === 'reseller' && profile?.account_status !== 'approved')} className="btn-primary w-full flex items-center justify-center gap-2 py-3">
           {submitting && <Loader2 size={16} className="animate-spin" />}
           {submitting ? 'Submitting...' : `Pay & Place Order — ${peso(total)}`}
         </button>

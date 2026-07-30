@@ -37,6 +37,9 @@ export default function ProductForm({ admin = false }) {
   const [merchants, setMerchants] = useState([])
   const [merchantId, setMerchantId] = useState('')
   const [safetyConfirmed, setSafetyConfirmed] = useState(false)
+  const merchantProfile = profile?.merchant_profiles
+  const hasOperateGrace = merchantProfile?.operate_grace_until && new Date(merchantProfile.operate_grace_until) > new Date()
+  const permitRestricted = !admin && merchantProfile?.business_permit_status !== 'approved' && !hasOperateGrace
 
   useEffect(() => {
     loadCategories()
@@ -253,8 +256,9 @@ export default function ProductForm({ admin = false }) {
           <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl border border-coral-200 bg-surface p-3 text-xs leading-5 text-ink/65"><input required type="checkbox" checked={safetyConfirmed} onChange={(event) => setSafetyConfirmed(event.target.checked)} className="mt-1 accent-coral-600" /><span>I confirm that this product is lawful, authentic, safe, not expired/recalled, accurately described, and has all required registrations, permits, and certifications. I accept responsibility for the listing and supporting documents.</span></label>
         </section>
 
+        {permitRestricted && <p className="text-xs font-semibold text-coral-600">Posting products is locked until Admin approves your business permit, or grants temporary access via a follow-up request.</p>}
         <div className="flex gap-3 pt-2">
-          <button type="submit" disabled={saving || !safetyConfirmed || (admin ? !merchantId : !isCompleteAddress(profile?.merchant_profiles?.business_address))} className="btn-primary flex-1 flex items-center justify-center gap-2">
+          <button type="submit" disabled={saving || !safetyConfirmed || permitRestricted || (admin ? !merchantId : !isCompleteAddress(profile?.merchant_profiles?.business_address))} className="btn-primary flex-1 flex items-center justify-center gap-2">
             {saving && <Loader2 size={16} className="animate-spin" />}
             {saving ? 'Saving...' : 'Save Product'}
           </button>

@@ -1,5 +1,6 @@
 import { BarChart3, Boxes, ClipboardList, FileDown, FileUp, LayoutDashboard, MapPin, MessageSquare, Store, Handshake, Send, UserRound, Users, WalletCards, Truck } from 'lucide-react'
 import WorkspaceLayout from '../../components/layout/WorkspaceLayout'
+import RestrictedAccountBanner from '../../components/dashboard/RestrictedAccountBanner'
 
 const sections = [
   { label: 'Workspace', items: [
@@ -25,4 +26,4 @@ const sections = [
     { to: '/reseller/reports/ordered', label: 'Ordered Report', icon: ClipboardList }
   ]}
 ]
-export default function ResellerLayout() { return <WorkspaceLayout title="Reseller Hub" subtitle="Sales workspace" sections={sections} /> }
+export default function ResellerLayout() { return <WorkspaceLayout title="Reseller Hub" subtitle="Sales workspace" sections={sections}><RestrictedAccountBanner /></WorkspaceLayout> }

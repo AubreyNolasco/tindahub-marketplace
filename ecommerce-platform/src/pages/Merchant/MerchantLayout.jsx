@@ -1,6 +1,7 @@
 import { BarChart3, Boxes, ClipboardList, FileDown, FileUp, LayoutDashboard, MapPin, Megaphone, MessageSquare, Package, ShoppingBag, Star, Handshake, UserRound, WalletCards, UserPlus, Sliders } from 'lucide-react'
 import WorkspaceLayout from '../../components/layout/WorkspaceLayout'
 import SubscriptionExpiryModal from '../../components/merchant/SubscriptionExpiryModal'
+import RestrictedAccountBanner from '../../components/dashboard/RestrictedAccountBanner'
 
 const sections = [
   { label: 'Store Management', items: [
@@ -28,4 +29,4 @@ const sections = [
     { to: '/merchant/reports/ordered', label: 'Ordered Report', icon: ClipboardList }
   ]}
 ]
-export default function MerchantLayout() { return <WorkspaceLayout title="Merchant Hub" subtitle="Store workspace" sections={sections}><SubscriptionExpiryModal /></WorkspaceLayout> }
+export default function MerchantLayout() { return <WorkspaceLayout title="Merchant Hub" subtitle="Store workspace" sections={sections}><SubscriptionExpiryModal /><RestrictedAccountBanner /></WorkspaceLayout> }

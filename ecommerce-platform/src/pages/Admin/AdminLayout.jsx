@@ -4,7 +4,7 @@ import {
   BarChart3, Boxes, Building2, ChevronRight, CircleDollarSign,
   ClipboardList, CreditCard, FileChartColumn, FileDown,
   FileUp, FolderTree, House, IdCard, LayoutDashboard, Menu, MessageSquare,
-  Megaphone, PanelLeftClose, Presentation, ReceiptText, ShieldAlert, ShieldCheck, Star, UsersRound, WalletCards, X, History, CalendarDays, UserCog, Scale, BookOpenCheck, KeyRound, Activity, Workflow, Bug
+  Megaphone, PanelLeftClose, Presentation, ReceiptText, ShieldAlert, ShieldCheck, Star, UsersRound, WalletCards, X, History, CalendarDays, UserCog, Scale, BookOpenCheck, KeyRound, Activity, Workflow, Bug, Clock3
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { canAccessAdmin } from '../../config/adminPermissions'
@@ -31,6 +31,7 @@ const sections = [
       { to: '/admin/merchant-presentation', label: 'Merchant Slides', icon: Presentation, adminOnly: true },
       { to: '/admin/reseller-presentation', label: 'Reseller Slides', icon: Presentation, adminOnly: true },
       { to: '/admin/merchants', label: 'Merchants', icon: Building2, permission: 'merchants' },
+      { to: '/admin/merchant-followups', label: 'Merchant Follow-Ups', icon: Clock3, permission: 'merchants' },
       { to: '/admin/categories', label: 'Categories', icon: FolderTree, permission: 'categories' },
       { to: '/admin/homepage', label: 'Homepage', icon: House, permission: 'homepage' },
       { to: '/admin/chats', label: 'Chat History', icon: MessageSquare, permission: 'chats' },
