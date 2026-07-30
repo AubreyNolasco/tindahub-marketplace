@@ -37,7 +37,7 @@ export default function ProductCard({ product }) {
   }
 
   return <>
-    <Link to={`/product/${product.id}`} className="group flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-black/[0.06] bg-white shadow-[0_2px_12px_rgba(20,32,25,0.04)] transition duration-300 hover:-translate-y-1 hover:border-teal-100 hover:shadow-soft sm:rounded-2xl">
+    <Link to={`/product/${product.id}`} className="group flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-black/[0.06] bg-surface shadow-[0_2px_12px_rgba(20,32,25,0.04)] transition duration-300 hover:-translate-y-1 hover:border-teal-100 hover:shadow-soft sm:rounded-2xl">
       <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-teal-50 to-[#f8fbf8]">
         {product.images?.[0] ? <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" /> : <div className="flex h-full items-center justify-center"><Package className="text-teal-300" size={42} /></div>}
         <span className={`absolute left-1 top-1 max-w-[calc(100%-0.5rem)] truncate rounded-full px-1.5 py-0.5 text-[7px] font-bold shadow-sm backdrop-blur sm:left-2.5 sm:top-2.5 sm:px-2.5 sm:py-1 sm:text-[10px] ${inStock ? 'bg-white/90 text-teal-700' : 'bg-coral-500/90 text-white'}`}>{inStock ? 'In stock' : 'Out of stock'}</span>

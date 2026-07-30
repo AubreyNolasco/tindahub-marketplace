@@ -19,7 +19,7 @@ export default function Footer() {
 
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <Link to="/" className="inline-block rounded-[1rem] bg-white px-2">
+          <Link to="/" className="inline-block rounded-[1rem] bg-surface px-2">
             <img src="/rmhub-logo.svg" alt="JOM HUB" className="h-14 w-auto" />
           </Link>
           <p className="mt-4 max-w-xs text-sm leading-7 text-white/60">The B2B marketplace connecting Merchants and Resellers across the Philippines.</p>

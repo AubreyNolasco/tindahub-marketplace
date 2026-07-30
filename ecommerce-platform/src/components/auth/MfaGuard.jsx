@@ -69,7 +69,7 @@ export default function MfaGuard() {
 
   return (
     <div className="fixed inset-0 z-[260] grid place-items-center overflow-y-auto bg-scrim/80 p-4 backdrop-blur-md">
-      <section className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl sm:p-7" role="dialog" aria-modal="true" aria-labelledby="mfa-title">
+      <section className="w-full max-w-md rounded-3xl bg-surface p-6 shadow-2xl sm:p-7" role="dialog" aria-modal="true" aria-labelledby="mfa-title">
         <span className="grid h-13 w-13 place-items-center rounded-2xl bg-teal-50 text-teal-700">
           {state.status === 'checking' ? <Loader2 className="animate-spin" /> : challenge ? <KeyRound /> : <ShieldCheck />}
         </span>
@@ -86,7 +86,7 @@ export default function MfaGuard() {
                 : 'JOM HUB requires a free authenticator app before sensitive account actions are allowed.'}
         </p>
 
-        {enrolling && <div className="mt-5 text-center"><img src={state.qrCode} alt="JOM HUB authenticator QR code" className="mx-auto h-48 w-48 rounded-xl border bg-white p-2" /><details className="mt-3 text-left"><summary className="cursor-pointer text-xs font-bold text-teal-700">Cannot scan the QR?</summary><code className="mt-2 block break-all rounded-xl bg-cream p-3 text-xs">{state.secret}</code></details></div>}
+        {enrolling && <div className="mt-5 text-center"><img src={state.qrCode} alt="JOM HUB authenticator QR code" className="mx-auto h-48 w-48 rounded-xl border bg-surface p-2" /><details className="mt-3 text-left"><summary className="cursor-pointer text-xs font-bold text-teal-700">Cannot scan the QR?</summary><code className="mt-2 block break-all rounded-xl bg-cream p-3 text-xs">{state.secret}</code></details></div>}
 
         {(enrolling || challenge) && <div className="mt-5"><label className="text-sm font-semibold text-ink/70">6-digit code<input autoFocus inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))} className="input-field mt-2 text-center font-display text-2xl font-bold tracking-[.3em]" placeholder="000000" /></label><button type="button" disabled={busy || code.length !== 6} onClick={verify} className="btn-primary mt-4 flex w-full items-center justify-center gap-2">{busy && <Loader2 size={16} className="animate-spin" />}Verify and continue</button></div>}
 

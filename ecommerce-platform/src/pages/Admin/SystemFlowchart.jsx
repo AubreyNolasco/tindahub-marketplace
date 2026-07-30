@@ -78,7 +78,7 @@ const roleTones = {
 function StepCard({ step, number }) {
   const Icon = step.icon
   return (
-    <article className="relative min-w-0 flex-1 rounded-2xl border border-black/[0.07] bg-white p-4 shadow-sm sm:p-5">
+    <article className="relative min-w-0 flex-1 rounded-2xl border border-black/[0.07] bg-surface p-4 shadow-sm sm:p-5">
       <div className="flex items-start gap-3">
         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-ink text-white">
           <Icon size={19} />
@@ -109,7 +109,7 @@ export default function SystemFlowchart() {
               End-to-end view of how Admin, Merchant, Reseller, Customer, and the system work together.
             </p>
           </div>
-          <button type="button" onClick={() => window.print()} className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-teal-900 transition hover:bg-mango-100 print:hidden">
+          <button type="button" onClick={() => window.print()} className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-surface px-4 py-2.5 text-sm font-bold text-teal-900 transition hover:bg-mango-100 print:hidden">
             <Printer size={17} /> Print flowchart
           </button>
         </div>

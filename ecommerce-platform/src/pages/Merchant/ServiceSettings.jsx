@@ -35,7 +35,7 @@ export default function ServiceSettings() {
       </div>
       <div className="space-y-4">
         {TYPES.map(({ value, label, icon: Icon, desc }) => (
-          <label key={value} className={`flex cursor-pointer items-start gap-4 rounded-2xl border-2 p-5 transition ${serviceType === value ? 'border-teal-600 bg-teal-50 shadow-md' : 'border-black/[0.06] bg-white hover:border-teal-200 hover:shadow-soft'}`}>
+          <label key={value} className={`flex cursor-pointer items-start gap-4 rounded-2xl border-2 p-5 transition ${serviceType === value ? 'border-teal-600 bg-teal-50 shadow-md' : 'border-black/[0.06] bg-surface hover:border-teal-200 hover:shadow-soft'}`}>
             <input type="radio" name="service_type" value={value} checked={serviceType === value} onChange={(e) => setServiceType(e.target.value)} className="mt-1 accent-teal-600" />
             <div className="flex-1">
               <div className="flex items-center gap-2">{Icon && <Icon size={18} className="text-teal-600" />}<span className="font-display font-bold text-ink">{label}</span></div>

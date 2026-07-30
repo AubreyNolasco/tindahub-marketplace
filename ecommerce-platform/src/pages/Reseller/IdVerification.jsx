@@ -66,7 +66,7 @@ export default function IdVerification() {
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-[radial-gradient(circle_at_top_right,rgba(22,121,75,.12),transparent_35%),#F7FAF7] px-4 py-10 sm:py-16">
-      <div className="mx-auto max-w-xl overflow-hidden rounded-3xl border border-black/[0.06] bg-white shadow-2xl shadow-teal-900/10">
+      <div className="mx-auto max-w-xl overflow-hidden rounded-3xl border border-black/[0.06] bg-surface shadow-2xl shadow-teal-900/10">
         <div className="bg-gradient-to-br from-teal-950 to-teal-700 p-6 text-white sm:p-8">
           <span className="grid h-14 w-14 place-items-center rounded-2xl bg-white/10">
             <IdCard size={27} className="text-mango-300" />

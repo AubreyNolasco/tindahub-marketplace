@@ -1,5 +1,5 @@
 // Deliberately does NOT use the shared .card Tailwind class — that class
-// is static (bg-white) because ~65 legacy pages pair it with static
+// is static (bg-surface) because ~65 legacy pages pair it with static
 // text-ink content. This component uses the bg-surface/border-line tokens
 // directly instead, so it stays dark-mode-correct without touching those
 // pages. Only use this component (not className="card") in code that also

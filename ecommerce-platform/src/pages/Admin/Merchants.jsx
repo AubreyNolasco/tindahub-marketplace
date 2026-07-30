@@ -111,7 +111,7 @@ export default function Merchants() {
             key={f}
             onClick={() => setFilter(f)}
             className={`px-4 py-2 rounded-full text-sm font-semibold capitalize ${
-              filter === f ? 'bg-teal-500 text-white' : 'bg-white text-ink/60 border border-black/10'
+              filter === f ? 'bg-teal-500 text-white' : 'bg-surface text-ink/60 border border-black/10'
             }`}
           >
             {f}
@@ -200,7 +200,7 @@ export default function Merchants() {
       {/* Expiry date modal */}
       {expiryModal && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-scrim/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
+          <div className="w-full max-w-md rounded-3xl bg-surface p-6 shadow-2xl">
             <div className="flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-xl bg-teal-100 text-teal-700">
                 <CalendarClock size={20} />

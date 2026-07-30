@@ -80,7 +80,7 @@ export default function TopupRequests() {
             key={f}
             onClick={() => setFilter(f)}
             className={`px-4 py-2 rounded-full text-sm font-semibold capitalize ${
-              filter === f ? 'bg-teal-500 text-white' : 'bg-white text-ink/60 border border-black/10'
+              filter === f ? 'bg-teal-500 text-white' : 'bg-surface text-ink/60 border border-black/10'
             }`}
           >
             {f}

@@ -95,7 +95,7 @@ export default function Login() {
   ]
 
   const mainCard = (
-    <div className="rounded-3xl border border-black/[0.06] bg-white p-6 shadow-xl shadow-teal-900/[0.06] sm:p-8">
+    <div className="rounded-3xl border border-black/[0.06] bg-surface p-6 shadow-xl shadow-teal-900/[0.06] sm:p-8">
       <span className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-teal-700">
         <ShieldCheck size={14} /> Secure email OTP
       </span>
@@ -162,7 +162,7 @@ export default function Login() {
   )
 
   const guideCard = (
-    <section className="rounded-3xl border border-teal-100 bg-white p-5 shadow-card" aria-labelledby="login-guide-title">
+    <section className="rounded-3xl border border-teal-100 bg-surface p-5 shadow-card" aria-labelledby="login-guide-title">
       <div className="flex items-center gap-2">
         <BadgeCheck size={18} className="text-teal-600" />
         <h2 id="login-guide-title" className="font-display font-bold text-ink">How to sign in</h2>

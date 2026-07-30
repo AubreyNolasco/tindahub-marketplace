@@ -95,7 +95,7 @@ export default function ChooseSubscription() {
     <div className="min-h-[calc(100vh-4rem)] bg-[radial-gradient(circle_at_top_right,rgba(22,121,75,.12),transparent_35%),#F7FAF7] px-4 py-10">
       <form
         onSubmit={submit}
-        className="mx-auto w-full max-w-4xl overflow-hidden rounded-3xl border border-black/[.06] bg-white shadow-2xl shadow-teal-900/10"
+        className="mx-auto w-full max-w-4xl overflow-hidden rounded-3xl border border-black/[.06] bg-surface shadow-2xl shadow-teal-900/10"
       >
         <header className="bg-gradient-to-br from-teal-950 to-teal-700 p-6 text-white sm:p-8">
           <span className="grid h-12 w-12 place-items-center rounded-2xl bg-white/10">

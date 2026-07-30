@@ -94,7 +94,7 @@ export default function DeliverySettings() {
               }`}
             >
               <span
-                className={`absolute left-0.5 top-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform ${
+                className={`absolute left-0.5 top-0.5 h-6 w-6 rounded-full bg-surface shadow transition-transform ${
                   form.is_enabled ? 'translate-x-5' : 'translate-x-0'
                 }`}
               />

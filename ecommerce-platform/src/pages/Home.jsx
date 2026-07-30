@@ -147,7 +147,7 @@ export default function Home() {
 
   return <div className="overflow-hidden bg-cream">
     {subscriptionPopup && <div className="fixed inset-0 z-[95] flex items-center justify-center bg-scrim/65 p-2 backdrop-blur-sm sm:p-4" role="dialog" aria-modal="true" aria-label="Join JOM HUB">
-      <div className="max-h-[calc(100dvh-1rem)] w-full max-w-xl overflow-y-auto rounded-2xl bg-white shadow-2xl sm:max-h-[92vh] sm:rounded-3xl">
+      <div className="max-h-[calc(100dvh-1rem)] w-full max-w-xl overflow-y-auto rounded-2xl bg-surface shadow-2xl sm:max-h-[92vh] sm:rounded-3xl">
         <div className="relative overflow-hidden bg-gradient-to-br from-teal-950 via-teal-800 to-teal-600 px-4 py-5 text-white sm:px-7 sm:py-6">
           <div className="absolute -right-12 -top-16 h-52 w-52 rounded-full bg-mango-400/20 blur-2xl" />
           <button type="button" onClick={closeSubscriptionPopup} className="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white/80 transition hover:bg-white/20 hover:text-white sm:right-4 sm:top-4" aria-label="Close"><X size={19} /></button>
@@ -201,7 +201,7 @@ export default function Home() {
           </div>
           {/* Floating Cards */}
           <div className="absolute -bottom-4 left-2 right-2 flex gap-2 sm:left-4 sm:right-auto sm:w-auto sm:flex-col sm:gap-2">
-            <div className="flex items-center gap-2 rounded-2xl border border-black/5 bg-white p-3 shadow-xl sm:p-4">
+            <div className="flex items-center gap-2 rounded-2xl border border-black/5 bg-surface p-3 shadow-xl sm:p-4">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-mango-100 text-mango-600"><TrendingUp size={18} /></span>
               <div className="min-w-0">
                 <p className="text-[11px] font-medium text-ink/45">Built for</p>
@@ -250,7 +250,7 @@ export default function Home() {
       </div>
       <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {categoryCards.map(({ title, description, icon: Icon, href }) => (
-          <Link key={title} to={href} className="group rounded-[1.5rem] border border-black/[0.06] bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-teal-200 hover:shadow-md">
+          <Link key={title} to={href} className="group rounded-[1.5rem] border border-black/[0.06] bg-surface p-5 shadow-sm transition hover:-translate-y-1 hover:border-teal-200 hover:shadow-md">
             <span className="grid h-12 w-12 place-items-center rounded-[1rem] bg-teal-50 text-teal-700 transition group-hover:bg-teal-700 group-hover:text-white"><Icon size={20} /></span>
             <h3 className="mt-4 font-display text-lg font-semibold text-ink">{title}</h3>
             <p className="mt-2 text-sm leading-7 text-ink/65">{description}</p>
@@ -275,7 +275,7 @@ export default function Home() {
 
     {/* ===== CLINIC REFERRAL PATH ===== */}
     <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
-      <div className="grid lg:grid-cols-[1.05fr_0.95fr] rounded-[2rem] border border-teal-100 bg-white shadow-2xl shadow-teal-900/[0.06] overflow-hidden">
+      <div className="grid lg:grid-cols-[1.05fr_0.95fr] rounded-[2rem] border border-teal-100 bg-surface shadow-2xl shadow-teal-900/[0.06] overflow-hidden">
         <div className="relative p-6 sm:p-10 lg:p-14">
           <span className="inline-flex items-center gap-2 rounded-full bg-mango-100 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-mango-700"><Stethoscope size={15} /> Clinic Referral System</span>
           <h2 className="mt-5 max-w-xl font-display text-3xl font-extrabold leading-tight text-ink sm:text-4xl">Earn by referring customers to a clinic.</h2>
@@ -347,9 +347,9 @@ export default function Home() {
             <h2 className="mt-5 max-w-xl font-display text-3xl font-extrabold leading-tight text-ink sm:text-4xl">Faster shipping with Lalamove.</h2>
             <p className="mt-4 max-w-xl text-sm leading-7 text-ink/60 sm:text-base">Connect your Lalamove account to get real-time delivery quotes. Resellers can opt in for faster shipping on their orders.</p>
             <div className="mt-6 grid gap-3">
-              <div className="flex items-center gap-3 rounded-xl border border-teal-100 bg-white p-4"><Check size={18} className="shrink-0 text-teal-600" /><p className="text-sm text-ink/70">Real-time delivery pricing from the Lalamove API</p></div>
-              <div className="flex items-center gap-3 rounded-xl border border-teal-100 bg-white p-4"><Check size={18} className="shrink-0 text-teal-600" /><p className="text-sm text-ink/70">Metro Manila and Cebu areas supported</p></div>
-              <div className="flex items-center gap-3 rounded-xl border border-teal-100 bg-white p-4"><Check size={18} className="shrink-0 text-teal-600" /><p className="text-sm text-ink/70">Connect your own Lalamove account</p></div>
+              <div className="flex items-center gap-3 rounded-xl border border-teal-100 bg-surface p-4"><Check size={18} className="shrink-0 text-teal-600" /><p className="text-sm text-ink/70">Real-time delivery pricing from the Lalamove API</p></div>
+              <div className="flex items-center gap-3 rounded-xl border border-teal-100 bg-surface p-4"><Check size={18} className="shrink-0 text-teal-600" /><p className="text-sm text-ink/70">Metro Manila and Cebu areas supported</p></div>
+              <div className="flex items-center gap-3 rounded-xl border border-teal-100 bg-surface p-4"><Check size={18} className="shrink-0 text-teal-600" /><p className="text-sm text-ink/70">Connect your own Lalamove account</p></div>
             </div>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link to="/reseller/delivery" className="btn-primary inline-flex items-center gap-2 px-5 py-2.5 text-sm">Set up Lalamove <ArrowRight size={16} /></Link>
@@ -391,9 +391,9 @@ export default function Home() {
             <h2 className="mt-5 max-w-xl font-display text-3xl font-extrabold leading-tight text-ink sm:text-4xl">Earn by referring property buyers.</h2>
             <p className="mt-4 max-w-xl text-sm leading-7 text-ink/60 sm:text-base">Refer your customer to a partner real estate agent for a condo, house and lot, or commercial property. <strong>No upfront cost</strong> — earn a referral fee after a successful transaction.</p>
             <div className="mt-6 grid gap-3">
-              <div className="flex items-center gap-3 rounded-xl border border-teal-100 bg-white p-4"><Check size={18} className="shrink-0 text-teal-600" /><p className="text-sm text-ink/70">Partner real estate agents with verified properties</p></div>
-              <div className="flex items-center gap-3 rounded-xl border border-teal-100 bg-white p-4"><Check size={18} className="shrink-0 text-teal-600" /><p className="text-sm text-ink/70">Condos, houses, lots, and commercial spaces</p></div>
-              <div className="flex items-center gap-3 rounded-xl border border-teal-100 bg-white p-4"><Check size={18} className="shrink-0 text-teal-600" /><p className="text-sm text-ink/70">Referral fee credited automatically to your wallet</p></div>
+              <div className="flex items-center gap-3 rounded-xl border border-teal-100 bg-surface p-4"><Check size={18} className="shrink-0 text-teal-600" /><p className="text-sm text-ink/70">Partner real estate agents with verified properties</p></div>
+              <div className="flex items-center gap-3 rounded-xl border border-teal-100 bg-surface p-4"><Check size={18} className="shrink-0 text-teal-600" /><p className="text-sm text-ink/70">Condos, houses, lots, and commercial spaces</p></div>
+              <div className="flex items-center gap-3 rounded-xl border border-teal-100 bg-surface p-4"><Check size={18} className="shrink-0 text-teal-600" /><p className="text-sm text-ink/70">Referral fee credited automatically to your wallet</p></div>
             </div>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link to="/clinics" className="btn-accent inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold">View properties <ArrowRight size={16} /></Link>
@@ -405,7 +405,7 @@ export default function Home() {
     </section>
 
     {/* ===== TRUSTED PARTNERS ===== */}
-    <section className="bg-white border-y border-black/[0.04] py-12 sm:py-16">
+    <section className="bg-surface border-y border-black/[0.04] py-12 sm:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="text-center">
           <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-teal-600">Trusted by the community</p>
@@ -440,7 +440,7 @@ export default function Home() {
           <h2 className="mt-3 font-display text-3xl font-extrabold leading-tight text-teal-950 sm:text-4xl">Trusted by Filipino entrepreneurs.</h2>
         </div>
         <div className="mt-10 mx-auto max-w-4xl">
-          <div className="relative overflow-hidden rounded-[2rem] border border-teal-100 bg-white p-6 shadow-xl sm:p-10">
+          <div className="relative overflow-hidden rounded-[2rem] border border-teal-100 bg-surface p-6 shadow-xl sm:p-10">
             <Quote size={40} className="absolute right-4 top-4 text-teal-100 sm:right-8 sm:top-8 sm:h-16 sm:w-16" />
             <div className="flex items-center gap-2 mb-4">
               {[0,1,2,3,4].map((star) => <Star key={star} size={16} className="fill-mango-500 text-mango-500" />)}
@@ -484,7 +484,7 @@ export default function Home() {
         </div>
         <div className="mx-auto mt-10 max-w-3xl space-y-3">
           {faqs.map((faq, index) => (
-            <div key={index} className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-sm transition hover:shadow-md">
+            <div key={index} className="overflow-hidden rounded-2xl border border-black/[0.06] bg-surface shadow-sm transition hover:shadow-md">
               <button
                 onClick={() => setOpenFaq(openFaq === index ? null : index)}
                 className="flex w-full items-center justify-between px-5 py-4 text-left sm:px-6"
@@ -518,7 +518,7 @@ export default function Home() {
 
     {content.sections?.benefits !== false && <section id="benefits" className="mx-auto max-w-7xl scroll-mt-20 px-4 py-16 sm:px-6 sm:py-20">
       <div className="mx-auto max-w-3xl text-center"><p className="text-xs font-bold uppercase tracking-[0.2em] text-teal-600">Built for real business</p><h2 className="mt-3 font-display text-3xl font-bold text-ink sm:text-4xl">Everything you need to buy, sell, and grow with confidence.</h2><p className="mt-4 text-ink/60">JOM HUB replaces scattered chats, manual records, and disconnected payment tracking — all in one organized workspace.</p></div>
-      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{benefits.map(({ icon: Icon, title, text }) => <div key={title} className="group rounded-2xl border border-black/[0.06] bg-white p-5 shadow-card transition hover:-translate-y-1 hover:border-teal-100 hover:shadow-soft"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-700 transition group-hover:bg-teal-600 group-hover:text-white"><Icon size={19} /></span><h3 className="mt-4 font-display text-base font-bold text-ink sm:text-lg">{title}</h3><p className="mt-2 text-sm leading-6 text-ink/60">{text}</p></div>)}</div>
+      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{benefits.map(({ icon: Icon, title, text }) => <div key={title} className="group rounded-2xl border border-black/[0.06] bg-surface p-5 shadow-card transition hover:-translate-y-1 hover:border-teal-100 hover:shadow-soft"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-700 transition group-hover:bg-teal-600 group-hover:text-white"><Icon size={19} /></span><h3 className="mt-4 font-display text-base font-bold text-ink sm:text-lg">{title}</h3><p className="mt-2 text-sm leading-6 text-ink/60">{text}</p></div>)}</div>
     </section>}
 
     {content.sections?.process !== false && <section className="bg-teal-950 py-16 text-white sm:py-20">
@@ -531,11 +531,11 @@ export default function Home() {
       <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center"><div><span className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1.5 text-xs font-bold text-teal-700"><Store size={14} /> For Merchants</span><h2 className="mt-4 font-display text-3xl font-bold text-ink sm:text-4xl">How to subscribe and open your store</h2><p className="mt-4 leading-7 text-ink/60">Create a Merchant profile, choose a subscription, and upload your payment screenshot. Admin reviews your application before your store is activated.</p>
         <div className="mt-6 space-y-3">{['Enter your Gmail, type the 6-digit OTP, and select Merchant.', 'Complete your business details and upload a valid business permit.', 'Choose 6 months, 1 year, or 2 years, and upload your payment proof.', 'Wait for Admin approval, then manage your products and orders.'].map((text, index) => <div key={text} className="flex gap-3"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-teal-600 text-xs font-bold text-white">{index + 1}</span><p className="pt-0.5 text-sm leading-6 text-ink/65">{text}</p></div>)}</div>
         <Link to="/signup" className="mt-7 inline-flex items-center gap-2 font-semibold text-teal-700">Create a Merchant account <ArrowRight size={17} /></Link></div>
-        <div className="grid gap-4 sm:grid-cols-3">{plans.map((plan) => <div key={plan.duration} className={`relative rounded-2xl border bg-white p-6 shadow-card ${plan.featured ? 'border-teal-500 ring-4 ring-teal-50' : 'border-black/[0.06]'}`}>{plan.featured && <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-teal-600 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white">Recommended</span>}<p className="text-sm font-semibold text-ink/60">{plan.duration}</p><p className="mt-2 font-display text-3xl font-bold text-ink">{plan.price}</p><p className="mt-2 text-xs leading-5 text-ink/45">{plan.note}</p><div className="mt-5 space-y-2 text-xs text-ink/60"><p className="flex gap-2"><Check size={14} className="text-teal-600" /> Store access</p><p className="flex gap-2"><Check size={14} className="text-teal-600" /> Business reports</p><p className="flex gap-2"><Check size={14} className="text-teal-600" /> Admin review</p></div></div>)}</div>
+        <div className="grid gap-4 sm:grid-cols-3">{plans.map((plan) => <div key={plan.duration} className={`relative rounded-2xl border bg-surface p-6 shadow-card ${plan.featured ? 'border-teal-500 ring-4 ring-teal-50' : 'border-black/[0.06]'}`}>{plan.featured && <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-teal-600 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white">Recommended</span>}<p className="text-sm font-semibold text-ink/60">{plan.duration}</p><p className="mt-2 font-display text-3xl font-bold text-ink">{plan.price}</p><p className="mt-2 text-xs leading-5 text-ink/45">{plan.note}</p><div className="mt-5 space-y-2 text-xs text-ink/60"><p className="flex gap-2"><Check size={14} className="text-teal-600" /> Store access</p><p className="flex gap-2"><Check size={14} className="text-teal-600" /> Business reports</p><p className="flex gap-2"><Check size={14} className="text-teal-600" /> Admin review</p></div></div>)}</div>
       </div>
     </section>}
 
-    {content.sections?.topup !== false && <section className="border-y border-black/5 bg-white py-16 sm:py-20" id="topup"><div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:items-center"><div className="rounded-[1.75rem] bg-mango-100/60 p-6 sm:p-8"><div className="grid gap-3 sm:grid-cols-2">{[{ icon: CircleDollarSign, title: 'Scan and pay', text: 'Use the JOM HUB InstaPay QR to pay AUBREY NOLASCO and enter the amount.' }, { icon: FileImage, title: 'Upload proof', text: 'Upload the screenshot along with the one-use reference number.' }, { icon: Clock3, title: 'Admin verification', text: 'Admin matches the actual payment; duplicate references are blocked.' }, { icon: Wallet, title: 'Wallet credit', text: 'Approved funds appear in your wallet balance.' }].map(({ icon: Icon, title, text }) => <div key={title} className="rounded-2xl bg-white p-5 shadow-sm"><Icon size={20} className="text-mango-600" /><h3 className="mt-3 font-bold text-ink">{title}</h3><p className="mt-1 text-xs leading-5 text-ink/55">{text}</p></div>)}</div></div>
+    {content.sections?.topup !== false && <section className="border-y border-black/5 bg-surface py-16 sm:py-20" id="topup"><div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:items-center"><div className="rounded-[1.75rem] bg-mango-100/60 p-6 sm:p-8"><div className="grid gap-3 sm:grid-cols-2">{[{ icon: CircleDollarSign, title: 'Scan and pay', text: 'Use the JOM HUB InstaPay QR to pay AUBREY NOLASCO and enter the amount.' }, { icon: FileImage, title: 'Upload proof', text: 'Upload the screenshot along with the one-use reference number.' }, { icon: Clock3, title: 'Admin verification', text: 'Admin matches the actual payment; duplicate references are blocked.' }, { icon: Wallet, title: 'Wallet credit', text: 'Approved funds appear in your wallet balance.' }].map(({ icon: Icon, title, text }) => <div key={title} className="rounded-2xl bg-surface p-5 shadow-sm"><Icon size={20} className="text-mango-600" /><h3 className="mt-3 font-bold text-ink">{title}</h3><p className="mt-1 text-xs leading-5 text-ink/55">{text}</p></div>)}</div></div>
         <div><span className="inline-flex items-center gap-2 rounded-full bg-mango-100 px-3 py-1.5 text-xs font-bold text-mango-600"><Wallet size={14} /> For Resellers</span><h2 className="mt-4 font-display text-3xl font-bold text-ink sm:text-4xl">How Reseller registration works</h2><p className="mt-4 leading-7 text-ink/60">Enter your Gmail, type the 6-digit OTP, select Reseller, and complete your contact and delivery address. Submit proof of your initial top-up for Admin verification and account approval.</p><div className="mt-6 rounded-2xl border border-teal-100 bg-teal-50 p-5"><p className="font-semibold text-teal-900">After account approval</p><p className="mt-1 text-sm leading-6 text-ink/60">Browse approved products, manage your customers and orders, and use your Wallet for future top-ups.</p></div><Link to="/signup" className="mt-7 inline-flex items-center gap-2 font-semibold text-teal-700">Register as a Reseller <ArrowRight size={17} /></Link></div>
       </div></section>}
 

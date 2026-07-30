@@ -90,7 +90,7 @@ export default function DeviceAccessGuard() {
 
   return (
     <div className="fixed inset-0 z-[200] grid place-items-center bg-scrim/70 p-4 backdrop-blur-sm">
-      <section className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
+      <section className="w-full max-w-md rounded-3xl bg-surface p-6 shadow-2xl">
         <span className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-50 text-teal-700">
           {activePrompt || error || limited ? <ShieldAlert /> : <Loader2 className="animate-spin" />}
         </span>

@@ -33,16 +33,16 @@ export default function Navbar() {
         </Link>
 
         <nav className="hidden items-center gap-1 rounded-full border border-black/[0.05] bg-white/70 p-1.5 text-sm font-semibold text-ink/70 shadow-sm md:flex dark:border-white/10 dark:bg-slate-900/70 dark:text-slate-200">
-          <Link to="/" className="flex items-center gap-1.5 rounded-full px-4 py-2 transition hover:bg-white hover:text-teal-700 hover:shadow-sm dark:hover:bg-slate-800"><House size={16} /> Home</Link>
-          {user && <Link to="/catalog" className="flex items-center gap-1.5 rounded-full px-4 py-2 transition hover:bg-white hover:text-teal-700 hover:shadow-sm dark:hover:bg-slate-800"><Package size={16} /> Products</Link>}
-          {user && <Link to="/clinics" className="flex items-center gap-1.5 rounded-full px-4 py-2 transition hover:bg-white hover:text-teal-700 hover:shadow-sm dark:hover:bg-slate-800"><Handshake size={16} /> Services</Link>}
+          <Link to="/" className="flex items-center gap-1.5 rounded-full px-4 py-2 transition hover:bg-surface hover:text-teal-700 hover:shadow-sm dark:hover:bg-slate-800"><House size={16} /> Home</Link>
+          {user && <Link to="/catalog" className="flex items-center gap-1.5 rounded-full px-4 py-2 transition hover:bg-surface hover:text-teal-700 hover:shadow-sm dark:hover:bg-slate-800"><Package size={16} /> Products</Link>}
+          {user && <Link to="/clinics" className="flex items-center gap-1.5 rounded-full px-4 py-2 transition hover:bg-surface hover:text-teal-700 hover:shadow-sm dark:hover:bg-slate-800"><Handshake size={16} /> Services</Link>}
           {user && (
-            <Link to={dashLink} className="flex items-center gap-1.5 rounded-full px-4 py-2 transition hover:bg-white hover:text-teal-700 hover:shadow-sm dark:hover:bg-slate-800">
+            <Link to={dashLink} className="flex items-center gap-1.5 rounded-full px-4 py-2 transition hover:bg-surface hover:text-teal-700 hover:shadow-sm dark:hover:bg-slate-800">
               <LayoutDashboard size={16} /> Workspace
             </Link>
           )}
           {role === 'admin' && (
-            <Link to="/admin" className="flex items-center gap-1.5 rounded-full px-4 py-2 transition hover:bg-white hover:text-teal-700 hover:shadow-sm dark:hover:bg-slate-800">
+            <Link to="/admin" className="flex items-center gap-1.5 rounded-full px-4 py-2 transition hover:bg-surface hover:text-teal-700 hover:shadow-sm dark:hover:bg-slate-800">
               <ShieldCheck size={16} /> Admin
             </Link>
           )}
@@ -90,7 +90,7 @@ export default function Navbar() {
       </div>
 
       {menuOpen && (
-        <nav className="max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-black/5 bg-white px-3 py-3 text-sm font-medium text-ink/70 shadow-lg md:hidden dark:border-white/10 dark:bg-slate-900 sm:px-6">
+        <nav className="max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-black/5 bg-surface px-3 py-3 text-sm font-medium text-ink/70 shadow-lg md:hidden dark:border-white/10 dark:bg-slate-900 sm:px-6">
           <Link to="/" className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600" onClick={() => setMenuOpen(false)}><House size={17} /> Home</Link>
           {user && <Link to="/catalog" className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600" onClick={() => setMenuOpen(false)}><Package size={17} /> Products</Link>}
           {user && <Link to="/clinics" className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600" onClick={() => setMenuOpen(false)}><Handshake size={17} /> Services</Link>}

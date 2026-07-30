@@ -124,7 +124,7 @@ export default function ClinicDiscovery() {
       {/* Referral Modal */}
       {showRefer && (
         <div className="fixed inset-0 z-[100] grid place-items-center bg-scrim/65 p-3 backdrop-blur-sm" role="dialog" aria-modal="true">
-          <div className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-white shadow-2xl">
+          <div className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-surface shadow-2xl">
             <div className="flex items-start justify-between bg-gradient-to-br from-teal-950 to-teal-700 px-6 py-5 text-white">
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-mango-300">Refer customer</p>
@@ -145,7 +145,7 @@ export default function ClinicDiscovery() {
               )}
               <div className="relative">
                 <div className="absolute inset-x-0 top-1/2 border-t border-black/10" />
-                <span className="relative mx-auto flex w-fit px-3 text-xs font-semibold text-ink/40 bg-white">{customers.length > 0 ? 'Or enter manually' : 'Enter customer details'}</span>
+                <span className="relative mx-auto flex w-fit px-3 text-xs font-semibold text-ink/40 bg-surface">{customers.length > 0 ? 'Or enter manually' : 'Enter customer details'}</span>
               </div>
               <div>
                 <label className="text-sm font-semibold text-ink/70">Customer Name *</label>
