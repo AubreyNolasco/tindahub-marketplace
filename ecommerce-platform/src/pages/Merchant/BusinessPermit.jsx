@@ -147,7 +147,7 @@ export default function BusinessPermit() {
                 className={`mb-5 flex items-start gap-3 rounded-2xl p-4 ${
                   status === 'rejected'
                     ? 'bg-coral-100 text-coral-700'
-                    : 'bg-mango-100 text-ink'
+                    : 'bg-mango-100 text-ink dark:bg-mango-500/10'
                 }`}
               >
                 {status === 'rejected' ? (

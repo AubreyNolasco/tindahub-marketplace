@@ -93,7 +93,7 @@ export default function OrderedReportView({ role }) {
         {lines.length === 0 ? <EmptyState icon={ClipboardList} title="No order lines in this date range" /> : (
           <div className="card overflow-hidden overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-teal-50 text-ink/60 text-left">
+              <thead className="bg-teal-50 text-ink/60 text-left dark:bg-teal-500/10">
                 <tr>
                   <th className="px-4 py-2.5 font-medium">Order No.</th>
                   <th className="px-4 py-2.5 font-medium">Date</th>

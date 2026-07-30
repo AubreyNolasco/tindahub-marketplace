@@ -145,7 +145,7 @@ export default function Home() {
 
   const [openFaq, setOpenFaq] = useState(null)
 
-  return <div className="overflow-hidden bg-cream">
+  return <div className="overflow-hidden bg-bg">
     {subscriptionPopup && <div className="fixed inset-0 z-[95] flex items-center justify-center bg-scrim/65 p-2 backdrop-blur-sm sm:p-4" role="dialog" aria-modal="true" aria-label="Join JOM HUB">
       <div className="max-h-[calc(100dvh-1rem)] w-full max-w-xl overflow-y-auto rounded-2xl bg-surface shadow-2xl sm:max-h-[92vh] sm:rounded-3xl">
         <div className="relative overflow-hidden bg-gradient-to-br from-teal-950 via-teal-800 to-teal-600 px-4 py-5 text-white sm:px-7 sm:py-6">
@@ -157,10 +157,10 @@ export default function Home() {
         </div>
         <div className="p-4 sm:p-6">
           <div className="subscription-audience grid grid-cols-2 gap-3">
-            <div className="rounded-2xl border border-teal-100 bg-teal-50/70 p-5"><span className="grid h-11 w-11 place-items-center rounded-xl bg-teal-700 text-white"><Store size={21} /></span><h3 className="mt-4 font-display text-lg font-bold text-ink">For Merchants</h3><p className="mt-2 text-sm leading-6 text-ink/60">Build your digital store, reach more Resellers, and manage inventory and orders.</p></div>
-            <div className="rounded-2xl border border-mango-300 bg-mango-100/45 p-5"><span className="grid h-11 w-11 place-items-center rounded-xl bg-mango-500 text-ink"><UsersRound size={21} /></span><h3 className="mt-4 font-display text-lg font-bold text-ink">For Resellers</h3><p className="mt-2 text-sm leading-6 text-ink/60">Find trusted suppliers, get quantity discounts, and track your sales.</p></div>
+            <div className="rounded-2xl border border-teal-100 bg-teal-50/70 p-5 dark:border-teal-800 dark:bg-teal-500/10"><span className="grid h-11 w-11 place-items-center rounded-xl bg-teal-700 text-white"><Store size={21} /></span><h3 className="mt-4 font-display text-lg font-bold text-ink">For Merchants</h3><p className="mt-2 text-sm leading-6 text-ink/60">Build your digital store, reach more Resellers, and manage inventory and orders.</p></div>
+            <div className="rounded-2xl border border-mango-300 bg-mango-100/45 p-5 dark:border-mango-700 dark:bg-mango-500/10"><span className="grid h-11 w-11 place-items-center rounded-xl bg-mango-500 text-ink"><UsersRound size={21} /></span><h3 className="mt-4 font-display text-lg font-bold text-ink">For Resellers</h3><p className="mt-2 text-sm leading-6 text-ink/60">Find trusted suppliers, get quantity discounts, and track your sales.</p></div>
           </div>
-          <div className="mt-3 rounded-xl border border-black/[0.06] p-3"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-teal-700 sm:text-xs">Merchant subscription options</p><div className="mt-2 grid grid-cols-3 gap-1.5 text-center">{plans.map((plan) => <div key={plan.duration} className={`rounded-lg px-1 py-2 ${plan.featured ? 'bg-teal-700 text-white' : 'bg-cream text-ink'}`}><p className="text-[9px] font-semibold opacity-70 sm:text-[11px]">{plan.duration}</p><p className="mt-0.5 whitespace-nowrap font-display text-sm font-bold sm:text-base">{plan.price}</p></div>)}</div><p className="mt-2 text-center text-[10px] leading-4 text-ink/45 sm:text-xs">Submit your payment screenshot and wait for Admin approval.</p></div>
+          <div className="mt-3 rounded-xl border border-black/[0.06] p-3"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-teal-700 sm:text-xs">Merchant subscription options</p><div className="mt-2 grid grid-cols-3 gap-1.5 text-center">{plans.map((plan) => <div key={plan.duration} className={`rounded-lg px-1 py-2 ${plan.featured ? 'bg-teal-700 text-white' : 'bg-surface-inset text-ink'}`}><p className="text-[9px] font-semibold opacity-70 sm:text-[11px]">{plan.duration}</p><p className="mt-0.5 whitespace-nowrap font-display text-sm font-bold sm:text-base">{plan.price}</p></div>)}</div><p className="mt-2 text-center text-[10px] leading-4 text-ink/45 sm:text-xs">Submit your payment screenshot and wait for Admin approval.</p></div>
           <div className="mt-4 flex flex-col gap-2 sm:flex-row"><Link to="/signup" onClick={closeSubscriptionPopup} className="btn-primary flex flex-1 items-center justify-center gap-2 py-2.5 text-sm">Join JOM HUB <ArrowRight size={16} /></Link><button type="button" onClick={closeSubscriptionPopup} className="btn-secondary flex-1 py-2.5 text-sm">Explore the homepage</button></div>
         </div>
       </div>
@@ -231,7 +231,7 @@ export default function Home() {
         </div>
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           {featuredHighlights.map(({ title, description, icon: Icon }) => (
-            <article key={title} className="rounded-[1.5rem] border border-black/[0.06] bg-gradient-to-br from-white to-teal-50/70 p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+            <article key={title} className="rounded-[1.5rem] border border-black/[0.06] bg-surface p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
               <span className="grid h-11 w-11 place-items-center rounded-xl bg-teal-700 text-white"><Icon size={18} /></span>
               <h3 className="mt-4 font-display text-lg font-semibold text-ink">{title}</h3>
               <p className="mt-2 text-sm leading-7 text-ink/65">{description}</p>
@@ -282,7 +282,7 @@ export default function Home() {
           <p className="mt-4 max-w-xl text-sm leading-7 text-ink/60 sm:text-base">Refer your customer to a partner dental or optical clinic and earn a referral fee. <strong>No upfront cost</strong> — the clinic pays you after the appointment.</p>
           <div className="mt-8 grid gap-3 sm:grid-cols-2">
             <div className="rounded-2xl border border-teal-100 bg-teal-50 p-4"><Stethoscope size={20} className="text-teal-700" /><h3 className="mt-3 text-sm font-bold text-ink">Dental & Optical Clinics</h3><p className="mt-1 text-xs leading-5 text-ink/50">Partner clinics offering dental cleaning, eye checkups, and more.</p></div>
-            <div className="rounded-2xl border border-mango-200 bg-mango-100/60 p-4"><TrendingUp size={20} className="text-mango-700" /><h3 className="mt-3 text-sm font-bold text-ink">Referral Fee</h3><p className="mt-1 text-xs leading-5 text-ink/50">Earn a referral fee that is automatically transferred to your wallet.</p></div>
+            <div className="rounded-2xl border border-mango-200 bg-mango-100/60 p-4 dark:border-mango-700 dark:bg-mango-500/10"><TrendingUp size={20} className="text-mango-700" /><h3 className="mt-3 text-sm font-bold text-ink">Referral Fee</h3><p className="mt-1 text-xs leading-5 text-ink/50">Earn a referral fee that is automatically transferred to your wallet.</p></div>
           </div>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link to="/clinics" className="btn-accent inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold">View partner clinics <ArrowRight size={16} /></Link>
@@ -317,7 +317,7 @@ export default function Home() {
 
     {/* ===== LALAMOVE INTEGRATION ===== */}
     <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 sm:pb-20">
-      <div className="relative overflow-hidden rounded-[2rem] border border-teal-100 bg-gradient-to-br from-teal-50 to-white shadow-2xl shadow-teal-900/[0.06]">
+      <div className="relative overflow-hidden rounded-[2rem] border border-teal-100 bg-surface shadow-2xl shadow-teal-900/[0.06]">
         <div className="grid lg:grid-cols-[1fr_1fr]">
           <div className="relative flex min-h-[250px] items-center justify-center overflow-hidden p-6 sm:p-10">
             <img
@@ -361,7 +361,7 @@ export default function Home() {
 
     {/* ===== REAL ESTATE REFERRAL ===== */}
     <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 sm:pb-20">
-      <div className="relative overflow-hidden rounded-[2rem] border border-teal-100 bg-gradient-to-br from-teal-50 to-white shadow-2xl shadow-teal-900/[0.06]">
+      <div className="relative overflow-hidden rounded-[2rem] border border-teal-100 bg-surface shadow-2xl shadow-teal-900/[0.06]">
         <div className="grid lg:grid-cols-[1fr_1fr]">
           <div className="relative flex min-h-[250px] items-center justify-center overflow-hidden p-6 sm:p-10">
             <img
@@ -412,19 +412,19 @@ export default function Home() {
           <h2 className="mt-3 font-display text-2xl font-bold text-ink sm:text-3xl">Partners and collaborators of JOM HUB</h2>
         </div>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-6 sm:gap-10">
-          <div className="flex items-center gap-3 rounded-2xl border border-teal-100 bg-teal-50/70 px-5 py-3">
+          <div className="flex items-center gap-3 rounded-2xl border border-teal-100 bg-teal-50/70 px-5 py-3 dark:border-teal-800 dark:bg-teal-500/10">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-teal-700 text-white"><Stethoscope size={20} /></span>
             <div><p className="text-sm font-bold text-ink">Partner Clinics</p><p className="text-xs text-ink/40">Dental & Optical</p></div>
           </div>
-          <div className="flex items-center gap-3 rounded-2xl border border-mango-200 bg-mango-100/60 px-5 py-3">
+          <div className="flex items-center gap-3 rounded-2xl border border-mango-200 bg-mango-100/60 px-5 py-3 dark:border-mango-700 dark:bg-mango-500/10">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-mango-500 text-ink"><Building2 size={20} /></span>
             <div><p className="text-sm font-bold text-ink">Real Estate Agents</p><p className="text-xs text-ink/40">Properties & Spaces</p></div>
           </div>
-          <div className="flex items-center gap-3 rounded-2xl border border-teal-100 bg-teal-50/70 px-5 py-3">
+          <div className="flex items-center gap-3 rounded-2xl border border-teal-100 bg-teal-50/70 px-5 py-3 dark:border-teal-800 dark:bg-teal-500/10">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-teal-700 text-white"><Truck size={20} /></span>
             <div><p className="text-sm font-bold text-ink">Lalamove</p><p className="text-xs text-ink/40">Delivery Partner</p></div>
           </div>
-          <div className="flex items-center gap-3 rounded-2xl border border-teal-100 bg-teal-50/70 px-5 py-3">
+          <div className="flex items-center gap-3 rounded-2xl border border-teal-100 bg-teal-50/70 px-5 py-3 dark:border-teal-800 dark:bg-teal-500/10">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-teal-700 text-white"><ShieldCheck size={20} /></span>
             <div><p className="text-sm font-bold text-ink">Secure Platform</p><p className="text-xs text-ink/40">Admin-Verified</p></div>
           </div>

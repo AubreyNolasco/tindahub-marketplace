@@ -52,7 +52,7 @@ export default function GrowthSection() {
           <p className="mt-5 text-base leading-7 text-ink/60">JOM HUB brings Filipino Merchants and Resellers together in one organized workspace. Sell with greater visibility, source with confidence, and manage every transaction with clearer tools.</p>
           <div className="mt-7 grid gap-3 sm:grid-cols-2">
             <div className="rounded-2xl border border-teal-100 bg-teal-50 p-4"><p className="flex items-center gap-2 font-bold text-teal-900"><BadgeCheck size={18} /> Trusted community</p><p className="mt-1 text-xs leading-5 text-ink/55">Admin-reviewed accounts for safer business relationships.</p></div>
-            <div className="rounded-2xl border border-mango-200 bg-mango-100/60 p-4"><p className="flex items-center gap-2 font-bold text-ink"><PackageCheck size={18} className="text-mango-700" /> Clear fulfillment</p><p className="mt-1 text-xs leading-5 text-ink/55">Track orders from placement through delivery confirmation.</p></div>
+            <div className="rounded-2xl border border-mango-200 bg-mango-100/60 p-4 dark:border-mango-700 dark:bg-mango-500/10"><p className="flex items-center gap-2 font-bold text-ink"><PackageCheck size={18} className="text-mango-700" /> Clear fulfillment</p><p className="mt-1 text-xs leading-5 text-ink/55">Track orders from placement through delivery confirmation.</p></div>
           </div>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row"><Link to="/signup" className="btn-primary inline-flex items-center justify-center gap-2">Start growing <ArrowRight size={17} /></Link><Link to="/catalog" className="btn-secondary inline-flex items-center justify-center gap-2">Explore the marketplace</Link></div>
         </div>
@@ -125,7 +125,7 @@ export default function GrowthSection() {
     </section>
 
     {/* RESELLER PLAYBOOK */}
-    <section className="border-y border-black/5 bg-cream px-4 py-16 sm:px-6 sm:py-20">
+    <section className="border-y border-black/5 bg-surface-inset px-4 py-16 sm:px-6 sm:py-20">
       <div className="mx-auto max-w-7xl"><div className="mx-auto max-w-3xl text-center"><p className="text-xs font-extrabold uppercase tracking-[0.2em] text-mango-600">Your reseller playbook</p><h2 className="mt-3 font-display text-3xl font-extrabold leading-tight text-teal-950 sm:text-4xl">From a social media post to a completed customer order.</h2><p className="mx-auto mt-4 max-w-2xl leading-7 text-ink/60">You focus on finding customers and building relationships. JOM HUB provides the products, order workspace, and records for a more professional operation.</p></div>
         <div className="relative mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[{ icon: ShoppingBag, number: '01', title: 'Get products', text: 'Sign in, browse the protected Merchant Catalog, and add items to My Product List.' },
@@ -136,7 +136,7 @@ export default function GrowthSection() {
         </div>
         <div className="mx-auto mt-8 grid max-w-4xl gap-3 sm:grid-cols-3">
           <div className="rounded-xl bg-teal-50 p-4 text-center"><p className="font-display text-xl font-bold text-teal-800">Curated products</p><p className="mt-1 text-xs text-ink/50">Only products a Reseller has selected from the Merchant Catalog.</p></div>
-          <div className="rounded-xl bg-mango-100/70 p-4 text-center"><p className="font-display text-xl font-bold text-ink">Unique store link</p><p className="mt-1 text-xs text-ink/50">A readable store-name URL for every Reseller.</p></div>
+          <div className="rounded-xl bg-mango-100/70 p-4 text-center dark:bg-mango-500/10"><p className="font-display text-xl font-bold text-ink">Unique store link</p><p className="mt-1 text-xs text-ink/50">A readable store-name URL for every Reseller.</p></div>
           <div className="rounded-xl bg-teal-50 p-4 text-center"><p className="font-display text-xl font-bold text-teal-800">Customer-safe view</p><p className="mt-1 text-xs text-ink/50">No access to the main system navigation from the customer store view.</p></div>
         </div>
         <div className="mt-8 text-center"><Link to="/signup" className="btn-accent inline-flex items-center justify-center gap-2 px-7 py-3.5">Register as a Reseller <ArrowRight size={17} /></Link><p className="mt-3 text-xs text-ink/40">Choose your products. Build your audience. Grow one order at a time.</p></div>
@@ -147,7 +147,7 @@ export default function GrowthSection() {
     <section className="border-y border-black/5 bg-surface px-4 py-16 sm:px-6 sm:py-20"><div className="mx-auto max-w-7xl"><div className="mx-auto max-w-3xl text-center"><p className="text-xs font-extrabold uppercase tracking-[.2em] text-teal-600">A fair growth model</p><h2 className="mt-3 font-display text-3xl font-extrabold text-teal-950 sm:text-4xl">Clear value for every side of the marketplace.</h2><p className="mx-auto mt-4 max-w-2xl leading-7 text-ink/60">Merchants gain distribution, Resellers get room to earn, and JOM HUB earns transparent fees to keep the platform secure and running.</p></div>
       <div className="mt-10 grid gap-4 md:grid-cols-3">
         <article className="rounded-3xl border border-teal-100 bg-teal-50 p-6"><Store className="text-teal-700"/><h3 className="mt-4 font-display text-xl font-bold">Merchants earn</h3><p className="mt-2 text-sm leading-6 text-ink/60">Set wholesale and suggested retail prices, reach active Resellers, and receive net proceeds after a 3% fee on completed orders.</p></article>
-        <article className="rounded-3xl border border-mango-300 bg-mango-100/60 p-6"><TrendingUp className="text-mango-700"/><h3 className="mt-4 font-display text-xl font-bold">Resellers see opportunity</h3><p className="mt-2 text-sm leading-6 text-ink/60">Compare buying price against the suggested customer price before promoting. A projected gross margin of at least 15% is protected.</p></article>
+        <article className="rounded-3xl border border-mango-300 bg-mango-100/60 p-6 dark:border-mango-700 dark:bg-mango-500/10"><TrendingUp className="text-mango-700"/><h3 className="mt-4 font-display text-xl font-bold">Resellers see opportunity</h3><p className="mt-2 text-sm leading-6 text-ink/60">Compare buying price against the suggested customer price before promoting. A projected gross margin of at least 15% is protected.</p></article>
         <article className="rounded-3xl border border-teal-800 bg-teal-950 p-6 text-white"><ShieldCheck className="text-mango-300"/><h3 className="mt-4 font-display text-xl font-bold">JOM HUB stays reliable</h3><p className="mt-2 text-sm leading-6 text-white/65">Merchant subscriptions and transparent transaction fees support the database, storage, security, reports, and continuous platform operations.</p></article>
       </div>
       <p className="mt-5 text-center text-xs text-ink/40">Projected margins are estimates — not guaranteed income. Actual results depend on selling price, delivery, marketing, returns, and taxes.</p></div>

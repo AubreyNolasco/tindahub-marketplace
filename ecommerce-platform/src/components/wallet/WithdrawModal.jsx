@@ -124,7 +124,7 @@ export default function WithdrawModal({ open, onClose, onSubmitted }) {
             {submitting && <Loader2 size={16} className="animate-spin" />}
             {submitting ? 'Submitting...' : 'Submit Withdrawal'}
           </button>
-          <p className="rounded-xl bg-mango-100/60 p-3 text-xs leading-5 text-ink/55">Minimum ₱500; maximum combined requests are ₱100,000 per day. The amount is held immediately. Admin will show the planned processing time based on availability. Funds are transferred only when marked <strong>Sent</strong>.</p>
+          <p className="rounded-xl bg-mango-100/60 p-3 text-xs leading-5 text-ink/55 dark:bg-mango-500/10">Minimum ₱500; maximum combined requests are ₱100,000 per day. The amount is held immediately. Admin will show the planned processing time based on availability. Funds are transferred only when marked <strong>Sent</strong>.</p>
         </form>
       </div>
     </div>

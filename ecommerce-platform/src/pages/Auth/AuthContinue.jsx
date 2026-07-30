@@ -6,7 +6,7 @@ import { getAdminHomePath } from '../../config/adminPermissions'
 
 export default function AuthContinue() {
   const { user, profile, role, loading, profileError, signOut } = useAuth()
-  if (loading) return <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-cream"><Spinner /></div>
+  if (loading) return <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-bg"><Spinner /></div>
   if (user && !profile) return <ProfileLoadError message={profileError || 'Your account profile is missing.'} onSignOut={signOut} />
   if (!user) return <Navigate to="/login" replace />
   if (profile?.onboarding_completed === false) return <Navigate to="/onboarding" replace />

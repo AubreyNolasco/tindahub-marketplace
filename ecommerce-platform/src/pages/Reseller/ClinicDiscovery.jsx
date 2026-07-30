@@ -155,7 +155,7 @@ export default function ClinicDiscovery() {
                 <div><label className="text-sm font-semibold text-ink/70">Phone</label><input maxLength={50} className="input-field mt-1" value={manualPhone} onChange={(e) => setManualPhone(e.target.value)} placeholder="+63 912 345 6789" disabled={!!selectedCustomer} /></div>
                 <div><label className="text-sm font-semibold text-ink/70">Address</label><input maxLength={500} className="input-field mt-1" value={manualAddress} onChange={(e) => setManualAddress(e.target.value)} placeholder="City / Province" disabled={!!selectedCustomer} /></div>
               </div>
-              <div className="rounded-xl bg-mango-100/60 p-4 text-xs leading-5 text-ink/55">
+              <div className="rounded-xl bg-mango-100/60 p-4 text-xs leading-5 text-ink/55 dark:bg-mango-500/10">
                 <p className="font-semibold text-mango-700">How it works:</p>
                 <ol className="mt-2 list-inside list-decimal space-y-1">
                   <li>The provider will contact the customer to arrange the service.</li>

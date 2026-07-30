@@ -47,7 +47,7 @@ export default function DeliveryProcessGuide({ audience }) {
         </div>
         <div className="p-6 sm:p-8">
           <div className="space-y-4">{guide.steps.map(([title, text], index) => { const Icon = icons[index] || MapPin; return <div key={title} className="flex gap-4"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-teal-50 font-bold text-teal-700"><Icon size={18} /></span><div><p className="text-sm font-bold text-ink"><span className="mr-2 text-teal-600">{index + 1}.</span>{title}</p><p className="mt-1 text-sm leading-6 text-ink/55">{text}</p></div></div> })}</div>
-          <div className="mt-6 rounded-2xl border border-mango-300 bg-mango-100/50 p-4 text-sm leading-6 text-ink/65"><strong className="text-ink">Important:</strong> Dispatch is locked until the Reseller accepts the submitted shipping fee. A decline requires a note. Shipping is paid directly to the courier and is not included in the JOM HUB wallet total.</div>
+          <div className="mt-6 rounded-2xl border border-mango-300 bg-mango-100/50 p-4 text-sm leading-6 text-ink/65 dark:border-mango-700 dark:bg-mango-500/10"><strong className="text-ink">Important:</strong> Dispatch is locked until the Reseller accepts the submitted shipping fee. A decline requires a note. Shipping is paid directly to the courier and is not included in the JOM HUB wallet total.</div>
           <button type="button" onClick={close} className="btn-primary mt-6 w-full py-3">I understand the delivery process</button>
         </div>
       </div>

@@ -115,7 +115,7 @@ function SubscriptionModal({ profile, onClose, onSaved }) {
             </select>
           </div>
 
-          {sub?.expires_at && <label className="flex items-start gap-3 rounded-xl bg-cream p-4 text-sm text-ink/70"><input type="checkbox" className="mt-0.5" checked={extendExisting} onChange={(e) => setExtendExisting(e.target.checked)} /><span><strong className="block text-ink">Extend existing subscription</strong>Start the selected plan after the current expiration ({formatDate(sub.expires_at)}). Uncheck to start from today.</span></label>}
+          {sub?.expires_at && <label className="flex items-start gap-3 rounded-xl bg-surface-inset p-4 text-sm text-ink/70"><input type="checkbox" className="mt-0.5" checked={extendExisting} onChange={(e) => setExtendExisting(e.target.checked)} /><span><strong className="block text-ink">Extend existing subscription</strong>Start the selected plan after the current expiration ({formatDate(sub.expires_at)}). Uncheck to start from today.</span></label>}
 
           <div className="rounded-xl border border-teal-100 bg-teal-50 p-4">
             <div className="flex justify-between text-sm"><span className="text-ink/60">Selected plan</span><strong className="text-ink">{selectedPlan.label} · {peso(selectedPlan.amount)}</strong></div>

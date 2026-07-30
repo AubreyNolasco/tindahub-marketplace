@@ -129,10 +129,10 @@ export default function ChatThread({ merchantId, resellerId, title, subtitle, on
                 <div
                   className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm ${
                     readOnly
-                      ? 'bg-teal-50 text-ink'
+                      ? 'bg-teal-50 text-ink dark:bg-teal-500/15'
                       : isOwn
                       ? 'bg-teal-500 text-white rounded-br-sm'
-                      : 'bg-teal-50 text-ink rounded-bl-sm'
+                      : 'bg-teal-50 text-ink rounded-bl-sm dark:bg-teal-500/15'
                   }`}
                 >
                   {readOnly && (

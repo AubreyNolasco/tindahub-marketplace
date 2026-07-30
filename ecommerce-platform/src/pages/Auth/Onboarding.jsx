@@ -27,7 +27,7 @@ export default function Onboarding() {
 
   if (loading)
     return (
-      <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-cream">
+      <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-bg">
         <Spinner />
       </div>
     );
@@ -98,7 +98,7 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-cream px-4 py-8 sm:py-12">
+    <div className="min-h-[calc(100vh-4rem)] bg-bg px-4 py-8 sm:py-12">
       <div className="mx-auto max-w-2xl overflow-hidden rounded-3xl border border-black/[0.06] bg-surface shadow-xl">
         <div className="bg-gradient-to-br from-teal-950 to-teal-700 px-6 py-7 text-white sm:px-8">
           <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold">

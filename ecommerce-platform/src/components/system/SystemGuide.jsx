@@ -117,7 +117,7 @@ export default function SystemGuide({ pageKey = 'product-flow', trigger = null }
                   {Array.isArray(guide.faqs) && guide.faqs.length > 0 ? (
                     guide.faqs.map((faq, index) => (
                       <details key={index} className="group rounded-2xl border border-black/[0.06] overflow-hidden">
-                        <summary className="flex cursor-pointer items-center justify-between gap-4 px-4 py-3.5 text-sm font-semibold text-ink hover:bg-cream/50">
+                        <summary className="flex cursor-pointer items-center justify-between gap-4 px-4 py-3.5 text-sm font-semibold text-ink hover:bg-surface-inset/50">
                           {faq.q}
                           <ChevronRight size={16} className="shrink-0 text-ink/30 transition group-open:rotate-90" />
                         </summary>

@@ -114,7 +114,7 @@ export default function App() {
           <PostLoginGuide />
           <MfaGuard />
           <DeviceAccessGuard />
-          <div className="min-h-screen bg-cream flex flex-col">
+          <div className="min-h-screen bg-bg flex flex-col">
             <Navbar />
             <DemoModeBanner />
             <Toaster

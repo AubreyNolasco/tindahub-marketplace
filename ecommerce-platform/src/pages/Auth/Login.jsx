@@ -38,12 +38,12 @@ export default function Login() {
   }, [emailCooldown])
 
   if (loading) {
-    return <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-cream"><Spinner /></div>
+    return <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-bg"><Spinner /></div>
   }
   if (user && !profile) {
     return profileError
       ? <ProfileLoadError message={profileError} onSignOut={signOut} />
-      : <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-cream"><Spinner /></div>
+      : <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-bg"><Spinner /></div>
   }
   if (user) return <Navigate to={profile.onboarding_completed === false ? '/onboarding' : '/auth/continue'} replace />
 
@@ -154,7 +154,7 @@ export default function Login() {
           </button>
         </>
       ) : null}
-      <div className="mt-6 rounded-2xl bg-cream p-4 text-xs leading-5 text-ink/50">
+      <div className="mt-6 rounded-2xl bg-surface-inset p-4 text-xs leading-5 text-ink/50">
         <p className="font-semibold text-ink/70">Secure one-time code</p>
         <p className="mt-1">The code expires in 10 minutes and can only be used once. Never share it with anyone.</p>
       </div>

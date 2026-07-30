@@ -1,7 +1,7 @@
 import { AlertTriangle } from 'lucide-react'
 
 export default function ProfileLoadError({ message, onSignOut }) {
-  return <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-cream px-4">
+  return <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-bg px-4">
     <div className="w-full max-w-lg rounded-3xl border border-coral-200 bg-surface p-7 text-center shadow-xl">
       <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-coral-100 text-coral-600"><AlertTriangle size={26} /></span>
       <h1 className="mt-4 font-display text-xl font-bold text-ink">Unable to load your profile</h1>

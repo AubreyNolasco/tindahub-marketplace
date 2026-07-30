@@ -93,7 +93,7 @@ export default function ReferralRequests() {
         <div className="space-y-4">
           {referrals.map((ref) => (
             <div key={ref.id} className="card overflow-hidden">
-              <div className="flex items-start justify-between gap-4 border-b border-black/[0.04] bg-cream/80 px-5 py-3">
+              <div className="flex items-start justify-between gap-4 border-b border-black/[0.04] bg-surface-inset/80 px-5 py-3">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-teal-100">
                     <UserRound size={18} className="text-teal-700" />
