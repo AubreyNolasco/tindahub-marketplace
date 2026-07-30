@@ -80,7 +80,7 @@ function StepCard({ step, number }) {
   return (
     <article className="relative min-w-0 flex-1 rounded-2xl border border-black/[0.07] bg-surface p-4 shadow-sm sm:p-5">
       <div className="flex items-start gap-3">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-ink text-white">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-teal-950 text-white">
           <Icon size={19} />
         </span>
         <div className="min-w-0">
