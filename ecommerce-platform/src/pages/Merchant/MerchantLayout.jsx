@@ -1,4 +1,4 @@
-import { BarChart3, Boxes, ClipboardList, FileDown, FileUp, LayoutDashboard, MapPin, Megaphone, MessageSquare, Package, ShoppingBag, Star, Handshake, UserRound, WalletCards, UserPlus, Sliders } from 'lucide-react'
+import { BarChart3, Boxes, ClipboardList, FileDown, FileUp, LayoutDashboard, LifeBuoy, MapPin, Megaphone, MessageSquare, Package, ShoppingBag, Star, Handshake, UserRound, WalletCards, UserPlus, Sliders } from 'lucide-react'
 import WorkspaceLayout from '../../components/layout/WorkspaceLayout'
 import SubscriptionExpiryModal from '../../components/merchant/SubscriptionExpiryModal'
 import RestrictedAccountBanner from '../../components/dashboard/RestrictedAccountBanner'
@@ -12,6 +12,7 @@ const sections = [
     { to: '/merchant/orders', label: 'Customer Orders', icon: ClipboardList },
     { to: '/merchant/purchases', label: 'My Purchases', icon: ShoppingBag },
     { to: '/merchant/chats', label: 'Messages', icon: MessageSquare },
+    { to: '/merchant/support', label: 'Chat Support', icon: LifeBuoy },
     { to: '/merchant/wallet', label: 'Wallet', icon: WalletCards },
     { to: '/merchant/address', label: 'Pickup Address', icon: MapPin },
     { to: '/merchant/account', label: 'Update Account', icon: UserRound }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Bell, CalendarClock, PackageCheck, ShieldAlert, ShoppingBag, WalletCards, X } from 'lucide-react'
+import { Bell, CalendarClock, LifeBuoy, PackageCheck, ShieldAlert, ShoppingBag, WalletCards, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
@@ -25,6 +25,9 @@ export default function RoleNotifications() {
     const [{ data: wallet },{data:withdrawals}]=await Promise.all([supabase.from('wallets').select('id,balance,updated_at').eq('owner_id', user.id).maybeSingle(),supabase.from('withdrawal_requests').select('id,status,amount,scheduled_for,sent_at,updated_at').eq('owner_id',user.id).in('status',['pending','approved']).order('created_at',{ascending:false}).limit(5)])
     if (wallet) items.push({ id:`wallet:${wallet.id}:${wallet.updated_at}`, title:Number(wallet.balance) <= LOW_BALANCE_LIMIT ? 'Low wallet balance' : 'Current wallet balance', message:`Your available balance is ${peso(wallet.balance)}.`, to:`/${role}/wallet`, action:'Open wallet', icon:WalletCards, tone:Number(wallet.balance) <= LOW_BALANCE_LIMIT ? 'coral' : 'teal' })
     withdrawals?.forEach(row=>items.unshift({id:`withdrawal:${row.id}:${row.sent_at||row.updated_at}`,title:row.sent_at?'Withdrawal sent':row.status==='approved'?'Withdrawal scheduled':'Withdrawal under review',message:row.sent_at?`${peso(row.amount)} was marked Sent.`:row.scheduled_for?`${peso(row.amount)} planned for ${new Date(row.scheduled_for).toLocaleString('en-PH')}.`:`${peso(row.amount)} is waiting for Admin review.`,to:`/${role}/wallet`,action:'View withdrawal',icon:WalletCards,tone:row.sent_at?'teal':'mango'}))
+
+    const { data: supportMessages } = await supabase.from('support_messages').select('id,message,created_at').eq('user_id',user.id).eq('is_read',false).in('sender_role',['admin','staff']).order('created_at',{ascending:false}).limit(10)
+    supportMessages?.forEach(row=>items.unshift({id:`support:${row.id}`,title:'New message from Admin',message:row.message,to:`/${role}/support`,action:'Open Chat Support',icon:LifeBuoy,tone:'teal'}))
 
     if (role === 'merchant') {
       const [{ data: orders }, { data: subscription }] = await Promise.all([
@@ -53,6 +56,7 @@ export default function RoleNotifications() {
       .on('postgres_changes', { event:'*', schema:'public', table:'wallets', filter:`owner_id=eq.${user.id}` }, load)
       .on('postgres_changes',{event:'*',schema:'public',table:'withdrawal_requests',filter:`owner_id=eq.${user.id}`},load)
       .on('postgres_changes',{event:'*',schema:'public',table:'order_cases'},load)
+      .on('postgres_changes',{event:'*',schema:'public',table:'support_messages',filter:`user_id=eq.${user.id}`},load)
     if (role === 'merchant') channel.on('postgres_changes', { event:'*', schema:'public', table:'subscriptions', filter:`owner_id=eq.${user.id}` }, load)
     channel.subscribe()
     return () => { supabase.removeChannel(channel) }

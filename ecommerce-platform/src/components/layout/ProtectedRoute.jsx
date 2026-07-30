@@ -1,9 +1,10 @@
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import Spinner from '../ui/Spinner'
 
 export default function ProtectedRoute({ children, allowedRoles }) {
   const { user, profile, role, loading } = useAuth()
+  const location = useLocation()
 
   if (loading) {
     return (
@@ -28,9 +29,11 @@ export default function ProtectedRoute({ children, allowedRoles }) {
 
   // Merchant free/paid subscription lapsed: this is a stricter, full
   // dashboard lockout (not just "can't operate"), so it redirects unlike
-  // the checks above.
+  // the checks above. Chat Support stays reachable even while locked out,
+  // so a merchant can still reach Admin for help.
   const merchantExpiry = profile?.merchant_profiles?.subscription_expires_at
-  if (role === 'merchant' && (!merchantExpiry || new Date(merchantExpiry) <= new Date())) {
+  const subscriptionLocked = role === 'merchant' && (!merchantExpiry || new Date(merchantExpiry) <= new Date())
+  if (subscriptionLocked && location.pathname !== '/merchant/support') {
     return <Navigate to="/subscription-locked" replace />
   }
 

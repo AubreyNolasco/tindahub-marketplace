@@ -3,7 +3,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   BarChart3, Boxes, Building2, ChevronRight, CircleDollarSign,
   ClipboardList, CreditCard, FileChartColumn, FileDown,
-  FileUp, FolderTree, House, IdCard, LayoutDashboard, Menu, MessageSquare,
+  FileUp, FolderTree, House, IdCard, LayoutDashboard, LifeBuoy, Menu, MessageSquare,
   Megaphone, PanelLeftClose, Presentation, ReceiptText, ShieldAlert, ShieldCheck, Star, UsersRound, WalletCards, X, History, CalendarDays, UserCog, Scale, BookOpenCheck, KeyRound, Activity, Workflow, Bug, Clock3
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
@@ -35,6 +35,7 @@ const sections = [
       { to: '/admin/categories', label: 'Categories', icon: FolderTree, permission: 'categories' },
       { to: '/admin/homepage', label: 'Homepage', icon: House, permission: 'homepage' },
       { to: '/admin/chats', label: 'Chat History', icon: MessageSquare, permission: 'chats' },
+      { to: '/admin/support-chats', label: 'Support Chats', icon: LifeBuoy, permission: 'support' },
       { to: '/admin/login-history', label: 'Login History', icon: History, permission: 'login_history' },
       { to: '/admin/activity-log', label: 'Activity Audit', icon: Activity, adminOnly: true },
       { to: '/admin/reviews', label: 'Reviews & Ratings', icon: Star, permission: 'reviews' },

@@ -1,4 +1,4 @@
-import { BarChart3, Boxes, ClipboardList, FileDown, FileUp, LayoutDashboard, MapPin, MessageSquare, Store, Handshake, Send, UserRound, Users, WalletCards, Truck } from 'lucide-react'
+import { BarChart3, Boxes, ClipboardList, FileDown, FileUp, LayoutDashboard, LifeBuoy, MapPin, MessageSquare, Store, Handshake, Send, UserRound, Users, WalletCards, Truck } from 'lucide-react'
 import WorkspaceLayout from '../../components/layout/WorkspaceLayout'
 import RestrictedAccountBanner from '../../components/dashboard/RestrictedAccountBanner'
 
@@ -9,6 +9,7 @@ const sections = [
     { to: '/reseller/products', label: 'My Product List', icon: Store },
     { to: '/reseller/customers', label: 'Customers', icon: Users },
     { to: '/reseller/chats', label: 'Messages', icon: MessageSquare },
+    { to: '/reseller/support', label: 'Chat Support', icon: LifeBuoy },
     { to: '/reseller/wallet', label: 'Wallet', icon: WalletCards },
     { to: '/reseller/delivery', label: 'Delivery Settings', icon: Truck },
     { to: '/reseller/address', label: 'My Address', icon: MapPin },

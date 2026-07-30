@@ -70,6 +70,10 @@ import AdminLayout from './pages/Admin/AdminLayout'
 import AdminDashboard from './pages/Admin/AdminDashboard'
 import Merchants from './pages/Admin/Merchants'
 import MerchantFollowups from './pages/Admin/MerchantFollowups'
+import SupportChats from './pages/Admin/SupportChats'
+import SupportChatDetail from './pages/Admin/SupportChatDetail'
+import MerchantSupportChat from './pages/Merchant/SupportChat'
+import ResellerSupportChat from './pages/Reseller/SupportChat'
 import Payments from './pages/Admin/Payments'
 import TopupRequests from './pages/Admin/TopupRequests'
 import WithdrawalRequests from './pages/Admin/WithdrawalRequests'
@@ -168,6 +172,7 @@ export default function App() {
                   <Route path="customers" element={<Customers />} />
                   <Route path="chats" element={<ResellerChats />} />
                   <Route path="chats/:merchantId" element={<ResellerChatDetail />} />
+                  <Route path="support" element={<ResellerSupportChat />} />
 <Route path="wallet" element={<ResellerWallet />} />
                   <Route path="delivery" element={<DeliverySettings />} />
                   <Route path="address" element={<ProfileAddress />} />
@@ -192,6 +197,7 @@ export default function App() {
                   <Route path="purchases" element={<Purchases />} />
                   <Route path="chats" element={<MerchantChats />} />
                   <Route path="chats/:resellerId" element={<MerchantChatDetail />} />
+                  <Route path="support" element={<MerchantSupportChat />} />
                   <Route path="wallet" element={<WalletPage />} />
                   <Route path="address" element={<ProfileAddress merchant />} />
                   <Route path="account" element={<AccountSettings merchant />} />
@@ -230,6 +236,8 @@ export default function App() {
                   <Route path="withdrawals" element={<AdminPermissionRoute permission="withdrawals"><WithdrawalRequests /></AdminPermissionRoute>} />
                   <Route path="chats" element={<AdminPermissionRoute permission="chats"><ChatHistory /></AdminPermissionRoute>} />
                   <Route path="chats/:merchantId/:resellerId" element={<AdminPermissionRoute permission="chats"><ChatHistoryDetail /></AdminPermissionRoute>} />
+                  <Route path="support-chats" element={<AdminPermissionRoute permission="support"><SupportChats /></AdminPermissionRoute>} />
+                  <Route path="support/:userId" element={<AdminPermissionRoute permission="support"><SupportChatDetail /></AdminPermissionRoute>} />
                   <Route path="categories" element={<AdminPermissionRoute permission="categories"><Categories /></AdminPermissionRoute>} />
                   <Route path="subscriptions" element={<AdminPermissionRoute permission="subscriptions"><Subscriptions /></AdminPermissionRoute>} />
                   <Route path="homepage" element={<AdminPermissionRoute permission="homepage"><HomepageEditor /></AdminPermissionRoute>} />
