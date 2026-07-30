@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
-  ArrowRight, BadgeCheck, BarChart3, Building2, Check, CheckCircle2,
+  ArrowRight, ArrowUp, ArrowDown, BadgeCheck, BarChart3, Building2, Check, CheckCircle2,
   CircleDollarSign, Clock3, FileImage, MessageCircle, PackageCheck,
   ShieldCheck, ShoppingBag,
   Sparkles, Store, TrendingUp, UsersRound, Wallet, X, MailCheck,
@@ -106,6 +106,42 @@ const testimonials = [
 
 const safeInternalLink = (value, fallbackValue) => typeof value === 'string' && value.startsWith('/') && !value.startsWith('//') ? value : fallbackValue
 const safeImageUrl = (value, fallbackValue = '') => typeof value === 'string' && (value.startsWith('/') || value.startsWith('https://')) ? value : fallbackValue
+
+function ScrollNav() {
+  const [showUp, setShowUp] = useState(false)
+  const [showDown, setShowDown] = useState(false)
+
+  useEffect(() => {
+    const update = () => {
+      const scrolled = window.scrollY
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight
+      setShowUp(scrolled > 600)
+      setShowDown(maxScroll - scrolled > 400)
+    }
+    update()
+    window.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('resize', update)
+    return () => { window.removeEventListener('scroll', update); window.removeEventListener('resize', update) }
+  }, [])
+
+  if (!showUp && !showDown) return null
+  return (
+    <div className="fixed z-[65] flex flex-col gap-2" style={{ bottom: 'max(1rem, env(safe-area-inset-bottom))', left: 'max(1rem, env(safe-area-inset-left))' }}>
+      {showUp && (
+        <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} title="Back to top" aria-label="Back to top"
+          className="flex items-center gap-2 rounded-full border border-black/10 bg-surface/95 py-2.5 pl-3 pr-4 text-xs font-bold text-ink shadow-lg backdrop-blur transition hover:bg-teal-50">
+          <ArrowUp size={16} className="text-teal-700" /> Back to top
+        </button>
+      )}
+      {showDown && (
+        <button type="button" onClick={() => window.scrollBy({ top: window.innerHeight * 0.85, behavior: 'smooth' })} title="Scroll down" aria-label="Scroll down"
+          className="flex items-center gap-2 rounded-full border border-black/10 bg-surface/95 py-2.5 pl-3 pr-4 text-xs font-bold text-ink shadow-lg backdrop-blur transition hover:bg-teal-50">
+          <ArrowDown size={16} className="text-teal-700" /> Scroll down
+        </button>
+      )}
+    </div>
+  )
+}
 
 export default function Home() {
   const location = useLocation()
@@ -544,6 +580,7 @@ export default function Home() {
       </div></section>}
 
     {content.sections?.final_cta !== false && <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20"><div className="relative overflow-hidden rounded-[2rem] bg-teal-900 px-6 py-10 text-center text-white shadow-xl sm:px-12 sm:py-14"><div className="absolute left-1/2 top-0 h-48 w-96 -translate-x-1/2 rounded-full bg-teal-500/25 blur-3xl" /><div className="relative mx-auto max-w-2xl"><h2 className="font-display text-3xl font-bold sm:text-4xl">Ready to grow your business?</h2><p className="mt-4 text-sm leading-6 text-white/60 sm:text-base">Join JOM HUB as a Merchant or Reseller and manage your marketplace activity in one professional workspace.</p><div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row"><Link to="/signup" className="inline-flex items-center justify-center gap-2 rounded-xl bg-mango-500 px-6 py-3 font-bold text-ink hover:bg-mango-600">Create an account <ArrowRight size={17} /></Link><Link to="/catalog" className="inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/10 px-6 py-3 font-semibold hover:bg-white/15">View products</Link></div></div></div></section>}
+    <ScrollNav />
     <JomBits publicMode />
   </div>
 }
