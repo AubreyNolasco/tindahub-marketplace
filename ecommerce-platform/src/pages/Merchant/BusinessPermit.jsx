@@ -169,7 +169,7 @@ export default function BusinessPermit() {
               </div>
 
               <form onSubmit={upload}>
-                <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-teal-200 bg-teal-50/50 px-4 py-8 text-center transition hover:bg-teal-50">
+                <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-teal-200 bg-teal-50/50 px-4 py-8 text-center transition hover:bg-teal-50 dark:border-teal-800 dark:bg-teal-500/10 dark:hover:bg-teal-500/15">
                   <Upload size={26} className="text-teal-600" />
                   <span className="mt-3 text-sm font-semibold text-ink">
                     {file ? file.name : 'Choose business permit'}

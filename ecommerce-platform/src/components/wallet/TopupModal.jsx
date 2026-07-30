@@ -103,9 +103,9 @@ export default function TopupModal({ open, onClose, onSubmitted }) {
           <div>
             <label className="text-sm font-medium text-ink/70">Paraan ng Pagbayad</label>
             <div className="flex gap-2 mt-1">
-              <button type="button" onClick={() => setMethod('gcash')} className={`flex-1 py-2.5 rounded-xl border-2 font-semibold text-sm ${method === 'gcash' ? 'border-teal-500 bg-teal-50' : 'border-black/10'}`}>GCash</button>
-              <button type="button" onClick={() => setMethod('maya')} className={`flex-1 py-2.5 rounded-xl border-2 font-semibold text-sm ${method === 'maya' ? 'border-teal-500 bg-teal-50' : 'border-black/10'}`}>Maya</button>
-              <button type="button" onClick={() => setMethod('bank_transfer')} className={`flex-1 py-2.5 rounded-xl border-2 font-semibold text-sm ${method === 'bank_transfer' ? 'border-teal-500 bg-teal-50' : 'border-black/10'}`}>Bank</button>
+              <button type="button" onClick={() => setMethod('gcash')} className={`flex-1 py-2.5 rounded-xl border-2 font-semibold text-sm ${method === 'gcash' ? 'border-teal-500 bg-teal-50 dark:bg-teal-500/10' : 'border-black/10'}`}>GCash</button>
+              <button type="button" onClick={() => setMethod('maya')} className={`flex-1 py-2.5 rounded-xl border-2 font-semibold text-sm ${method === 'maya' ? 'border-teal-500 bg-teal-50 dark:bg-teal-500/10' : 'border-black/10'}`}>Maya</button>
+              <button type="button" onClick={() => setMethod('bank_transfer')} className={`flex-1 py-2.5 rounded-xl border-2 font-semibold text-sm ${method === 'bank_transfer' ? 'border-teal-500 bg-teal-50 dark:bg-teal-500/10' : 'border-black/10'}`}>Bank</button>
             </div>
           </div>
 

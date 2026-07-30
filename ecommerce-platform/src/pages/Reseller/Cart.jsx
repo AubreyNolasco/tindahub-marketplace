@@ -44,7 +44,7 @@ export default function Cart() {
           const estimatedProfit = customerRevenue - subtotal - systemFee
           return (
             <div key={orderKey} className="card p-4 sm:p-5">
-              {customerId && <div className="mb-4 flex items-start gap-3 rounded-xl bg-teal-50 p-3"><UserRound size={18} className="mt-0.5 shrink-0 text-teal-600" /><div><p className="text-xs font-semibold uppercase tracking-wide text-ink/40">Customer</p><p className="font-semibold text-ink">{group.customerName}</p><p className="text-xs text-ink/55">{group.customerPhone || 'No phone'} · {group.customerAddress || 'No address'}</p></div></div>}
+              {customerId && <div className="mb-4 flex items-start gap-3 rounded-xl bg-teal-50 p-3 dark:bg-teal-500/10"><UserRound size={18} className="mt-0.5 shrink-0 text-teal-600" /><div><p className="text-xs font-semibold uppercase tracking-wide text-ink/40">Customer</p><p className="font-semibold text-ink">{group.customerName}</p><p className="text-xs text-ink/55">{group.customerPhone || 'No phone'} · {group.customerAddress || 'No address'}</p></div></div>}
               <div className="space-y-4">
                 {items.map((item) => (
                   <div key={item.cart_key} className="grid grid-cols-[3.5rem_1fr_auto] items-center gap-3 sm:flex sm:gap-4">

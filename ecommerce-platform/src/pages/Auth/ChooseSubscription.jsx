@@ -92,7 +92,7 @@ export default function ChooseSubscription() {
     }
   };
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-[radial-gradient(circle_at_top_right,rgba(22,121,75,.12),transparent_35%),#F7FAF7] px-4 py-10">
+    <div className="min-h-[calc(100vh-4rem)] bg-[radial-gradient(circle_at_top_right,rgba(22,121,75,.12),transparent_35%),#F7FAF7] px-4 py-10 dark:bg-none dark:bg-bg">
       <form
         onSubmit={submit}
         className="mx-auto w-full max-w-4xl overflow-hidden rounded-3xl border border-black/[.06] bg-surface shadow-2xl shadow-teal-900/10"
@@ -117,7 +117,7 @@ export default function ChooseSubscription() {
                 key={plan.months}
                 type="button"
                 onClick={() => setPlanMonths(plan.months)}
-                className={`relative rounded-2xl border-2 p-5 text-left transition ${planMonths === plan.months ? "border-teal-500 bg-teal-50 shadow-md" : "border-black/10 hover:border-teal-200"}`}
+                className={`relative rounded-2xl border-2 p-5 text-left transition ${planMonths === plan.months ? "border-teal-500 bg-teal-50 shadow-md dark:bg-teal-500/10" : "border-black/10 hover:border-teal-200"}`}
               >
                 {plan.featured && (
                   <span className="mb-2 inline-block rounded-full bg-teal-700 px-2 py-1 text-[9px] font-bold uppercase tracking-wide text-white">
@@ -142,7 +142,7 @@ export default function ChooseSubscription() {
               </button>
             ))}
           </div>
-          <div className="grid gap-3 rounded-2xl border border-teal-100 bg-teal-50 p-4 text-xs text-ink/60 sm:grid-cols-2">
+          <div className="grid gap-3 rounded-2xl border border-teal-100 bg-teal-50 p-4 text-xs text-ink/60 dark:border-teal-800 dark:bg-teal-500/10 sm:grid-cols-2">
             <p className="flex gap-2">
               <ShieldCheck size={17} className="shrink-0 text-teal-700" />
               <span>

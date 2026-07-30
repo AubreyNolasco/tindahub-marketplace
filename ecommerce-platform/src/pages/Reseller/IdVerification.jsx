@@ -106,7 +106,7 @@ export default function IdVerification() {
               <form onSubmit={submit} className="space-y-4">
                 <label className="block text-sm font-semibold text-ink/70">
                   Selfie photo
-                  <span className="mt-1.5 flex cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-teal-200 bg-teal-50/50 p-5 font-normal hover:bg-teal-50">
+                  <span className="mt-1.5 flex cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-teal-200 bg-teal-50/50 p-5 font-normal hover:bg-teal-50 dark:border-teal-800 dark:bg-teal-500/10 dark:hover:bg-teal-500/15">
                     <Upload size={20} className="text-teal-600" />
                     <span className="min-w-0 truncate text-sm text-ink/60">{selfieFile ? selfieFile.name : 'Upload a clear selfie'}</span>
                     <input required type="file" accept="image/*" className="hidden" onChange={(event) => setSelfieFile(event.target.files?.[0] || null)} />
@@ -114,7 +114,7 @@ export default function IdVerification() {
                 </label>
                 <label className="block text-sm font-semibold text-ink/70">
                   Valid government ID
-                  <span className="mt-1.5 flex cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-teal-200 bg-teal-50/50 p-5 font-normal hover:bg-teal-50">
+                  <span className="mt-1.5 flex cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-teal-200 bg-teal-50/50 p-5 font-normal hover:bg-teal-50 dark:border-teal-800 dark:bg-teal-500/10 dark:hover:bg-teal-500/15">
                     <Upload size={20} className="text-teal-600" />
                     <span className="min-w-0 truncate text-sm text-ink/60">{idFile ? idFile.name : 'Upload a photo of your valid ID'}</span>
                     <input required type="file" accept="image/*" className="hidden" onChange={(event) => setIdFile(event.target.files?.[0] || null)} />
