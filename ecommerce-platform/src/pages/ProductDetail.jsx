@@ -93,7 +93,7 @@ export default function ProductDetail() {
   }
   const storeOpen = isStoreOpen(product.merchant_profiles)
 
-  return <div className="min-h-screen bg-[#f5f8f5] py-6 sm:py-10"><div className="mx-auto max-w-6xl px-4 sm:px-6">
+  return <div className="min-h-screen bg-bg py-6 sm:py-10"><div className="mx-auto max-w-6xl px-4 sm:px-6">
     <div className="mb-5 text-sm text-ink/45"><Link to="/catalog" className="hover:text-teal-700">Products</Link><span className="mx-2">/</span><span className="text-ink/65">{product.name}</span></div>
     <section className="grid overflow-hidden rounded-3xl border border-black/[0.06] bg-surface shadow-soft md:grid-cols-2">
       <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-gradient-to-br from-teal-50 to-white">{product.images?.[0] ? <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" /> : <Package className="text-teal-300" size={72} />}<span className={`absolute left-4 top-4 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm ${product.stock_quantity > 0 ? 'bg-white/90 text-teal-700' : 'bg-coral-500 text-white'}`}>{product.stock_quantity > 0 ? 'In stock' : 'Out of stock'}</span></div>

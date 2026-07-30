@@ -175,7 +175,7 @@ export default function Home() {
           <span className="inline-flex items-center gap-2 rounded-full border border-teal-100 bg-white/80 px-3.5 py-2 text-xs font-bold text-teal-700 shadow-sm backdrop-blur"><Sparkles size={14} className="text-mango-600" /> {content.eyebrow}</span>
           <h1 className="mt-5 max-w-2xl font-display text-[2rem] font-extrabold leading-[1.05] tracking-tight text-ink sm:text-5xl lg:text-[3.55rem]">{content.title}</h1>
           <p className="mt-4 max-w-xl text-sm leading-7 text-ink/65 sm:text-base lg:text-lg">{content.description}</p>
-          <div className="mt-4 inline-flex max-w-full items-center gap-3 rounded-2xl border border-teal-100 bg-white/80 px-4 py-3 shadow-sm backdrop-blur">
+          <div className="mt-4 inline-flex max-w-full items-center gap-3 rounded-2xl border border-teal-100 bg-white/80 px-4 py-3 shadow-sm backdrop-blur dark:border-teal-900/50 dark:bg-black/40">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-teal-700 text-white"><MailCheck size={20} /></span>
             <div><p className="text-sm font-bold text-ink">Secure 6-digit email verification</p><p className="text-xs leading-5 text-ink/50">A one-time code sent to your Gmail — no password needed.</p></div>
           </div>
@@ -208,7 +208,7 @@ export default function Home() {
                 <p className="font-display text-sm font-bold text-ink">Filipino businesses</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 rounded-2xl border border-black/5 bg-white/95 p-3 shadow-xl backdrop-blur sm:p-4">
+            <div className="flex items-center gap-2 rounded-2xl border border-black/5 bg-white/95 p-3 shadow-xl backdrop-blur dark:border-white/10 dark:bg-surface/95 sm:p-4">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-teal-600"><ShieldCheck size={18} /></span>
               <div className="min-w-0">
                 <p className="text-[11px] font-medium text-ink/45">Secure</p>
@@ -221,7 +221,7 @@ export default function Home() {
     </section>
 
     <section className="mx-auto max-w-7xl px-4 pb-8 sm:px-6 sm:pb-10">
-      <div className="rounded-[2rem] border border-black/[0.06] bg-white/80 p-6 shadow-card backdrop-blur-xl sm:p-8">
+      <div className="rounded-[2rem] border border-black/[0.06] bg-white/80 p-6 shadow-card backdrop-blur-xl dark:border-white/10 dark:bg-surface/80 sm:p-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="max-w-2xl">
             <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-teal-700">Featured experiences</p>
@@ -281,7 +281,7 @@ export default function Home() {
           <h2 className="mt-5 max-w-xl font-display text-3xl font-extrabold leading-tight text-ink sm:text-4xl">Earn by referring customers to a clinic.</h2>
           <p className="mt-4 max-w-xl text-sm leading-7 text-ink/60 sm:text-base">Refer your customer to a partner dental or optical clinic and earn a referral fee. <strong>No upfront cost</strong> — the clinic pays you after the appointment.</p>
           <div className="mt-8 grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl border border-teal-100 bg-teal-50 p-4"><Stethoscope size={20} className="text-teal-700" /><h3 className="mt-3 text-sm font-bold text-ink">Dental & Optical Clinics</h3><p className="mt-1 text-xs leading-5 text-ink/50">Partner clinics offering dental cleaning, eye checkups, and more.</p></div>
+            <div className="rounded-2xl border border-teal-100 bg-teal-50 p-4 dark:border-teal-800 dark:bg-teal-500/10"><Stethoscope size={20} className="text-teal-700" /><h3 className="mt-3 text-sm font-bold text-ink">Dental & Optical Clinics</h3><p className="mt-1 text-xs leading-5 text-ink/50">Partner clinics offering dental cleaning, eye checkups, and more.</p></div>
             <div className="rounded-2xl border border-mango-200 bg-mango-100/60 p-4 dark:border-mango-700 dark:bg-mango-500/10"><TrendingUp size={20} className="text-mango-700" /><h3 className="mt-3 text-sm font-bold text-ink">Referral Fee</h3><p className="mt-1 text-xs leading-5 text-ink/50">Earn a referral fee that is automatically transferred to your wallet.</p></div>
           </div>
           <div className="mt-6 flex flex-wrap gap-3">
@@ -299,15 +299,15 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-br from-mango-800/85 via-mango-700/75 to-amber-900/85" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_70%,rgba(242,169,59,0.25),transparent_50%)]" />
           <div className="relative w-full max-w-sm">
-            <div className="rounded-[1.75rem] border border-white/25 bg-white/20 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl text-ink transition-transform duration-300 hover:scale-[1.02]">
+            <div className="rounded-[1.75rem] border border-white/25 bg-white/20 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl text-ink transition-transform duration-300 hover:scale-[1.02] dark:bg-black/30">
               <div className="flex items-center gap-3">
                 <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white/90 text-mango-700 shadow-lg"><Stethoscope size={24} /></span>
                 <div><p className="text-xs font-semibold text-ink/60">CLINIC REFERRAL</p><p className="font-bold text-ink">Earn a referral fee</p></div>
               </div>
               <div className="mt-5 grid gap-3">
-                <div className="flex items-center gap-3 rounded-xl bg-white/95 p-3 shadow-sm transition hover:shadow-md"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-teal-100 text-teal-700 text-xs font-bold">1</span><p className="text-xs font-semibold text-ink">Choose a clinic service</p></div>
-                <div className="flex items-center gap-3 rounded-xl bg-white/95 p-3 shadow-sm transition hover:shadow-md"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-teal-100 text-teal-700 text-xs font-bold">2</span><p className="text-xs font-semibold text-ink">Refer your customer</p></div>
-                <div className="flex items-center gap-3 rounded-xl bg-white/95 p-3 shadow-sm transition hover:shadow-md"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-teal-100 text-teal-700 text-xs font-bold">3</span><p className="text-xs font-semibold text-ink">Earn after the appointment</p></div>
+                <div className="flex items-center gap-3 rounded-xl bg-white/95 p-3 shadow-sm transition hover:shadow-md dark:bg-surface/95"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-teal-100 text-teal-700 text-xs font-bold">1</span><p className="text-xs font-semibold text-ink">Choose a clinic service</p></div>
+                <div className="flex items-center gap-3 rounded-xl bg-white/95 p-3 shadow-sm transition hover:shadow-md dark:bg-surface/95"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-teal-100 text-teal-700 text-xs font-bold">2</span><p className="text-xs font-semibold text-ink">Refer your customer</p></div>
+                <div className="flex items-center gap-3 rounded-xl bg-white/95 p-3 shadow-sm transition hover:shadow-md dark:bg-surface/95"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-teal-100 text-teal-700 text-xs font-bold">3</span><p className="text-xs font-semibold text-ink">Earn after the appointment</p></div>
               </div>
             </div>
           </div>
@@ -433,11 +433,11 @@ export default function Home() {
     </section>
 
     {/* ===== TESTIMONIALS ===== */}
-    <section className="bg-[linear-gradient(180deg,#EDF7F1_0%,#FFFFFF_48%,#F7FAF7_100%)] py-16 sm:py-20">
+    <section className="bg-[linear-gradient(180deg,#EDF7F1_0%,#FFFFFF_48%,#F7FAF7_100%)] py-16 dark:bg-none dark:bg-bg sm:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-teal-600">What our community says</p>
-          <h2 className="mt-3 font-display text-3xl font-extrabold leading-tight text-teal-950 sm:text-4xl">Trusted by Filipino entrepreneurs.</h2>
+          <h2 className="mt-3 font-display text-3xl font-extrabold leading-tight text-teal-950 dark:text-ink sm:text-4xl">Trusted by Filipino entrepreneurs.</h2>
         </div>
         <div className="mt-10 mx-auto max-w-4xl">
           <div className="relative overflow-hidden rounded-[2rem] border border-teal-100 bg-surface p-6 shadow-xl sm:p-10">
@@ -475,11 +475,11 @@ export default function Home() {
     {content.banners?.some((banner) => banner.visible) && <section className="mx-auto max-w-7xl space-y-4 px-4 pb-8 sm:px-6">{content.banners.filter((banner) => banner.visible).map((banner) => <div key={banner.id} className={`overflow-hidden p-6 sm:p-8 ${safeImageUrl(banner.image_url) ? 'grid items-center gap-6 md:grid-cols-[1fr_280px]' : ''}`} style={{ background: banner.background, color: banner.text_color, border: `${Math.min(8, Math.max(0, Number(banner.border_width) || 0))}px ${['solid', 'dashed', 'dotted', 'double'].includes(banner.border_style) ? banner.border_style : 'solid'} ${banner.border_color}`, borderRadius: `${Math.min(60, Math.max(0, Number(banner.radius) || 0))}px` }}><div><h2 className="font-display text-2xl font-bold sm:text-3xl">{banner.title}</h2><p className="mt-2 max-w-2xl text-sm leading-6 opacity-70">{banner.text}</p>{banner.button_label && <Link to={safeInternalLink(banner.button_link, '/catalog')} className="mt-5 inline-flex items-center gap-2 rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-bold text-white hover:opacity-90">{banner.button_label} <ArrowRight size={15} /></Link>}</div>{safeImageUrl(banner.image_url) && <img src={safeImageUrl(banner.image_url)} alt="" className="aspect-[16/9] w-full rounded-xl object-cover" />}</div>)}</section>}
 
     {/* ===== FAQ ACCORDION ===== */}
-    <section className="bg-[linear-gradient(180deg,#FFFFFF_0%,#EDF7F1_100%)] py-16 sm:py-20" id="faq">
+    <section className="bg-[linear-gradient(180deg,#FFFFFF_0%,#EDF7F1_100%)] py-16 dark:bg-none dark:bg-bg sm:py-20" id="faq">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-teal-600">Frequently asked questions</p>
-          <h2 className="mt-3 font-display text-3xl font-extrabold leading-tight text-teal-950 sm:text-4xl">Have a question? Here are the answers.</h2>
+          <h2 className="mt-3 font-display text-3xl font-extrabold leading-tight text-teal-950 dark:text-ink sm:text-4xl">Have a question? Here are the answers.</h2>
           <p className="mt-4 text-sm leading-6 text-ink/60">Learn the essentials about JOM HUB — from signing up to earning referral fees.</p>
         </div>
         <div className="mx-auto mt-10 max-w-3xl space-y-3">
@@ -535,8 +535,8 @@ export default function Home() {
       </div>
     </section>}
 
-    {content.sections?.topup !== false && <section className="border-y border-black/5 bg-surface py-16 sm:py-20" id="topup"><div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:items-center"><div className="rounded-[1.75rem] bg-mango-100/60 p-6 sm:p-8"><div className="grid gap-3 sm:grid-cols-2">{[{ icon: CircleDollarSign, title: 'Scan and pay', text: 'Use the JOM HUB InstaPay QR to pay AUBREY NOLASCO and enter the amount.' }, { icon: FileImage, title: 'Upload proof', text: 'Upload the screenshot along with the one-use reference number.' }, { icon: Clock3, title: 'Admin verification', text: 'Admin matches the actual payment; duplicate references are blocked.' }, { icon: Wallet, title: 'Wallet credit', text: 'Approved funds appear in your wallet balance.' }].map(({ icon: Icon, title, text }) => <div key={title} className="rounded-2xl bg-surface p-5 shadow-sm"><Icon size={20} className="text-mango-600" /><h3 className="mt-3 font-bold text-ink">{title}</h3><p className="mt-1 text-xs leading-5 text-ink/55">{text}</p></div>)}</div></div>
-        <div><span className="inline-flex items-center gap-2 rounded-full bg-mango-100 px-3 py-1.5 text-xs font-bold text-mango-600"><Wallet size={14} /> For Resellers</span><h2 className="mt-4 font-display text-3xl font-bold text-ink sm:text-4xl">How Reseller registration works</h2><p className="mt-4 leading-7 text-ink/60">Enter your Gmail, type the 6-digit OTP, select Reseller, and complete your contact and delivery address. Submit proof of your initial top-up for Admin verification and account approval.</p><div className="mt-6 rounded-2xl border border-teal-100 bg-teal-50 p-5"><p className="font-semibold text-teal-900">After account approval</p><p className="mt-1 text-sm leading-6 text-ink/60">Browse approved products, manage your customers and orders, and use your Wallet for future top-ups.</p></div><Link to="/signup" className="mt-7 inline-flex items-center gap-2 font-semibold text-teal-700">Register as a Reseller <ArrowRight size={17} /></Link></div>
+    {content.sections?.topup !== false && <section className="border-y border-black/5 bg-surface py-16 sm:py-20" id="topup"><div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:items-center"><div className="rounded-[1.75rem] bg-mango-100/60 p-6 dark:bg-mango-500/10 sm:p-8"><div className="grid gap-3 sm:grid-cols-2">{[{ icon: CircleDollarSign, title: 'Scan and pay', text: 'Use the JOM HUB InstaPay QR to pay AUBREY NOLASCO and enter the amount.' }, { icon: FileImage, title: 'Upload proof', text: 'Upload the screenshot along with the one-use reference number.' }, { icon: Clock3, title: 'Admin verification', text: 'Admin matches the actual payment; duplicate references are blocked.' }, { icon: Wallet, title: 'Wallet credit', text: 'Approved funds appear in your wallet balance.' }].map(({ icon: Icon, title, text }) => <div key={title} className="rounded-2xl bg-surface p-5 shadow-sm"><Icon size={20} className="text-mango-600" /><h3 className="mt-3 font-bold text-ink">{title}</h3><p className="mt-1 text-xs leading-5 text-ink/55">{text}</p></div>)}</div></div>
+        <div><span className="inline-flex items-center gap-2 rounded-full bg-mango-100 px-3 py-1.5 text-xs font-bold text-mango-600"><Wallet size={14} /> For Resellers</span><h2 className="mt-4 font-display text-3xl font-bold text-ink sm:text-4xl">How Reseller registration works</h2><p className="mt-4 leading-7 text-ink/60">Enter your Gmail, type the 6-digit OTP, select Reseller, and complete your contact and delivery address. Submit proof of your initial top-up for Admin verification and account approval.</p><div className="mt-6 rounded-2xl border border-teal-100 bg-teal-50 p-5 dark:border-teal-800 dark:bg-teal-500/10"><p className="font-semibold text-teal-900 dark:text-teal-300">After account approval</p><p className="mt-1 text-sm leading-6 text-ink/60">Browse approved products, manage your customers and orders, and use your Wallet for future top-ups.</p></div><Link to="/signup" className="mt-7 inline-flex items-center gap-2 font-semibold text-teal-700">Register as a Reseller <ArrowRight size={17} /></Link></div>
       </div></section>}
 
     {content.sections?.final_cta !== false && <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20"><div className="relative overflow-hidden rounded-[2rem] bg-teal-900 px-6 py-10 text-center text-white shadow-xl sm:px-12 sm:py-14"><div className="absolute left-1/2 top-0 h-48 w-96 -translate-x-1/2 rounded-full bg-teal-500/25 blur-3xl" /><div className="relative mx-auto max-w-2xl"><h2 className="font-display text-3xl font-bold sm:text-4xl">Ready to grow your business?</h2><p className="mt-4 text-sm leading-6 text-white/60 sm:text-base">Join JOM HUB as a Merchant or Reseller and manage your marketplace activity in one professional workspace.</p><div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row"><Link to="/signup" className="inline-flex items-center justify-center gap-2 rounded-xl bg-mango-500 px-6 py-3 font-bold text-ink hover:bg-mango-600">Create an account <ArrowRight size={17} /></Link><Link to="/catalog" className="inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/10 px-6 py-3 font-semibold hover:bg-white/15">View products</Link></div></div></div></section>}

@@ -10,11 +10,16 @@
    to <html> by public/theme-init.js (before first paint) and toggled at
    runtime by the theme switch in Navbar.jsx. */
 :root {
-  --bg: #F7FAF7;
-  --surface: #FFFFFF;
-  --surface-inset: #F0F5F1;
+  /* R G B triplets (no #, no rgb()) so Tailwind can apply opacity
+     modifiers like bg-surface/60 via rgb(var(--x) / <alpha-value>) —
+     see tailwind.config.js. A plain #hex here silently breaks every
+     text-ink/NN, bg-surface/NN, etc. utility across the app (Tailwind
+     drops the modifier instead of erroring). */
+  --bg: 247 250 247;
+  --surface: 255 255 255;
+  --surface-inset: 240 245 241;
   --line: rgba(22, 33, 30, 0.08);
-  --fg: #142019;
+  --fg: 20 32 25;
   --fg-muted: rgba(20, 32, 25, 0.6);
   --shadow-1: 0 1px 2px rgba(22, 33, 30, 0.04);
   --shadow-2: 0 4px 16px rgba(22, 33, 30, 0.08);
@@ -23,11 +28,11 @@
 
 .dark {
   color-scheme: dark;
-  --bg: #06110d;
-  --surface: #0e1b15;
-  --surface-inset: #0a1510;
+  --bg: 6 17 13;
+  --surface: 14 27 21;
+  --surface-inset: 10 21 16;
   --line: rgba(232, 240, 234, 0.09);
-  --fg: #e8f0ea;
+  --fg: 232 240 234;
   --fg-muted: rgba(232, 240, 234, 0.6);
   --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-2: 0 4px 16px rgba(0, 0, 0, 0.4);
@@ -45,8 +50,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeSpeed;
-  background: var(--bg);
-  color: var(--fg);
+  background: rgb(var(--bg));
+  color: rgb(var(--fg));
   min-width: 320px;
   min-height: 100vh;
   min-height: 100dvh;
@@ -73,11 +78,11 @@ p, h1, h2, h3, h4, a, button, label, td, th {
   height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--surface-inset);
+  background: rgb(var(--surface-inset));
 }
 ::-webkit-scrollbar-thumb {
   background: #9BCBAD;
-  border: 3px solid var(--surface-inset);
+  border: 3px solid rgb(var(--surface-inset));
   border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
@@ -115,26 +120,26 @@ button, a, input, select, textarea {
   }
   .btn-secondary {
     @apply text-teal-700 font-semibold px-5 py-2.5 rounded-xl border border-teal-100 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-teal-300 hover:bg-teal-50 active:translate-y-0;
-    background: var(--surface);
+    background: rgb(var(--surface));
   }
   .dark .btn-secondary {
     @apply text-teal-300 border-teal-800 hover:border-teal-600;
   }
   .dark .btn-secondary:hover {
-    background: var(--surface-inset);
+    background: rgb(var(--surface-inset));
   }
   .btn-accent {
     @apply bg-mango-500 text-ink font-semibold px-5 py-2.5 rounded-xl shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-mango-600 hover:shadow-lg active:translate-y-0;
   }
   .input-field {
     @apply w-full px-4 py-3 rounded-xl border shadow-sm placeholder:text-fg-muted focus:outline-none focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 transition-all;
-    background: var(--surface);
+    background: rgb(var(--surface));
     border-color: var(--line);
-    color: var(--fg);
+    color: rgb(var(--fg));
   }
   .card {
     @apply rounded-xl2 shadow-card border transition-colors duration-200;
-    background: var(--surface);
+    background: rgb(var(--surface));
     border-color: var(--line);
   }
   .dark .card {

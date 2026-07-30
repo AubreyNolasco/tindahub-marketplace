@@ -30,8 +30,8 @@ export default function AnalyticsPanel({ title, description, action, data, dataK
               <YAxis tick={{ fontSize: 11, fill: 'var(--fg-muted)' }} axisLine={false} tickLine={false} width={40} tickFormatter={valueFormatter} />
               <Tooltip
                 formatter={(v) => (valueFormatter ? valueFormatter(v) : v)}
-                contentStyle={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 12, fontSize: 12 }}
-                labelStyle={{ color: 'var(--fg)' }}
+                contentStyle={{ background: 'rgb(var(--surface))', border: '1px solid var(--line)', borderRadius: 12, fontSize: 12 }}
+                labelStyle={{ color: 'rgb(var(--fg))' }}
               />
               <Area type="monotone" dataKey={dataKey} stroke={color} strokeWidth={2} fill={`url(#${gradientId})`} />
             </AreaChart>

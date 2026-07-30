@@ -10,7 +10,7 @@ export default {
         // same light/dark tokens as text-fg, so text stays readable
         // everywhere regardless of theme without having to migrate each
         // page individually. See src/index.css :root / .dark for values.
-        ink: 'var(--fg)',
+        ink: 'rgb(var(--fg) / <alpha-value>)',
         // Always-dark, theme-independent — used for modal/drawer backdrop
         // scrims (bg-scrim/60 etc). These must stay a dark dimming layer
         // in both themes; unlike ink, they should NOT flip light in dark
@@ -20,14 +20,18 @@ export default {
         // src/index.css :root / .dark) so components built against these
         // (bg-surface, border-line, text-fg, ...) flip automatically in
         // dark mode instead of needing per-component dark: overrides.
-        bg: 'var(--bg)',
+        // Wrapped in rgb(... / <alpha-value>) — the vars are R G B
+        // triplets, not hex — so opacity modifiers (bg-surface/60,
+        // text-ink/50, ...) actually generate CSS instead of being
+        // silently dropped by Tailwind.
+        bg: 'rgb(var(--bg) / <alpha-value>)',
         surface: {
-          DEFAULT: 'var(--surface)',
-          inset: 'var(--surface-inset)'
+          DEFAULT: 'rgb(var(--surface) / <alpha-value>)',
+          inset: 'rgb(var(--surface-inset) / <alpha-value>)'
         },
         line: 'var(--line)',
         fg: {
-          DEFAULT: 'var(--fg)',
+          DEFAULT: 'rgb(var(--fg) / <alpha-value>)',
           muted: 'var(--fg-muted)'
         },
         teal: {
