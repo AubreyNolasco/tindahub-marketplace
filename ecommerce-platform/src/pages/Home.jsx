@@ -126,17 +126,23 @@ function ScrollNav() {
 
   if (!showUp && !showDown) return null
   return (
-    <div className="fixed z-[65] flex flex-col gap-2" style={{ bottom: 'max(1rem, env(safe-area-inset-bottom))', left: 'max(1rem, env(safe-area-inset-left))' }}>
+    <div
+      className="fixed z-[65] flex flex-col overflow-hidden rounded-full border border-white/10 bg-teal-950/75 shadow-2xl shadow-teal-950/40 ring-1 ring-white/5 backdrop-blur-xl"
+      style={{ bottom: 'calc(max(1rem, env(safe-area-inset-bottom)) + 5.5rem)', right: 'max(1rem, env(safe-area-inset-right))' }}
+    >
       {showUp && (
         <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} title="Back to top" aria-label="Back to top"
-          className="flex items-center gap-2 rounded-full border border-black/10 bg-surface/95 py-2.5 pl-3 pr-4 text-xs font-bold text-ink shadow-lg backdrop-blur transition hover:bg-teal-50">
-          <ArrowUp size={16} className="text-teal-700" /> Back to top
+          className="group flex flex-col items-center gap-1 px-4 py-3 text-white/80 transition-all hover:bg-white/10 hover:text-white">
+          <ArrowUp size={17} className="transition-transform duration-300 group-hover:-translate-y-0.5" />
+          <span className="text-[9px] font-bold uppercase tracking-[0.14em]">Top</span>
         </button>
       )}
+      {showUp && showDown && <span className="mx-3 h-px bg-white/10" />}
       {showDown && (
         <button type="button" onClick={() => window.scrollBy({ top: window.innerHeight * 0.85, behavior: 'smooth' })} title="Scroll down" aria-label="Scroll down"
-          className="flex items-center gap-2 rounded-full border border-black/10 bg-surface/95 py-2.5 pl-3 pr-4 text-xs font-bold text-ink shadow-lg backdrop-blur transition hover:bg-teal-50">
-          <ArrowDown size={16} className="text-teal-700" /> Scroll down
+          className="group flex flex-col items-center gap-1 px-4 py-3 text-white/80 transition-all hover:bg-white/10 hover:text-white">
+          <ArrowDown size={17} className="transition-transform duration-300 group-hover:translate-y-0.5" />
+          <span className="text-[9px] font-bold uppercase tracking-[0.14em]">Down</span>
         </button>
       )}
     </div>
