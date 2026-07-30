@@ -81,6 +81,9 @@ export default function RestrictedAccountBanner() {
               {!loadingFollowup && followup?.status === 'approved' && hasGrace && (
                 <p className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-teal-700"><ShieldCheck size={14} /> Temporary access granted until {formatDate(merchantProfile.operate_grace_until)}.</p>
               )}
+              {!loadingFollowup && followup?.status === 'approved' && !hasGrace && (
+                <p className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-coral-600"><XCircle size={14} /> Your temporary access expired on {formatDate(merchantProfile.operate_grace_until)}. You can request another follow-up below.</p>
+              )}
               {!loadingFollowup && followup?.status === 'rejected' && (
                 <p className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-coral-600"><XCircle size={14} /> Your last follow-up request was declined{followup.admin_notes ? `: ${followup.admin_notes}` : '.'}</p>
               )}
@@ -88,7 +91,7 @@ export default function RestrictedAccountBanner() {
                 <Link to="/merchant-permit" className="btn-secondary px-4 py-2 text-xs">
                   {merchantProfile?.business_permit_status === 'rejected' ? 'Resubmit permit' : 'Submit business permit'}
                 </Link>
-                {!loadingFollowup && (!followup || followup.status === 'rejected') && (
+                {!loadingFollowup && (!followup || followup.status === 'rejected' || (followup.status === 'approved' && !hasGrace)) && (
                   showForm ? (
                     <div className="w-full">
                       <textarea

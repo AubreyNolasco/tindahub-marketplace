@@ -12,7 +12,12 @@ const STATUS_STYLES = {
   rejected: 'bg-coral-100 text-coral-600 dark:bg-coral-500/15 dark:text-coral-300'
 }
 
-const toInputDate = (value) => (value ? new Date(value).toISOString().slice(0, 16) : '')
+// datetime-local inputs read/write in the browser's local time, not UTC --
+// toISOString() would silently shift the displayed value by the local
+// timezone offset (e.g. 8 hours off in the Philippines).
+const pad = (n) => String(n).padStart(2, '0')
+const toLocalInputDate = (date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+const toInputDate = (value) => (value ? toLocalInputDate(new Date(value)) : '')
 
 export default function MerchantFollowups() {
   const [requests, setRequests] = useState([])
@@ -82,7 +87,7 @@ export default function MerchantFollowups() {
   }
 
   const filtered = filter === 'all' ? requests : requests.filter((r) => r.status === filter)
-  const minDate = new Date(Date.now() + 3600000).toISOString().slice(0, 16)
+  const minDate = toLocalInputDate(new Date(Date.now() + 3600000))
 
   if (loading) return <div className="flex justify-center py-24"><Spinner /></div>
 
