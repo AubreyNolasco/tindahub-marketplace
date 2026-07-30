@@ -160,7 +160,7 @@ export default function SupportChatThread({ threadUserId, title, subtitle, onBac
       .maybeSingle()
     setSending(false)
     if (error) {
-      toast.error(error.message)
+      toast.error(error.message === 'BAD_WORDS_NOT_ALLOWED_IN_CHAT' ? 'Please keep this chat respectful — that message contains language that isn\'t allowed.' : error.message)
       return
     }
     setText('')
