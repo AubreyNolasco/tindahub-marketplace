@@ -20,6 +20,7 @@ import MerchantStore from './pages/MerchantStore'
 import Policy from './pages/Policy'
 import Login from './pages/Auth/Login'
 import PendingApproval from './pages/Auth/PendingApproval'
+import SubscriptionLocked from './pages/Merchant/SubscriptionLocked'
 import ChooseSubscription from './pages/Auth/ChooseSubscription'
 import AuthCallback from './pages/Auth/AuthCallback'
 import AuthContinue from './pages/Auth/AuthContinue'
@@ -151,6 +152,7 @@ export default function App() {
                 <Route path="/device-access" element={<DeviceAccessAction />} />
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/pending-approval" element={<PendingApproval />} />
+                <Route path="/subscription-locked" element={<SubscriptionLocked />} />
                 <Route path="/choose-subscription" element={<ChooseSubscription />} />
                 <Route path="/merchant-permit" element={<ProtectedRoute allowedRoles={['merchant']}><BusinessPermit /></ProtectedRoute>} />
                 <Route path="/verify-id" element={<IdVerification />} />

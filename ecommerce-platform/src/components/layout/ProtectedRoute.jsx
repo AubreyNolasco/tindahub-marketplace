@@ -26,6 +26,14 @@ export default function ProtectedRoute({ children, allowedRoles }) {
   // and /pending-approval, /merchant-permit remain reachable as normal
   // pages rather than forced redirects.
 
+  // Merchant free/paid subscription lapsed: this is a stricter, full
+  // dashboard lockout (not just "can't operate"), so it redirects unlike
+  // the checks above.
+  const merchantExpiry = profile?.merchant_profiles?.subscription_expires_at
+  if (role === 'merchant' && (!merchantExpiry || new Date(merchantExpiry) <= new Date())) {
+    return <Navigate to="/subscription-locked" replace />
+  }
+
   if (allowedRoles && !allowedRoles.includes(role) && role !== 'admin') {
     return <Navigate to="/" replace />
   }
