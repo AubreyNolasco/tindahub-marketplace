@@ -10,6 +10,7 @@ export default function RestrictedAccountBanner() {
   const { role, profile } = useAuth()
   const [followup, setFollowup] = useState(null)
   const [loadingFollowup, setLoadingFollowup] = useState(role === 'merchant')
+  const [hasTopupRequest, setHasTopupRequest] = useState(null)
   const [reason, setReason] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -30,6 +31,16 @@ export default function RestrictedAccountBanner() {
       .limit(1)
       .maybeSingle()
       .then(({ data }) => { if (active) { setFollowup(data); setLoadingFollowup(false) } })
+    return () => { active = false }
+  }, [role])
+
+  useEffect(() => {
+    if (role !== 'reseller') return
+    let active = true
+    supabase
+      .from('topup_requests')
+      .select('id', { count: 'exact', head: true })
+      .then(({ count }) => { if (active) setHasTopupRequest((count || 0) > 0) })
     return () => { active = false }
   }, [role])
 
@@ -61,11 +72,16 @@ export default function RestrictedAccountBanner() {
                   ? 'Your application was not approved. Contact Admin for details.'
                   : 'You can browse your workspace now, but placing orders and adding customers stays locked until Admin approves your ID verification and initial wallet top-up.'}
               </p>
-              {profile?.id_verification_status !== 'approved' && (
-                <Link to="/verify-id" className="btn-secondary mt-3 inline-flex px-4 py-2 text-xs">
-                  {profile?.id_verification_status === 'pending' ? 'View verification status' : 'Verify your identity'}
-                </Link>
-              )}
+              <div className="mt-3 flex flex-wrap gap-2">
+                {profile?.id_verification_status !== 'approved' && (
+                  <Link to="/verify-id" className="btn-secondary px-4 py-2 text-xs">
+                    {profile?.id_verification_status === 'pending' ? 'View verification status' : 'Verify your identity'}
+                  </Link>
+                )}
+                {hasTopupRequest === false && (
+                  <Link to="/reseller/wallet" className="btn-primary px-4 py-2 text-xs">Top up your wallet</Link>
+                )}
+              </div>
             </>
           ) : (
             <>

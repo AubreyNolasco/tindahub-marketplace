@@ -1,15 +1,13 @@
 import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { BadgeCheck, Loader2, Store, Upload, Users } from "lucide-react";
+import { BadgeCheck, Loader2, Store, Users } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../lib/supabase";
-import { cleanText, compressImage, safeUploadPath, validateImage, validatePaymentReference } from "../../utils/security";
+import { cleanText } from "../../utils/security";
 import { COMPLETE_ADDRESS_HELP, isCompleteAddress } from "../../utils/address";
 import Spinner from "../../components/ui/Spinner";
 import ProfileLoadError from "../../components/auth/ProfileLoadError";
-import BankTransferQr from "../../components/payment/BankTransferQr";
-import { ensurePaymentReferenceAvailable, paymentReferenceErrorMessage } from "../../lib/paymentReference";
 
 export default function Onboarding() {
   const { user, profile, loading, profileError, refreshProfile, signOut } =
@@ -19,10 +17,6 @@ export default function Onboarding() {
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [businessName, setBusinessName] = useState("");
-  const [topupAmount, setTopupAmount] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("gcash");
-  const [referenceNumber, setReferenceNumber] = useState("");
-  const [proofFile, setProofFile] = useState(null);
   const [saving, setSaving] = useState(false);
 
   if (loading)
@@ -48,50 +42,23 @@ export default function Onboarding() {
       return toast.error("Please enter your complete address.");
     if (role === "merchant" && businessName.trim().length < 2)
       return toast.error("Please enter your business name.");
-    if (role === "reseller") {
-      if (Number(topupAmount) <= 0)
-        return toast.error("Enter your initial wallet top-up amount.");
-      const fileError = validateImage(proofFile);
-      if (fileError) return toast.error(fileError);
-      const referenceError = validatePaymentReference(referenceNumber);
-      if (referenceError) return toast.error(referenceError);
-    }
     setSaving(true);
     try {
-      let proofPath = null;
-      if (role === "reseller") {
-        await ensurePaymentReferenceAvailable(referenceNumber);
-        const compressedProof = await compressImage(proofFile);
-        proofPath = safeUploadPath(
-          user.id,
-          "email-onboarding-reseller",
-          compressedProof,
-        );
-        const { error: uploadError } = await supabase.storage
-          .from("payment-proofs")
-          .upload(proofPath, compressedProof);
-        if (uploadError) throw uploadError;
-      }
       const { error } = await supabase.rpc("complete_account_onboarding", {
         p_role: role,
         p_phone: cleanText(phone, 30),
         p_address: cleanText(address, 500),
         p_business_name:
           role === "merchant" ? cleanText(businessName, 160) : null,
-        p_topup_amount: role === "reseller" ? Number(topupAmount) : null,
-        p_payment_method: role === "reseller" ? paymentMethod : null,
-        p_reference_number:
-          role === "reseller" ? cleanText(referenceNumber, 120) : null,
-        p_proof_url: proofPath,
       });
       if (error) throw error;
       await refreshProfile();
       toast.success("Email verified. Complete the remaining approval steps.");
-      navigate(role === "merchant" ? "/merchant-permit" : "/pending-approval", {
+      navigate(role === "merchant" ? "/merchant-permit" : "/reseller", {
         replace: true,
       });
     } catch (error) {
-      toast.error(paymentReferenceErrorMessage(error));
+      toast.error(error.message);
     } finally {
       setSaving(false);
     }
@@ -186,60 +153,10 @@ export default function Onboarding() {
             </span>
           </label>
           {role === "reseller" && (
-            <>
-              <label className="block text-sm font-semibold text-ink/70">
-                Initial wallet top-up
-                <input
-                  required
-                  type="number"
-                  min="1"
-                  step="0.01"
-                  value={topupAmount}
-                  onChange={(event) => setTopupAmount(event.target.value)}
-                  className="input-field mt-1.5"
-                />
-              </label>
-              <label className="block text-sm font-semibold text-ink/70">
-                Payment method
-                <select
-                  value={paymentMethod}
-                  onChange={(event) => setPaymentMethod(event.target.value)}
-                  className="input-field mt-1.5"
-                >
-                  <option value="gcash">GCash</option>
-                  <option value="maya">Maya</option>
-                  <option value="bank_transfer">Bank Transfer</option>
-                </select>
-              </label>
-              <BankTransferQr />
-              <label className="block text-sm font-semibold text-ink/70">
-                Reference number
-                <input
-                  required
-                  minLength="6"
-                  value={referenceNumber}
-                  onChange={(event) => setReferenceNumber(event.target.value)}
-                  className="input-field mt-1.5"
-                  maxLength="120"
-                />
-                <span className="mt-1 block text-[11px] font-normal leading-4 text-ink/45">This reference can only be used once across all JOM HUB payment requests.</span>
-              </label>
-              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-teal-200 p-5 hover:bg-teal-50">
-                <Upload size={20} className="text-teal-600" />
-                <span className="min-w-0 truncate text-sm text-ink/60">
-                  {proofFile ? proofFile.name : "Upload payment screenshot"}
-                </span>
-                <input
-                  required
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(event) =>
-                    setProofFile(event.target.files?.[0] || null)
-                  }
-                />
-              </label>
-            </>
+            <p className="rounded-xl bg-mango-100/60 p-3 text-xs leading-5 text-ink/60 dark:bg-mango-500/10">
+              You can top up your wallet anytime from the Wallet page once you're in your
+              dashboard -- it's not required to finish signing up.
+            </p>
           )}
           <button
             disabled={saving}
