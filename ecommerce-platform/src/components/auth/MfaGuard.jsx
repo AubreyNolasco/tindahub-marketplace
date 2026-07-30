@@ -5,6 +5,11 @@ import { useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { supabase } from '../../lib/supabase'
 
+// Only this account is required to complete the authenticator-app (TOTP)
+// step. Everyone else (Reseller/Merchant) is fully signed in after their
+// single email OTP from Login.jsx -- MfaGuard must not intercept them.
+const ADMIN_MFA_EMAIL = 'nolascoaubrey32@gmail.com'
+
 export default function MfaGuard() {
   const { user, signOutLocal } = useAuth()
   const { pathname } = useLocation()
@@ -14,6 +19,7 @@ export default function MfaGuard() {
 
   const inspect = useCallback(async () => {
     if (!user) return setState({ status: 'signed_out' })
+    if (user.email?.trim().toLowerCase() !== ADMIN_MFA_EMAIL) return setState({ status: 'verified' })
     setState({ status: 'checking' })
     const [{ data: aal, error: aalError }, { data: factors, error: factorError }] = await Promise.all([
       supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
