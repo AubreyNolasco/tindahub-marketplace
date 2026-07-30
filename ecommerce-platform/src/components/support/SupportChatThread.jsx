@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowLeft, Send, Smile } from 'lucide-react'
+import { ArrowLeft, Send, Smile, SmilePlus } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
@@ -14,15 +14,29 @@ const QUICK_EMOJIS = [
   '💪', '✅', '❌', '📦', '💰', '🛒', '📍', '⏰'
 ]
 
+const QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🙏']
+
+function groupReactions(list) {
+  const groups = {}
+  for (const r of list) {
+    if (!groups[r.emoji]) groups[r.emoji] = []
+    groups[r.emoji].push(r)
+  }
+  return groups
+}
+
 export default function SupportChatThread({ threadUserId, title, subtitle, onBack }) {
   const { user } = useAuth()
   const [messages, setMessages] = useState([])
+  const [reactions, setReactions] = useState({})
+  const [reactingTo, setReactingTo] = useState(null)
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [showEmoji, setShowEmoji] = useState(false)
   const bottomRef = useRef(null)
   const emojiRef = useRef(null)
+  const reactionRef = useRef(null)
 
   useEffect(() => {
     if (!showEmoji) return
@@ -30,6 +44,13 @@ export default function SupportChatThread({ threadUserId, title, subtitle, onBac
     document.addEventListener('mousedown', close)
     return () => document.removeEventListener('mousedown', close)
   }, [showEmoji])
+
+  useEffect(() => {
+    if (!reactingTo) return
+    const close = (event) => { if (reactionRef.current && !reactionRef.current.contains(event.target)) setReactingTo(null) }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [reactingTo])
 
   useEffect(() => {
     load()
@@ -41,6 +62,28 @@ export default function SupportChatThread({ threadUserId, title, subtitle, onBac
         { event: 'INSERT', schema: 'public', table: 'support_messages', filter: `user_id=eq.${threadUserId}` },
         (payload) => {
           setMessages((prev) => (prev.some((m) => m.id === payload.new.id) ? prev : [...prev, payload.new]))
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'support_message_reactions' },
+        (payload) => {
+          setReactions((prev) => {
+            const list = prev[payload.new.message_id] || []
+            if (list.some((r) => r.id === payload.new.id)) return prev
+            return { ...prev, [payload.new.message_id]: [...list, payload.new] }
+          })
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'support_message_reactions' },
+        (payload) => {
+          setReactions((prev) => {
+            const next = {}
+            for (const [messageId, list] of Object.entries(prev)) next[messageId] = list.filter((r) => r.id !== payload.old.id)
+            return next
+          })
         }
       )
       .subscribe()
@@ -66,12 +109,43 @@ export default function SupportChatThread({ threadUserId, title, subtitle, onBac
     setMessages(data || [])
     setLoading(false)
 
+    if (data?.length) {
+      const { data: reactionRows } = await supabase
+        .from('support_message_reactions')
+        .select('*')
+        .in('message_id', data.map((m) => m.id))
+      const grouped = {}
+      for (const r of reactionRows || []) {
+        if (!grouped[r.message_id]) grouped[r.message_id] = []
+        grouped[r.message_id].push(r)
+      }
+      setReactions(grouped)
+    }
+
     await supabase
       .from('support_messages')
       .update({ is_read: true })
       .eq('user_id', threadUserId)
       .eq('is_read', false)
       .neq('sender_id', user.id)
+  }
+
+  const toggleReaction = async (messageId, emoji) => {
+    const existing = (reactions[messageId] || []).find((r) => r.emoji === emoji && r.user_id === user.id)
+    setReactingTo(null)
+    if (existing) {
+      const { error } = await supabase.from('support_message_reactions').delete().eq('id', existing.id)
+      if (error) return toast.error(error.message)
+      setReactions((prev) => ({ ...prev, [messageId]: (prev[messageId] || []).filter((r) => r.id !== existing.id) }))
+      return
+    }
+    const { data, error } = await supabase
+      .from('support_message_reactions')
+      .insert({ message_id: messageId, user_id: user.id, emoji })
+      .select()
+      .maybeSingle()
+    if (error) return toast.error(error.message)
+    if (data) setReactions((prev) => ({ ...prev, [messageId]: [...(prev[messageId] || []), data] }))
   }
 
   const handleSend = async (e) => {
@@ -119,16 +193,72 @@ export default function SupportChatThread({ threadUserId, title, subtitle, onBac
         ) : (
           messages.map((m) => {
             const isOwn = m.sender_id === user.id
+            const messageReactions = groupReactions(reactions[m.id] || [])
             return (
-              <div key={m.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
-                <div
-                  className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm ${
-                    isOwn ? 'bg-teal-500 text-white rounded-br-sm' : 'bg-teal-50 text-ink rounded-bl-sm dark:bg-teal-500/15'
-                  }`}
-                >
-                  <p>{m.message}</p>
-                  <p className={`text-[10px] mt-1 ${isOwn ? 'text-teal-100' : 'text-ink/40'}`}>{formatTime(m.created_at)}</p>
+              <div key={m.id} className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
+                <div className="group relative flex items-end gap-1.5">
+                  {isOwn && (
+                    <button
+                      type="button"
+                      onClick={() => setReactingTo((current) => (current === m.id ? null : m.id))}
+                      className="mb-1 shrink-0 rounded-full p-1.5 text-ink/30 opacity-0 transition hover:bg-teal-50 hover:text-teal-700 group-hover:opacity-100"
+                      aria-label="React to message"
+                    >
+                      <SmilePlus size={15} />
+                    </button>
+                  )}
+                  <div
+                    className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm ${
+                      isOwn ? 'bg-teal-500 text-white rounded-br-sm' : 'bg-teal-50 text-ink rounded-bl-sm dark:bg-teal-500/15'
+                    }`}
+                  >
+                    <p>{m.message}</p>
+                    <p className={`text-[10px] mt-1 ${isOwn ? 'text-teal-100' : 'text-ink/40'}`}>{formatTime(m.created_at)}</p>
+                  </div>
+                  {!isOwn && (
+                    <button
+                      type="button"
+                      onClick={() => setReactingTo((current) => (current === m.id ? null : m.id))}
+                      className="mb-1 shrink-0 rounded-full p-1.5 text-ink/30 opacity-0 transition hover:bg-teal-50 hover:text-teal-700 group-hover:opacity-100"
+                      aria-label="React to message"
+                    >
+                      <SmilePlus size={15} />
+                    </button>
+                  )}
+                  {reactingTo === m.id && (
+                    <div ref={reactionRef} className={`absolute bottom-full z-10 mb-1 flex gap-0.5 rounded-full border border-black/10 bg-surface p-1.5 shadow-xl ${isOwn ? 'right-0' : 'left-0'}`}>
+                      {QUICK_REACTIONS.map((emoji) => (
+                        <button
+                          key={emoji}
+                          type="button"
+                          onClick={() => toggleReaction(m.id, emoji)}
+                          className="grid h-8 w-8 place-items-center rounded-full text-base hover:bg-teal-50"
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
+                {Object.keys(messageReactions).length > 0 && (
+                  <div className={`mt-1 flex flex-wrap gap-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
+                    {Object.entries(messageReactions).map(([emoji, list]) => {
+                      const mine = list.some((r) => r.user_id === user.id)
+                      return (
+                        <button
+                          key={emoji}
+                          type="button"
+                          onClick={() => toggleReaction(m.id, emoji)}
+                          className={`rounded-full border px-1.5 py-0.5 text-[11px] font-semibold ${
+                            mine ? 'border-teal-400 bg-teal-50 text-teal-700' : 'border-black/10 bg-surface text-ink/60'
+                          }`}
+                        >
+                          {emoji} {list.length}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
             )
           })
