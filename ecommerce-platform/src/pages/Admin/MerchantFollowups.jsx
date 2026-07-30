@@ -22,7 +22,7 @@ const toInputDate = (value) => (value ? toLocalInputDate(new Date(value)) : '')
 export default function MerchantFollowups() {
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('pending')
+  const [filter, setFilter] = useState('all')
   const [reviewModal, setReviewModal] = useState(null) // { id, business_name, operate_until }
   const [adjustModal, setAdjustModal] = useState(null) // { merchant_id, business_name, operate_until }
 

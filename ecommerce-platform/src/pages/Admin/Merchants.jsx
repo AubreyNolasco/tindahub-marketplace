@@ -106,7 +106,7 @@ export default function Merchants() {
       <h1 className="font-display font-bold text-2xl text-ink mb-6">Merchants</h1>
 
       <div className="mb-6 flex gap-2 overflow-x-auto pb-2">
-        {['pending', 'approved', 'rejected', 'all'].map((f) => (
+        {['pending', 'approved', 'rejected', 'suspended', 'all'].map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}

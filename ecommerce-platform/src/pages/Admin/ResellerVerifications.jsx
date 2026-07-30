@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { IdCard, Check, X, Eye, FileWarning } from 'lucide-react'
+import { IdCard, Check, X, Eye, FileWarning, Ban } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { formatDate } from '../../utils/format'
@@ -13,10 +13,17 @@ const STATUS_COLORS = {
   rejected: 'bg-coral-100 text-coral-600'
 }
 
+const ACCOUNT_STATUS_COLORS = {
+  pending: 'bg-mango-100 text-mango-700',
+  approved: 'bg-teal-100 text-teal-700',
+  rejected: 'bg-coral-100 text-coral-600',
+  suspended: 'bg-ink/10 text-ink/60'
+}
+
 export default function ResellerVerifications() {
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('pending')
+  const [filter, setFilter] = useState('all')
 
   useEffect(() => {
     load()
@@ -54,6 +61,14 @@ export default function ResellerVerifications() {
     load()
   }
 
+  const updateAccountStatus = async (row, status) => {
+    if (status === 'suspended' && !window.confirm(`Suspend ${row.full_name}'s reseller account? They will not be able to place orders or manage customers until reinstated.`)) return
+    const { error } = await supabase.from('profiles').update({ account_status: status }).eq('id', row.id)
+    if (error) return toast.error(error.message)
+    toast.success(status === 'suspended' ? 'Reseller account suspended.' : 'Reseller account reinstated.')
+    load()
+  }
+
   const filtered = filter === 'all' ? rows : rows.filter((r) => (r.id_verification_status || 'missing') === filter)
 
   if (loading) return <div className="flex justify-center py-24"><Spinner /></div>
@@ -88,7 +103,7 @@ export default function ResellerVerifications() {
                   <p className="text-xs text-ink/40">Joined {formatDate(r.created_at)}</p>
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     <span className={`badge capitalize ${STATUS_COLORS[status]}`}>ID verification: {status}</span>
-                    <span className={`badge capitalize ${STATUS_COLORS[r.account_status] || 'bg-ink/10 text-ink/60'}`}>Account: {r.account_status}</span>
+                    <span className={`badge capitalize ${ACCOUNT_STATUS_COLORS[r.account_status] || 'bg-ink/10 text-ink/60'}`}>Account: {r.account_status}</span>
                     {!r.id_verification_selfie_url && !r.id_verification_document_url && (
                       <span className="flex items-center gap-1 text-xs text-coral-600"><FileWarning size={13} /> No documents</span>
                     )}
@@ -117,6 +132,16 @@ export default function ResellerVerifications() {
                         <X size={13} /> Reject
                       </button>
                     </>
+                  )}
+                  {r.account_status === 'approved' && (
+                    <button onClick={() => updateAccountStatus(r, 'suspended')} className="flex items-center gap-1 rounded-xl bg-ink/10 px-3 py-1.5 text-xs font-semibold text-ink/60">
+                      <Ban size={13} /> Suspend
+                    </button>
+                  )}
+                  {r.account_status === 'suspended' && (
+                    <button onClick={() => updateAccountStatus(r, 'approved')} className="btn-primary px-3 py-1.5 text-xs">
+                      Reinstate
+                    </button>
                   )}
                 </div>
               </div>
