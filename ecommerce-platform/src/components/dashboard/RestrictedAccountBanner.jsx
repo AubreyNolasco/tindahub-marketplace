@@ -61,7 +61,7 @@ export default function RestrictedAccountBanner() {
   }
 
   return (
-    <div className={`mx-4 mt-4 rounded-2xl border p-4 text-sm sm:mx-6 lg:mx-8 ${suspended ? 'border-coral-300 bg-coral-100/70 dark:border-coral-800 dark:bg-coral-500/10' : 'border-mango-300 bg-mango-100/70 dark:border-mango-700 dark:bg-mango-500/10'}`}>
+    <div className={`mx-4 mt-4 rounded-2xl border p-4 text-sm sm:mx-6 lg:mx-8 ${suspended ? 'border-coral-300 bg-coral-100/70 dark:border-coral-700 dark:bg-coral-500/10' : 'border-mango-300 bg-mango-100/70 dark:border-mango-700 dark:bg-mango-500/10'}`}>
       <div className="flex items-start gap-3">
         {suspended ? <Ban size={19} className="mt-0.5 shrink-0 text-coral-600" /> : <AlertCircle size={19} className="mt-0.5 shrink-0 text-mango-600" />}
         <div className="min-w-0 flex-1">

@@ -10,9 +10,10 @@ const lanes = [
     subtitle: 'How each role enters the system',
     tone: 'teal',
     steps: [
-      { icon: UserRound, role: 'User', title: 'Choose a role', text: 'Register as Merchant or Reseller.' },
-      { icon: ShieldCheck, role: 'Admin', title: 'Review account', text: 'Merchant permit and subscription payment are reviewed. Resellers have no subscription fee.' },
-      { icon: BadgeCheck, role: 'System', title: 'Open the workspace', text: 'Approved users enter the dashboard for their assigned role.' }
+      { icon: UserRound, role: 'User', title: 'Register & choose a role', text: 'Verify Gmail with a 6-digit OTP, then choose Merchant or Reseller and complete the profile.' },
+      { icon: BadgeCheck, role: 'System', title: 'Dashboard opens immediately', text: 'No waiting for approval -- the account lands in its dashboard right away and can browse freely from the start.' },
+      { icon: ShieldCheck, role: 'Admin', title: 'Review requirements', text: 'Merchant permit + subscription, or Reseller ID verification + wallet top-up (submitted whenever ready, not required at signup), are reviewed. A Merchant may request temporary access while the permit is pending.' },
+      { icon: PackageCheck, role: 'System', title: 'Unlock full operations', text: 'Posting products or placing orders stays locked until Admin approves -- or a temporary access window is active. Admin can suspend an already-approved account at any time.' }
     ]
   },
   {
@@ -60,16 +61,16 @@ const lanes = [
 
 const tones = {
   teal: 'border-teal-200 bg-teal-50 text-teal-800',
-  mango: 'border-mango-200 bg-mango-50 text-mango-800',
-  coral: 'border-coral-200 bg-coral-50 text-coral-800',
+  mango: 'border-mango-200 bg-mango-100 text-mango-700',
+  coral: 'border-coral-200 bg-coral-100 text-coral-700',
   violet: 'border-violet-200 bg-violet-50 text-violet-800',
   blue: 'border-sky-200 bg-sky-50 text-sky-800'
 }
 
 const roleTones = {
   Admin: 'bg-slate-800 text-white',
-  Merchant: 'bg-mango-100 text-mango-800',
-  Reseller: 'bg-coral-100 text-coral-800',
+  Merchant: 'bg-mango-100 text-mango-700',
+  Reseller: 'bg-coral-100 text-coral-700',
   Customer: 'bg-violet-100 text-violet-800',
   System: 'bg-teal-100 text-teal-800',
   User: 'bg-sky-100 text-sky-800'
@@ -149,7 +150,7 @@ export default function SystemFlowchart() {
         ))}
       </div>
 
-      <aside className="mt-6 rounded-2xl border border-mango-200 bg-mango-50 p-5">
+      <aside className="mt-6 rounded-2xl border border-mango-200 bg-mango-100 p-5">
         <div className="flex items-start gap-3">
           <RefreshCw size={20} className="mt-0.5 shrink-0 text-mango-700" />
           <div>

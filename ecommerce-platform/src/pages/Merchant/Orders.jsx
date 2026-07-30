@@ -219,8 +219,8 @@ export default function Orders() {
 
             {/* Open Cases */}
             {selectedOrder.order_cases?.filter(c => ['open', 'merchant_review', 'admin_review'].includes(c.status)).map(c => (
-              <div key={c.id} className="mt-4 rounded-xl bg-coral-50 p-4">
-                <p className="font-bold capitalize text-coral-800">{c.case_type}</p>
+              <div key={c.id} className="mt-4 rounded-xl bg-coral-100 p-4">
+                <p className="font-bold capitalize text-coral-700">{c.case_type}</p>
                 <p className="text-sm text-coral-700 mt-1">{c.reason}</p>
                 {c.status === 'merchant_review' && (
                   <div className="mt-3 flex gap-2">

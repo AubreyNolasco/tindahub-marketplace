@@ -62,7 +62,7 @@ export default function DeliveryModal({order,open,onClose,onSaved}){
       ) : (
         <form onSubmit={submit}>
           {bookingFailed && (
-            <div className="mt-5 rounded-xl border border-coral-200 bg-coral-50 p-3 text-sm text-coral-800">
+            <div className="mt-5 rounded-xl border border-coral-200 bg-coral-100 p-3 text-sm text-coral-700">
               <strong>Automatic Lalamove booking failed:</strong> {booking.failure_reason || 'Unknown error.'} Please dispatch manually below.
             </div>
           )}
