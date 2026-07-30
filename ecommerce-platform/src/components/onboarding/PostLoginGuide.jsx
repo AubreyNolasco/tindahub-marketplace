@@ -15,16 +15,16 @@ function guideFor(profile, role) {
     to: '/onboarding'
   }
   if (profile?.account_status !== 'approved' && role === 'merchant') return {
-    eyebrow: 'Merchant application', title: 'Complete your Merchant activation',
-    message: 'Your workspace opens after the required documents and payment are reviewed.', icon: Store,
-    steps: ['Upload a readable business permit.', 'Choose a subscription and submit payment proof.', 'Wait for Admin approval.'],
+    eyebrow: 'Merchant application', title: 'Welcome to your Merchant dashboard',
+    message: 'You can browse your dashboard now, but posting products stays locked until your permit is approved.', icon: Store,
+    steps: ['Upload a readable business permit.', 'Choose a subscription and submit payment proof.', 'Need to sell sooner? Request temporary access from your dashboard while it is reviewed.'],
     action: 'Continue Merchant setup', to: '/merchant-permit'
   }
   if (profile?.account_status !== 'approved' && role === 'reseller') return {
-    eyebrow: 'Reseller application', title: 'Your application is being reviewed',
-    message: 'Admin must verify your initial wallet top-up before the workspace is activated.', icon: Users,
-    steps: ['Keep your payment reference and proof.', 'Wait for the Admin verification result.', 'Return here later to check your account status.'],
-    action: 'View application status', to: '/pending-approval'
+    eyebrow: 'Reseller application', title: 'Welcome to your Reseller dashboard',
+    message: 'You can browse your dashboard now, but placing orders and adding customers stays locked until Admin approves your ID verification and wallet top-up.', icon: Users,
+    steps: ['Verify your identity.', 'Top up your wallet whenever you are ready -- both need Admin approval.', 'Your dashboard shows what is still pending.'],
+    action: 'Open Reseller dashboard', to: '/reseller'
   }
   if (role === 'merchant') return {
     eyebrow: 'Merchant next steps', title: 'Start managing your store',
