@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowLeft, Send } from 'lucide-react'
+import { ArrowLeft, Send, Smile } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
@@ -8,13 +8,28 @@ function formatTime(dateStr) {
   return new Date(dateStr).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' })
 }
 
+const QUICK_EMOJIS = [
+  '😀', '😂', '🙂', '😊', '😍', '👍', '👎', '🙏',
+  '❤️', '🔥', '🎉', '👏', '😢', '😡', '🤔', '👋',
+  '💪', '✅', '❌', '📦', '💰', '🛒', '📍', '⏰'
+]
+
 export default function SupportChatThread({ threadUserId, title, subtitle, onBack }) {
   const { user } = useAuth()
   const [messages, setMessages] = useState([])
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
+  const [showEmoji, setShowEmoji] = useState(false)
   const bottomRef = useRef(null)
+  const emojiRef = useRef(null)
+
+  useEffect(() => {
+    if (!showEmoji) return
+    const close = (event) => { if (emojiRef.current && !emojiRef.current.contains(event.target)) setShowEmoji(false) }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [showEmoji])
 
   useEffect(() => {
     load()
@@ -121,8 +136,30 @@ export default function SupportChatThread({ threadUserId, title, subtitle, onBac
         <div ref={bottomRef} />
       </div>
 
-      <div className="border-t border-black/5 flex-shrink-0">
+      <div className="relative border-t border-black/5 flex-shrink-0">
+        {showEmoji && (
+          <div ref={emojiRef} className="absolute bottom-full left-3 z-10 mb-2 grid grid-cols-8 gap-1 rounded-2xl border border-black/10 bg-surface p-3 shadow-2xl">
+            {QUICK_EMOJIS.map((emoji) => (
+              <button
+                key={emoji}
+                type="button"
+                onClick={() => { setText((current) => (current + emoji).slice(0, 2000)); setShowEmoji(false) }}
+                className="grid h-9 w-9 place-items-center rounded-lg text-lg hover:bg-teal-50"
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        )}
         <form onSubmit={handleSend} className="flex items-center gap-2 p-3">
+          <button
+            type="button"
+            onClick={() => setShowEmoji((value) => !value)}
+            className="grid h-11 w-11 flex-shrink-0 place-items-center rounded-xl text-ink/50 hover:bg-teal-50 hover:text-teal-700"
+            aria-label="Add emoji"
+          >
+            <Smile size={19} />
+          </button>
           <input
             className="input-field flex-1"
             placeholder="Type a message..."
