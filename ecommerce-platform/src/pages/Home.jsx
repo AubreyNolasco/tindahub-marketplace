@@ -437,7 +437,7 @@ export default function Home() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-teal-600">What our community says</p>
-          <h2 className="mt-3 font-display text-3xl font-extrabold leading-tight text-teal-950 dark:text-ink sm:text-4xl">Trusted by Filipino entrepreneurs.</h2>
+          <h2 className="mt-3 font-display text-2xl font-bold leading-tight text-teal-950 dark:text-ink sm:text-3xl">Trusted by Filipino entrepreneurs.</h2>
         </div>
         <div className="mt-10 mx-auto max-w-4xl">
           <div className="relative overflow-hidden rounded-[2rem] border border-teal-100 bg-surface p-6 shadow-xl sm:p-10">
