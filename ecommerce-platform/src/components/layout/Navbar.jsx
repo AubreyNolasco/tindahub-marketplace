@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ShoppingCart, House, Package, LayoutDashboard, ShieldCheck, LogOut, User, Handshake, Menu, X, Sun, Moon } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
@@ -12,8 +12,16 @@ export default function Navbar() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
   const { theme, toggleTheme } = useTheme()
   const customerStorefront = pathname.startsWith('/store/') || pathname.startsWith('/reseller-store/')
+
+  useEffect(() => {
+    const onScroll = () => setIsScrolled(window.scrollY > 10)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   const handleSignOut = async () => {
     setMenuOpen(false)
@@ -26,7 +34,7 @@ export default function Navbar() {
   if (customerStorefront) return null
 
   return (
-    <header className="sticky top-0 z-40 border-b border-black/[0.05] bg-[#f7faf7]/90 shadow-[0_8px_30px_rgba(7,59,37,0.05)] backdrop-blur-xl dark:border-white/10 dark:bg-[#07120d]/90">
+    <header className={`sticky top-0 z-40 transition-all duration-300 ${isScrolled ? 'border-b border-black/[0.05] bg-[#f7faf7]/90 shadow-[0_8px_30px_rgba(7,59,37,0.05)] backdrop-blur-xl dark:border-white/10 dark:bg-[#07120d]/90' : 'border-b border-transparent bg-transparent'}`}>
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-3 sm:px-6">
         <Link to="/" className="block shrink-0" onClick={() => setMenuOpen(false)} aria-label="JOM HUB home">
           <img src={theme === 'dark' ? '/rmhub-logo-dark.svg' : '/rmhub-logo.svg'} alt="JOM HUB" className="h-9 w-auto sm:h-12" />

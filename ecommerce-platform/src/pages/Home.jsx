@@ -96,26 +96,26 @@ export default function Home() {
     {/* ===== HERO SECTION ===== */}
     <section className="relative">
       <div className="absolute inset-x-0 top-0 -z-0 h-[700px] bg-[radial-gradient(circle_at_80%_15%,rgba(242,169,59,0.18),transparent_28%),radial-gradient(circle_at_10%_15%,rgba(22,121,75,0.14),transparent_28%)]" />
-      <div className="relative mx-auto grid max-w-7xl items-center gap-8 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[1fr_1.05fr] lg:gap-14 lg:py-24">
+      <div className="relative mx-auto grid max-w-7xl items-center gap-8 px-4 py-6 sm:px-6 sm:py-10 lg:grid-cols-[1fr_1.05fr] lg:gap-14 lg:py-16">
         <div className="order-2 lg:order-1">
-          <span className="inline-flex items-center gap-2 rounded-full border border-teal-100 bg-white/80 px-3.5 py-2 text-xs font-bold text-teal-700 shadow-sm backdrop-blur"><Sparkles size={14} className="text-mango-600" /> {content.eyebrow}</span>
-          <h1 className="mt-5 max-w-2xl font-display text-[2rem] font-extrabold leading-[1.05] tracking-tight text-ink sm:text-5xl lg:text-[3.55rem]">{content.title}</h1>
-          <p className="mt-4 max-w-xl text-sm leading-7 text-ink/65 sm:text-base lg:text-lg">{content.description}</p>
-          <div className="mt-4 inline-flex max-w-full items-center gap-3 rounded-2xl border border-teal-100 bg-white/80 px-4 py-3 shadow-sm backdrop-blur dark:border-teal-900/50 dark:bg-black/40">
+          <span className="animate-in-delay-1 inline-flex items-center gap-2 rounded-full border border-teal-100 bg-white/80 px-3.5 py-2 text-xs font-bold text-teal-700 shadow-sm backdrop-blur"><Sparkles size={14} className="text-mango-600" /> {content.eyebrow}</span>
+          <h1 className="animate-in-delay-2 mt-5 max-w-2xl font-display text-responsive-hero font-extrabold leading-[1.05] tracking-tight text-ink">{content.title}</h1>
+          <p className="animate-in-delay-3 mt-4 max-w-xl text-responsive-subtitle leading-7 text-ink/65">{content.description}</p>
+          <div className="animate-in-delay-3 mt-4 inline-flex max-w-full items-center gap-3 rounded-2xl border border-teal-100 bg-white/80 px-4 py-3 shadow-sm backdrop-blur dark:border-teal-900/50 dark:bg-black/40">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-teal-700 text-white"><MailCheck size={20} /></span>
             <div><p className="text-sm font-bold text-ink">Secure 6-digit email verification</p><p className="text-xs leading-5 text-ink/50">A one-time code sent to your Gmail — no password needed.</p></div>
           </div>
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-            {!user && <Link to="/signup" style={{ backgroundColor: content.hero_accent }} className="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3.5 font-semibold text-white transition hover:opacity-90">{content.hero_button || 'Start your business'} <ArrowRight size={18} /></Link>}
+          <div className="animate-in-delay-4 mt-6 flex flex-col gap-3 sm:flex-row">
+            {!user && <Link to="/signup" style={{ backgroundColor: content.hero_accent }} className="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3.5 font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0">{content.hero_button || 'Start your business'} <ArrowRight size={18} /></Link>}
             {user ? <Link to="/catalog" className="btn-secondary inline-flex items-center justify-center gap-2 px-6 py-3.5">Explore products <ShoppingBag size={17} /></Link> : <Link to="/login" className="btn-secondary inline-flex items-center justify-center gap-2 px-6 py-3.5">Sign in to view products <ShoppingBag size={17} /></Link>}
           </div>
-          <div className="mt-5 grid max-w-xl grid-cols-1 gap-2 text-sm font-medium text-ink/55 sm:grid-cols-3">
+          <div className="animate-in-delay-4 mt-5 grid max-w-xl grid-cols-1 gap-2 text-responsive-body font-medium text-ink/55 sm:grid-cols-3">
             {['Protected product catalog', 'Curated Reseller stores', 'Mobile-ready access'].map((item) => <span key={item} className="flex items-center gap-1.5"><CheckCircle2 size={16} className="shrink-0 text-teal-500" /> {item}</span>)}
           </div>
         </div>
         <div className="relative mx-auto w-full max-w-2xl lg:max-w-none order-1 lg:order-2">
           <div className="absolute -inset-3 rotate-2 rounded-[2rem] bg-teal-100/80 hidden sm:block" />
-          <div className={`relative overflow-hidden ${heroRadius} shadow-2xl shadow-teal-900/20`}>
+          <div className={`relative overflow-hidden ${heroRadius} shadow-2xl shadow-teal-900/20 animate-in`}>
             <img
               src={safeImageUrl(content.hero_image, fallback.hero_image)}
               alt="Filipino market vendors running their small business in Baguio"
@@ -127,14 +127,14 @@ export default function Home() {
           </div>
           {/* Floating Cards */}
           <div className="absolute -bottom-4 left-2 right-2 flex gap-2 sm:left-4 sm:right-auto sm:w-auto sm:flex-col sm:gap-2">
-            <div className="flex items-center gap-2 rounded-2xl border border-black/5 bg-surface p-3 shadow-xl sm:p-4">
+            <div className="float-animation flex items-center gap-2 rounded-2xl border border-black/5 bg-surface p-3 shadow-xl sm:p-4">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-mango-100 text-mango-600"><TrendingUp size={18} /></span>
               <div className="min-w-0">
                 <p className="text-[11px] font-medium text-ink/45">Built for</p>
                 <p className="font-display text-sm font-bold text-ink">Filipino businesses</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 rounded-2xl border border-black/5 bg-white/95 p-3 shadow-xl backdrop-blur dark:border-white/10 dark:bg-surface/95 sm:p-4">
+            <div className="float-animation-delayed flex items-center gap-2 rounded-2xl border border-black/5 bg-white/95 p-3 shadow-xl backdrop-blur dark:border-white/10 dark:bg-surface/95 sm:p-4">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-teal-600"><ShieldCheck size={18} /></span>
               <div className="min-w-0">
                 <p className="text-[11px] font-medium text-ink/45">Secure</p>
