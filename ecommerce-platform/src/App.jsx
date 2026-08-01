@@ -13,12 +13,6 @@ import MfaGuard from './components/auth/MfaGuard'
 import DemoModeBanner from './components/system/DemoModeBanner'
 
 import Home from './pages/Home'
-import HowItWorks from './pages/HowItWorks'
-import ForMerchants from './pages/ForMerchants'
-import ForResellers from './pages/ForResellers'
-import Services from './pages/Services'
-import Testimonials from './pages/Testimonials'
-import Faq from './pages/Faq'
 import NotFound from './pages/NotFound'
 import Catalog from './pages/Catalog'
 import ProductDetail from './pages/ProductDetail'
@@ -104,6 +98,8 @@ import AccountSettings from './pages/AccountSettings'
 import AdminRegistrations from './pages/Admin/Registrations'
 import BusinessPermit from './pages/Merchant/BusinessPermit'
 import StaffManagement from './pages/Admin/StaffManagement'
+import AdminDeliveryProviders from './pages/Admin/DeliveryProviders'
+import MerchantDeliverySettings from './pages/Merchant/DeliverySettings'
 import LegalSettings from './pages/Admin/LegalSettings'
 import ProcessGuide from './pages/Admin/ProcessGuide'
 import SystemFlowchart from './pages/Admin/SystemFlowchart'
@@ -147,12 +143,6 @@ export default function App() {
             <main className="flex-1">
               <Routes>
 <Route path="/" element={<Home />} />
-                <Route path="/how-it-works" element={<HowItWorks />} />
-                <Route path="/for-merchants" element={<ForMerchants />} />
-                <Route path="/for-resellers" element={<ForResellers />} />
-                <Route path="/services" element={<Services />} />
-                <Route path="/testimonials" element={<Testimonials />} />
-                <Route path="/faq" element={<Faq />} />
                 <Route path="/catalog" element={<ProtectedRoute allowedRoles={['reseller','merchant','admin','staff']}><Catalog /></ProtectedRoute>} />
                 <Route path="/product/:id" element={<ProtectedRoute allowedRoles={['reseller','merchant','admin','staff']}><ProductDetail /></ProtectedRoute>} />
                 <Route path="/merchant-store/:id" element={<ProtectedRoute allowedRoles={['reseller','merchant','admin','staff']}><MerchantStore /></ProtectedRoute>} />
@@ -210,6 +200,7 @@ export default function App() {
                   <Route path="chats/:resellerId" element={<MerchantChatDetail />} />
                   <Route path="support" element={<MerchantSupportChat />} />
                   <Route path="wallet" element={<WalletPage />} />
+                  <Route path="delivery" element={<MerchantDeliverySettings />} />
                   <Route path="address" element={<ProfileAddress merchant />} />
                   <Route path="account" element={<AccountSettings merchant />} />
                   <Route path="reports/sales" element={<MerchantSalesReport />} />
@@ -236,6 +227,7 @@ export default function App() {
                   <Route path="products/new" element={<AdminPermissionRoute adminOnly><ProductForm admin /></AdminPermissionRoute>} />
                   <Route path="products/:id/edit" element={<AdminPermissionRoute adminOnly><ProductForm admin /></AdminPermissionRoute>} />
                   <Route path="legal" element={<AdminPermissionRoute adminOnly><LegalSettings /></AdminPermissionRoute>} />
+                  <Route path="delivery-providers" element={<AdminPermissionRoute adminOnly><AdminDeliveryProviders /></AdminPermissionRoute>} />
                   <Route path="system-flowchart" element={<AdminPermissionRoute adminOnly><SystemFlowchart /></AdminPermissionRoute>} />
                   <Route path="process-guide" element={<AdminPermissionRoute adminOnly><ProcessGuide /></AdminPermissionRoute>} />
                   <Route path="merchant-presentation" element={<AdminPermissionRoute adminOnly><ProcessPresentation audience="merchant" /></AdminPermissionRoute>} />

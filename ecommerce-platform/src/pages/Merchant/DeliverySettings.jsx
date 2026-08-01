@@ -21,11 +21,12 @@ export default function DeliverySettings() {
     load()
   }, [])
 
-  // The API secret is never sent back to the browser after it's saved —
-  // only a has_credentials flag. Re-entering key/secret always overwrites.
+  // Priority order at booking time is Merchant's own account first, then
+  // the Reseller's, then the Platform's — connecting your own Lalamove
+  // here takes over dispatch for your orders ahead of the Reseller's.
   const load = async () => {
     setLoading(true)
-    const { data, error } = await supabase.rpc('get_delivery_provider_account', { p_owner_type: 'reseller', p_provider_code: 'lalamove' })
+    const { data, error } = await supabase.rpc('get_delivery_provider_account', { p_owner_type: 'merchant', p_provider_code: 'lalamove' })
     if (error) toast.error(error.message)
     if (data) {
       setHasCredentials(!!data.has_credentials)
@@ -41,7 +42,7 @@ export default function DeliverySettings() {
     }
     setSaving(true)
     const { data, error } = await supabase.rpc('save_delivery_provider_account', {
-      p_owner_type: 'reseller',
+      p_owner_type: 'merchant',
       p_provider_code: 'lalamove',
       p_api_key: form.api_key || null,
       p_api_secret: form.api_secret || null,
@@ -69,7 +70,7 @@ export default function DeliverySettings() {
         <p className="text-xs font-bold uppercase tracking-[0.16em] text-teal-600">Delivery settings</p>
         <h1 className="mt-1 font-display text-2xl font-bold text-ink">Lalamove Integration</h1>
         <p className="mt-2 text-sm leading-6 text-ink/50">
-          Connect your Lalamove account to get real-time shipping quotes and auto-book deliveries. If you don't have a Lalamove account, the standard shipping fee estimation will be used.
+          Connect your own Lalamove account to book deliveries directly, ahead of the Reseller's. If you don't connect one, the Reseller's Lalamove (or standard shipping estimation) is used instead.
         </p>
       </div>
 
@@ -84,8 +85,8 @@ export default function DeliverySettings() {
               </div>
               <p className="mt-1 text-sm text-ink/50">
                 {form.is_enabled
-                  ? 'Real-time quotes and auto-booking are active during checkout.'
-                  : 'Standard shipping estimation will be used instead.'}
+                  ? 'Real-time quotes and auto-booking use your own account first.'
+                  : 'Falls back to the Reseller\'s account, or standard shipping estimation.'}
               </p>
             </div>
             <button
@@ -176,19 +177,19 @@ export default function DeliverySettings() {
           <div className="flex items-start gap-3">
             <Truck size={20} className="shrink-0 text-teal-600 mt-0.5" />
             <div>
-              <p className="font-semibold text-teal-900">How Lalamove integration works</p>
+              <p className="font-semibold text-teal-900">How this works</p>
               <ul className="mt-2 space-y-1.5 text-sm leading-5 text-teal-800/70">
                 <li className="flex items-start gap-2">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-teal-500" />
-                  During checkout, Lalamove vehicle options and prices are shown
+                  When getting a quote, your own account is tried first
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-teal-500" />
-                  When the merchant dispatches, a Lalamove delivery is auto-created
+                  If it's not connected, the Reseller's account is tried next
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-teal-500" />
-                  If Lalamove is disabled, the standard shipping estimation is used
+                  If neither is connected, standard shipping estimation is used
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-teal-500" />

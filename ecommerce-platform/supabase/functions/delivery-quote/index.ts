@@ -3,11 +3,12 @@ import { getAdapter } from '../_shared/delivery/registry.ts'
 
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type' }
 
-// Merchant-invoked: gets a live Lalamove quote for an order using the
-// RESELLER's own Lalamove credentials (each reseller owns their account —
-// the merchant never sees the reseller's key/secret, only the resulting
-// price). Pickup/dropoff coordinates and the credentials themselves are
-// only ever read server-side with the service-role key.
+// Merchant-invoked: generalizes lalamove-quote to try every delivery
+// account available for this order — the Merchant's own, then the
+// Reseller's, then the Platform's (resolve_delivery_candidates, in that
+// priority order) — and returns the first one that produces a live
+// quote. The caller only ever sees the winning provider; picking among
+// tiers is the engine's job, not the merchant's.
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   try {
@@ -30,10 +31,6 @@ Deno.serve(async (req) => {
     if (order.merchant_id !== user.id) throw new Error('Forbidden')
     if (order.status !== 'processing') throw new Error('ORDER_NOT_IN_PROCESSING')
 
-    const { data: creds } = await admin.rpc('get_lalamove_credentials', { p_owner_id: order.reseller_id })
-    const cred = Array.isArray(creds) ? creds[0] : creds
-    if (!cred?.api_key || !cred?.api_secret) throw new Error('LALAMOVE_NOT_CONNECTED')
-
     const { data: merchant, error: merchantError } = await admin
       .from('merchant_profiles')
       .select('business_name, business_address, pickup_latitude, pickup_longitude')
@@ -44,29 +41,38 @@ Deno.serve(async (req) => {
 
     let customer: { name: string; phone: string | null; address: string | null; latitude: number | null; longitude: number | null } | null = null
     if (order.customer_id) {
-      const { data } = await admin
-        .from('customers')
-        .select('name, phone, address, latitude, longitude')
-        .eq('id', order.customer_id)
-        .single()
+      const { data } = await admin.from('customers').select('name, phone, address, latitude, longitude').eq('id', order.customer_id).single()
       customer = data
     }
     if (!customer || customer.latitude == null || customer.longitude == null) throw new Error('CUSTOMER_LOCATION_MISSING')
 
-    const quote = await getAdapter('lalamove').getQuote(
-      {
-        pickup: { lat: merchant.pickup_latitude, lng: merchant.pickup_longitude, address: merchant.business_address || '' },
-        dropoff: { lat: customer.latitude, lng: customer.longitude, address: customer.address || '' },
-      },
-      cred
-    )
+    const pickup = { lat: merchant.pickup_latitude, lng: merchant.pickup_longitude, address: merchant.business_address || '' }
+    const dropoff = { lat: customer.latitude, lng: customer.longitude, address: customer.address || '' }
 
-    if (!quote.ok) throw new Error(quote.error?.code || 'LALAMOVE_QUOTE_FAILED')
+    const { data: candidates, error: candidatesError } = await admin.rpc('resolve_delivery_candidates', { p_order_id: order_id })
+    if (candidatesError) throw candidatesError
+    if (!candidates || candidates.length === 0) throw new Error('DELIVERY_NOT_AVAILABLE')
 
-    return new Response(
-      JSON.stringify({ quotation_id: quote.externalQuoteId, price: quote.fee, currency: quote.currency || 'PHP' }),
-      { headers: { ...cors, 'Content-Type': 'application/json' } }
-    )
+    let lastErrorCode = 'DELIVERY_NOT_AVAILABLE'
+    for (const candidate of candidates) {
+      const { data: cred } = await admin.rpc('get_delivery_provider_credentials', { p_account_id: candidate.id })
+      const quote = await getAdapter(candidate.provider_code).getQuote({ pickup, dropoff }, cred)
+      if (quote.ok) {
+        return new Response(
+          JSON.stringify({
+            quotation_id: quote.externalQuoteId,
+            price: quote.fee,
+            currency: quote.currency || 'PHP',
+            provider_code: candidate.provider_code,
+            account_id: candidate.id,
+          }),
+          { headers: { ...cors, 'Content-Type': 'application/json' } }
+        )
+      }
+      lastErrorCode = quote.error?.code || lastErrorCode
+    }
+
+    throw new Error(lastErrorCode)
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } })
   }

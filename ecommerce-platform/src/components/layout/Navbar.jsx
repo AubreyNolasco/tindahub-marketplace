@@ -1,10 +1,19 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { ShoppingCart, House, Package, LayoutDashboard, ShieldCheck, LogOut, User, Handshake, Menu, X, Sun, Moon } from 'lucide-react'
+import { ShoppingCart, House, Route, Store, UsersRound, Handshake, Star, HelpCircle, LogOut, User, Menu, X, Sun, Moon } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useCart } from '../../contexts/CartContext'
-import { getAdminHomePath } from '../../config/adminPermissions'
 import { useTheme } from '../../hooks/useTheme'
+
+const NAV_LINKS = [
+  { id: 'hero', label: 'Home', icon: House },
+  { id: 'how-it-works', label: 'How It Works', icon: Route },
+  { id: 'for-merchants', label: 'For Merchants', icon: Store },
+  { id: 'for-resellers', label: 'For Resellers', icon: UsersRound },
+  { id: 'services', label: 'Services', icon: Handshake },
+  { id: 'testimonials', label: 'Testimonials', icon: Star },
+  { id: 'faq', label: 'FAQ', icon: HelpCircle }
+]
 
 export default function Navbar() {
   const { user, profile, role, signOut } = useAuth()
@@ -29,7 +38,18 @@ export default function Navbar() {
     navigate('/login')
   }
 
-  const dashLink = ['admin', 'staff'].includes(role) ? getAdminHomePath(profile) : role === 'merchant' ? '/merchant' : '/reseller'
+  // On the homepage, smooth-scroll straight to the section. From any other
+  // page, navigate to "/#id" — Home.jsx's useScrollToHash() picks up the
+  // hash on mount and scrolls there once the page renders.
+  const goToSection = (id) => (event) => {
+    event.preventDefault()
+    setMenuOpen(false)
+    if (pathname === '/') {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    } else {
+      navigate(`/#${id}`)
+    }
+  }
 
   if (customerStorefront) return null
 
@@ -40,20 +60,12 @@ export default function Navbar() {
           <img src={theme === 'dark' ? '/rmhub-logo-dark.svg' : '/rmhub-logo.svg'} alt="JOM HUB" className="h-9 w-auto sm:h-12" />
         </Link>
 
-        <nav className="hidden items-center gap-1 rounded-full border border-black/[0.05] bg-white/70 p-1.5 text-sm font-semibold text-ink/70 shadow-sm md:flex dark:border-white/10 dark:bg-slate-900/70 dark:text-slate-200">
-          <Link to="/" className="flex items-center gap-1.5 rounded-full px-4 py-2 transition hover:bg-surface hover:text-teal-700 hover:shadow-sm dark:hover:bg-slate-800"><House size={16} /> Home</Link>
-          {user && <Link to="/catalog" className="flex items-center gap-1.5 rounded-full px-4 py-2 transition hover:bg-surface hover:text-teal-700 hover:shadow-sm dark:hover:bg-slate-800"><Package size={16} /> Products</Link>}
-          {user && <Link to="/clinics" className="flex items-center gap-1.5 rounded-full px-4 py-2 transition hover:bg-surface hover:text-teal-700 hover:shadow-sm dark:hover:bg-slate-800"><Handshake size={16} /> Services</Link>}
-          {user && (
-            <Link to={dashLink} className="flex items-center gap-1.5 rounded-full px-4 py-2 transition hover:bg-surface hover:text-teal-700 hover:shadow-sm dark:hover:bg-slate-800">
-              <LayoutDashboard size={16} /> Workspace
-            </Link>
-          )}
-          {role === 'admin' && (
-            <Link to="/admin" className="flex items-center gap-1.5 rounded-full px-4 py-2 transition hover:bg-surface hover:text-teal-700 hover:shadow-sm dark:hover:bg-slate-800">
-              <ShieldCheck size={16} /> Admin
-            </Link>
-          )}
+        <nav className="hidden items-center gap-0.5 rounded-full border border-black/[0.05] bg-white/70 p-1.5 text-sm font-semibold text-ink/70 shadow-sm xl:flex dark:border-white/10 dark:bg-slate-900/70 dark:text-slate-200">
+          {NAV_LINKS.map(({ id, label, icon: Icon }) => (
+            <a key={id} href={`/#${id}`} onClick={goToSection(id)} className="flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-2 transition hover:bg-surface hover:text-teal-700 hover:shadow-sm dark:hover:bg-slate-800">
+              <Icon size={15} /> {label}
+            </a>
+          ))}
         </nav>
 
         <div className="flex items-center gap-1 sm:gap-3">
@@ -91,27 +103,19 @@ export default function Navbar() {
             </div>
           )}
 
-          <button type="button" onClick={() => setMenuOpen((v) => !v)} className="grid h-11 w-11 place-items-center rounded-xl text-ink/70 transition-colors hover:bg-teal-50 md:hidden dark:text-slate-200" aria-label="Toggle menu">
+          <button type="button" onClick={() => setMenuOpen((v) => !v)} className="grid h-11 w-11 place-items-center rounded-xl text-ink/70 transition-colors hover:bg-teal-50 xl:hidden dark:text-slate-200" aria-label="Toggle menu">
             {menuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
       </div>
 
       {menuOpen && (
-        <nav className="max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-black/5 bg-surface px-3 py-3 text-sm font-medium text-ink/70 shadow-lg md:hidden dark:border-white/10 dark:bg-slate-900 sm:px-6">
-          <Link to="/" className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600" onClick={() => setMenuOpen(false)}><House size={17} /> Home</Link>
-          {user && <Link to="/catalog" className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600" onClick={() => setMenuOpen(false)}><Package size={17} /> Products</Link>}
-          {user && <Link to="/clinics" className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600" onClick={() => setMenuOpen(false)}><Handshake size={17} /> Services</Link>}
-          {user && (
-            <Link to={dashLink} className="flex min-h-11 items-center gap-3 rounded-xl px-3 transition-colors hover:bg-teal-50 hover:text-teal-600" onClick={() => setMenuOpen(false)}>
-              <LayoutDashboard size={16} /> Dashboard
-            </Link>
-          )}
-          {role === 'admin' && (
-            <Link to="/admin" className="flex min-h-11 items-center gap-3 rounded-xl px-3 transition-colors hover:bg-teal-50 hover:text-teal-600" onClick={() => setMenuOpen(false)}>
-              <ShieldCheck size={16} /> Admin
-            </Link>
-          )}
+        <nav className="max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-black/5 bg-surface px-3 py-3 text-sm font-medium text-ink/70 shadow-lg xl:hidden dark:border-white/10 dark:bg-slate-900 sm:px-6">
+          {NAV_LINKS.map(({ id, label, icon: Icon }) => (
+            <a key={id} href={`/#${id}`} onClick={goToSection(id)} className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600">
+              <Icon size={17} /> {label}
+            </a>
+          ))}
 
           {user ? (
             <div className="mt-2 flex items-center justify-between border-t border-black/5 pt-2">

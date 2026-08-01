@@ -4,7 +4,7 @@ import {
   BarChart3, Boxes, Building2, ChevronRight, CircleDollarSign,
   ClipboardList, CreditCard, FileChartColumn, FileDown,
   FileUp, FolderTree, House, IdCard, LayoutDashboard, LifeBuoy, Menu, MessageSquare,
-  Megaphone, PanelLeftClose, Presentation, ReceiptText, ShieldAlert, ShieldCheck, Star, UsersRound, WalletCards, X, History, CalendarDays, UserCog, Scale, BookOpenCheck, KeyRound, Activity, Workflow, Bug, Clock3
+  Megaphone, PanelLeftClose, Presentation, ReceiptText, ShieldAlert, ShieldCheck, Star, UsersRound, WalletCards, X, History, CalendarDays, UserCog, Scale, BookOpenCheck, KeyRound, Activity, Workflow, Bug, Clock3, Truck
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { canAccessAdmin } from '../../config/adminPermissions'
@@ -26,6 +26,7 @@ const sections = [
       { to: '/admin/order-cases', label: 'Order Cases', icon: ShieldAlert, adminOnly: true },
       { to: '/admin/products', label: 'Products', icon: Boxes, adminOnly: true },
       { to: '/admin/legal', label: 'Legal Settings', icon: Scale, adminOnly: true },
+      { to: '/admin/delivery-providers', label: 'Delivery Providers', icon: Truck, adminOnly: true },
       { to: '/admin/system-flowchart', label: 'System Flowchart', icon: Workflow, adminOnly: true },
       { to: '/admin/process-guide', label: 'Process Guide', icon: BookOpenCheck, adminOnly: true },
       { to: '/admin/merchant-presentation', label: 'Merchant Slides', icon: Presentation, adminOnly: true },

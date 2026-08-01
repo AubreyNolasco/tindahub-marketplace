@@ -14,9 +14,10 @@ export default function DeliveryModal({order,open,onClose,onSaved}){
   const [booking, setBooking] = useState(null)
   const [checkingBooking, setCheckingBooking] = useState(true)
 
-  // Reseller accepting a Lalamove-sourced fee triggers automatic booking in
-  // the background (trg_notify_lalamove_dispatch_ready -> lalamove-book edge
-  // function). While that's in flight the order can briefly still be
+  // Reseller accepting a fee that came from an automatic quote triggers
+  // booking in the background (trg_notify_lalamove_dispatch_ready ->
+  // delivery-book edge function, via whichever tier's account produced
+  // the quote). While that's in flight the order can briefly still be
   // 'processing' — check for an active booking so the merchant doesn't
   // accidentally submit a conflicting manual dispatch.
   useEffect(() => {
