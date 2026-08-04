@@ -354,12 +354,18 @@ create policy "payment_proofs_staff_read" on storage.objects for select to authe
 
 -- ---------------------------------------------------------------------
 -- 8. get_admin_merchant_profiles() — keep merchant access least-privilege
+--
+-- Drop first: production already has this function returning an extra
+-- business_permit_expires_at column (added by 20260730000100/...200), and
+-- CREATE OR REPLACE cannot change a function's return columns.
 -- ---------------------------------------------------------------------
+drop function if exists public.get_admin_merchant_profiles();
+
 create or replace function public.get_admin_merchant_profiles()
-returns table (id uuid,business_name text,status public.merchant_status,created_at timestamptz,business_permit_url text,business_permit_status text,business_permit_notes text,business_permit_reviewed_at timestamptz,business_permit_reviewed_by uuid,profile_full_name text,profile_phone text)
+returns table (id uuid,business_name text,status public.merchant_status,created_at timestamptz,business_permit_url text,business_permit_status text,business_permit_notes text,business_permit_reviewed_at timestamptz,business_permit_reviewed_by uuid,business_permit_expires_at timestamptz,profile_full_name text,profile_phone text)
 language plpgsql security definer set search_path=public as $$ begin
   if not public.has_admin_permission('merchants') then raise exception 'ADMIN_REQUIRED'; end if;
-  return query select mp.id,mp.business_name,mp.status,mp.created_at,mp.business_permit_url,mp.business_permit_status,mp.business_permit_notes,mp.business_permit_reviewed_at,mp.business_permit_reviewed_by,p.full_name,p.phone from public.merchant_profiles mp join public.profiles p on p.id=mp.id order by mp.created_at desc;
+  return query select mp.id,mp.business_name,mp.status,mp.created_at,mp.business_permit_url,mp.business_permit_status,mp.business_permit_notes,mp.business_permit_reviewed_at,mp.business_permit_reviewed_by,mp.business_permit_expires_at,p.full_name,p.phone from public.merchant_profiles mp join public.profiles p on p.id=mp.id order by mp.created_at desc;
 end; $$;
 grant execute on function public.get_admin_merchant_profiles() to authenticated;
 
