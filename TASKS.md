@@ -25,6 +25,13 @@ Tracking what Claude has done/is doing this session so work can be picked up if 
   - **Supabase**: verified all 7 edge functions are deployed and ACTIVE (`device-access-email`, `storage-retention-cleanup`, `lalamove-quote`, `lalamove-book`, `lalamove-webhook`, `delivery-quote`, `delivery-book`). The `_shared/ai`, `_shared/payments`, `_shared/sms` folders are shared helpers, not deployable functions. The integration scaffolding migration (`20260804000100`) is already applied to production.
   - **Vercel**: triggered a production deployment (`vercel --prod`) → `https://tindahub-marketplace-pccz2xyks-rm-hub.vercel.app` (Ready). Env vars `VITE_SUPABASE_URL` & `VITE_SUPABASE_ANON_KEY` already set for Production/Preview.
 
+- **Dashboard leaderboards migration fixed and applied** (separate session, after the above):
+  - `20260805000200_dashboard_leaderboards.sql` (`get_top_product/reseller/merchant`) and `20260805000100_fix_staff_access.sql` were sitting unpushed on `main`, which is why production still had a stray zero-arg `get_top_product()` next to the new `(date, date)` overload — PostgREST couldn't pick one ("Could not choose the best candidate function").
+  - Fixed `get_admin_merchant_profiles()` in `20260805000100` (it dropped the `business_permit_expires_at` column production already had — `CREATE OR REPLACE` can't change return columns, so the push failed until this was restored).
+  - `supabase db push` applied both; `supabase migration list` confirms local/remote are in sync (verified `20260805000100` and `20260805000200` both have a `remote` timestamp).
+  - Also fixed a stale-closure bug in `AdminDashboard.jsx` where switching the leaderboard date-range dropdown fetched with the previous range instead of the new one.
+  - Committed as `2320e32` (migration fix) and `06d7170` (date-range feature + closure fix). Not yet pushed to `origin/main`.
+
 ## ⬜ Not started / open decisions
 
 - **All session changes are now committed and pushed to `origin/main`.** Working tree is clean.
