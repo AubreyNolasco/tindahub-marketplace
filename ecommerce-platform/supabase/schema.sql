@@ -1,5 +1,5 @@
 -- =====================================================================
--- TindaHub Marketplace — Full Database Schema for Supabase
+-- JOM HUB Marketplace — Full Database Schema for Supabase
 -- Run this ONCE on a brand-new Supabase project (SQL Editor > New Query)
 -- =====================================================================
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, Pencil, Trash2, Package, EyeOff, Sparkles } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -17,18 +17,13 @@ export default function Products({ admin = false }) {
   const [sampleMerchantId, setSampleMerchantId] = useState('')
   const [seeding, setSeeding] = useState(false)
 
-  useEffect(() => {
-    load()
-    if (admin) loadMerchants()
-  }, [])
-
-  const loadMerchants = async () => {
+  const loadMerchants = useCallback(async () => {
     const { data, error } = await supabase.rpc('get_admin_merchant_profiles')
     if (error) return toast.error(error.message)
     const approved = (data || []).filter((merchant) => merchant.status === 'approved')
     setMerchants(approved)
     if (approved.length === 1) setSampleMerchantId(approved[0].id)
-  }
+  }, [])
 
   const seedSamples = async () => {
     if (!sampleMerchantId) return toast.error('Choose an approved Merchant first.')
@@ -52,7 +47,7 @@ export default function Products({ admin = false }) {
     load()
   }
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true)
     let query = supabase
       .from('products')
@@ -63,7 +58,12 @@ export default function Products({ admin = false }) {
     if (error) toast.error(error.message)
     setProducts(data || [])
     setLoading(false)
-  }
+  }, [admin, user])
+
+  useEffect(() => {
+    load()
+    if (admin) loadMerchants()
+  }, [admin, load, loadMerchants])
 
   const toggleActive = async (product) => {
     await supabase.from('products').update({ is_active: !product.is_active }).eq('id', product.id)

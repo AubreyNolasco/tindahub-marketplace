@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Ban, CalendarDays, Clock3, Edit3, Loader2, Mail, Phone, Plus, RefreshCw, Save, Trash2, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
@@ -23,7 +23,7 @@ export default function Registrations() {
   const [savingBlock, setSavingBlock] = useState(false)
   const minDate = manilaDateTimeParts().date
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true)
     const [appointments, blocks] = await Promise.all([
       supabase.from('registration_appointments').select('*').order('preferred_date').order('preferred_time'),
@@ -33,9 +33,9 @@ export default function Registrations() {
     setItems(appointments.data || [])
     setUnavailable(blocks.data || [])
     setLoading(false)
-  }
+  }, [minDate])
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [load])
 
   const updateStatus = async (id, status) => {
     const { error } = await supabase.from('registration_appointments').update({ status, updated_at: new Date().toISOString() }).eq('id', id)

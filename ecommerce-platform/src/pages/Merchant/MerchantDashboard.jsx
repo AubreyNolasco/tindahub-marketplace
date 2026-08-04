@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AlertCircle, ArrowRight, BarChart3, Boxes, ClipboardList, Package, Plus, RefreshCw, Wallet } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -43,8 +43,7 @@ export default function MerchantDashboard() {
   const [salesTrend, setSalesTrend] = useState([])
   const [incomingOrders, setIncomingOrders] = useState([])
   const [loading, setLoading] = useState(true)
-  useEffect(() => { load() }, [])
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true)
     const [products, orders, wallet, incoming] = await Promise.all([
       supabase.from('products').select('stock_quantity').eq('merchant_id', user.id),
@@ -58,7 +57,9 @@ export default function MerchantDashboard() {
     setSalesTrend(buildDailyTrend(orders.data || []))
     setIncomingOrders(incoming.data || [])
     setLoading(false)
-  }
+  }, [user])
+
+  useEffect(() => { load() }, [load])
   const cards = [
     { label: 'Gross sales', value: loading ? '—' : peso(stats.sales), detail: `${stats.orders} total orders`, icon: BarChart3, to: '/merchant/reports/sales', tone: 'teal' },
     { label: 'Wallet balance', value: loading ? '—' : peso(stats.wallet), detail: 'Available merchant funds', icon: Wallet, to: '/merchant/wallet', tone: 'mango' },

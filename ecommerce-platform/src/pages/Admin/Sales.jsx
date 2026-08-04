@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { PackageCheck, PhilippinePeso, ShoppingBag, Store, Users } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
@@ -29,9 +29,7 @@ export default function Sales() {
   const [loading, setLoading] = useState(true)
   const [appliedRange, setAppliedRange] = useState({ start: firstDayOfMonth(), end: today() })
 
-  useEffect(() => { load() }, [])
-
-  const load = async (rangeStart = startDate, rangeEnd = endDate) => {
+  const load = useCallback(async (rangeStart = startDate, rangeEnd = endDate) => {
     if (rangeStart > rangeEnd) return toast.error('The start date must be earlier than or equal to the end date.')
     setLoading(true)
     const { data, error } = await supabase
@@ -44,7 +42,10 @@ export default function Sales() {
     setOrders(data || [])
     if (!error) setAppliedRange({ start: rangeStart, end: rangeEnd })
     setLoading(false)
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- startDate/endDate are only defaults for the initial mount call; onApply always passes explicit dates
+  }, [])
+
+  useEffect(() => { load() }, [load])
 
   const activeOrders = orders.filter((order) => order.status !== 'cancelled')
   const completedOrders = orders.filter((order) => order.status === 'completed')

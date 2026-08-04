@@ -1,0 +1,974 @@
+<title>Delivery Provider Engine — Architecture Review</title>
+<style>
+  :root {
+    --bg: #F6F7FA;
+    --bg-inset: #EBEDF4;
+    --panel: #FFFFFF;
+    --ink: #1A1D26;
+    --ink-soft: #565C6B;
+    --ink-faint: #8991A4;
+    --line: #DADFE8;
+    --accent: #3B4A93;
+    --accent-ink: #2C3872;
+    --accent-soft: #E4E8FB;
+    --code-bg: #12141C;
+    --code-ink: #DCE0EC;
+    --code-comment: #8CA0FF;
+    --good: #1E7F4F;
+    --warn: #93630F;
+    --crit: #B23A3A;
+    --good-soft: #E4F3EA;
+    --warn-soft: #FBF0DC;
+    --crit-soft: #FBE6E6;
+    --radius: 3px;
+    --serif: Georgia, "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif;
+    --sans: "Segoe UI", ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono: "Cascadia Code", "Consolas", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  }
+  :root[data-theme="dark"] {
+    --bg: #0F1116;
+    --bg-inset: #171A22;
+    --panel: #14161D;
+    --ink: #E7E9F0;
+    --ink-soft: #9AA1B4;
+    --ink-faint: #656C7E;
+    --line: #292D3A;
+    --accent: #8CA0FF;
+    --accent-ink: #AEBBFF;
+    --accent-soft: #1D2440;
+    --code-bg: #0A0B10;
+    --code-ink: #DCE0EC;
+    --code-comment: #7C8FE8;
+    --good: #3FBE82;
+    --warn: #D9A441;
+    --crit: #E27171;
+    --good-soft: #12281D;
+    --warn-soft: #2E2410;
+    --crit-soft: #2E1616;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0F1116;
+      --bg-inset: #171A22;
+      --panel: #14161D;
+      --ink: #E7E9F0;
+      --ink-soft: #9AA1B4;
+      --ink-faint: #656C7E;
+      --line: #292D3A;
+      --accent: #8CA0FF;
+      --accent-ink: #AEBBFF;
+      --accent-soft: #1D2440;
+      --code-bg: #0A0B10;
+      --code-ink: #DCE0EC;
+      --code-comment: #7C8FE8;
+      --good: #3FBE82;
+      --warn: #D9A441;
+      --crit: #E27171;
+      --good-soft: #12281D;
+      --warn-soft: #2E2410;
+      --crit-soft: #2E1616;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16.5px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent-ink); }
+  a:focus-visible, button:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .shell {
+    display: grid;
+    grid-template-columns: 236px minmax(0, 1fr);
+    gap: 0;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: 1fr; }
+    nav.rail { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--line); }
+  }
+
+  nav.rail {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 2.25rem 1.25rem 2rem 1.5rem;
+    border-right: 1px solid var(--line);
+  }
+  nav.rail .brand {
+    font-family: var(--serif);
+    font-size: 1.02rem;
+    font-weight: 700;
+    margin: 0 0 .2rem;
+    color: var(--ink);
+  }
+  nav.rail .brand-sub {
+    font-size: .72rem;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    margin-bottom: 1.6rem;
+    display: block;
+  }
+  nav.rail ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-left: 1px solid var(--line);
+  }
+  nav.rail li { margin: 0; }
+  nav.rail a {
+    display: block;
+    padding: .32rem .8rem;
+    margin-left: -1px;
+    border-left: 1px solid transparent;
+    font-size: .82rem;
+    color: var(--ink-soft);
+    text-decoration: none;
+    line-height: 1.4;
+  }
+  nav.rail a:hover { color: var(--ink); border-left-color: var(--ink-faint); }
+  nav.rail .num { color: var(--ink-faint); font-family: var(--mono); font-size: .74rem; margin-right: .4em; }
+
+  main { padding: 3rem 3.5rem 6rem; min-width: 0; }
+  @media (max-width: 640px) { main { padding: 2rem 1.25rem 4rem; } }
+
+  header.hero {
+    max-width: 62ch;
+    margin-bottom: 3.2rem;
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .72rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+    margin: 0 0 .9rem;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-size: 2.15rem;
+    line-height: 1.18;
+    font-weight: 700;
+    margin: 0 0 .9rem;
+    text-wrap: balance;
+    color: var(--ink);
+  }
+  .dek {
+    font-size: 1.02rem;
+    color: var(--ink-soft);
+    margin: 0;
+    text-wrap: pretty;
+  }
+  .meta-row {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1.4rem;
+    font-size: .78rem;
+    color: var(--ink-faint);
+    font-family: var(--mono);
+  }
+
+  section { max-width: 68ch; margin: 0 0 3.4rem; }
+  section.wide { max-width: 100%; }
+  section h2 {
+    font-family: var(--serif);
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 .3rem;
+    padding-top: .2rem;
+    border-top: 1px solid var(--line);
+    padding-top: 1.6rem;
+    text-wrap: balance;
+  }
+  section h2 .num {
+    font-family: var(--mono);
+    font-size: .82rem;
+    color: var(--ink-faint);
+    font-weight: 400;
+    margin-right: .55em;
+  }
+  section h3 {
+    font-family: var(--sans);
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 1.6rem 0 .6rem;
+    color: var(--ink);
+  }
+  section p { margin: .8rem 0; }
+  section ul, section ol { padding-left: 1.3rem; }
+  section li { margin: .35rem 0; }
+  code.inline {
+    font-family: var(--mono);
+    font-size: .88em;
+    background: var(--bg-inset);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: .05em .35em;
+  }
+
+  .verdict {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 1.3rem 1.5rem;
+    margin: 1.2rem 0;
+  }
+  .verdict p:first-child { margin-top: 0; }
+  .verdict p:last-child { margin-bottom: 0; }
+
+  .callout {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--warn);
+    border-radius: var(--radius);
+    padding: 1.1rem 1.4rem;
+    margin: 1.4rem 0;
+  }
+  .callout .tag {
+    font-family: var(--mono);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--warn);
+    display: block;
+    margin-bottom: .5rem;
+  }
+
+  .wide-inner { max-width: 68ch; }
+
+  .diagram-wrap {
+    background: var(--bg-inset);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 1.4rem 1.6rem;
+    margin: 1.1rem 0;
+    overflow-x: auto;
+    max-width: 980px;
+  }
+  .diagram-wrap .cap {
+    font-family: var(--mono);
+    font-size: .72rem;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin: 0 0 .8rem;
+  }
+  pre.mermaid { background: transparent; margin: 0; }
+
+  .codeblock {
+    background: var(--code-bg);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin: 1.1rem 0;
+    max-width: 980px;
+    border: 1px solid var(--line);
+  }
+  .codeblock .filebar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: .5rem .95rem;
+    background: color-mix(in srgb, var(--code-bg) 80%, var(--ink) 8%);
+    border-bottom: 1px solid rgba(255,255,255,.06);
+    font-family: var(--mono);
+    font-size: .72rem;
+    color: var(--code-comment);
+    letter-spacing: .02em;
+  }
+  .codeblock pre {
+    margin: 0;
+    padding: 1rem 1.2rem;
+    overflow-x: auto;
+  }
+  .codeblock code {
+    font-family: var(--mono);
+    font-size: .84rem;
+    line-height: 1.6;
+    color: var(--code-ink);
+    white-space: pre;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1rem 0;
+    font-size: .88rem;
+  }
+  .table-wrap { overflow-x: auto; max-width: 980px; margin: 1rem 0; }
+  .table-wrap table { margin: 0; min-width: 560px; }
+  th, td {
+    text-align: left;
+    padding: .55rem .8rem;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  th {
+    font-family: var(--mono);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--ink-faint);
+    font-weight: 500;
+  }
+  td code.inline { white-space: nowrap; }
+
+  .pill {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: .68rem;
+    letter-spacing: .03em;
+    padding: .12em .55em;
+    border-radius: 2px;
+    font-weight: 600;
+  }
+  .pill.keep { background: var(--good-soft); color: var(--good); }
+  .pill.change { background: var(--warn-soft); color: var(--warn); }
+  .pill.risk { background: var(--crit-soft); color: var(--crit); }
+
+  .tree {
+    font-family: var(--mono);
+    font-size: .84rem;
+    line-height: 1.75;
+    background: var(--bg-inset);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 1.1rem 1.4rem;
+    max-width: 980px;
+    overflow-x: auto;
+    color: var(--ink);
+  }
+  .tree .dim { color: var(--ink-faint); }
+  .tree .hl { color: var(--accent-ink); }
+
+  .phases {
+    border-left: 2px solid var(--line);
+    margin: 1.4rem 0 1.4rem .4rem;
+    padding-left: 1.6rem;
+  }
+  .phase { position: relative; padding-bottom: 1.7rem; }
+  .phase:last-child { padding-bottom: 0; }
+  .phase::before {
+    content: "";
+    position: absolute;
+    left: -1.85rem;
+    top: .35rem;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+  .phase .ph-num {
+    font-family: var(--mono);
+    font-size: .72rem;
+    color: var(--accent-ink);
+    text-transform: uppercase;
+    letter-spacing: .07em;
+  }
+  .phase h4 { margin: .2rem 0 .35rem; font-size: 1rem; font-family: var(--sans); font-weight: 700; }
+  .phase p { margin: 0; color: var(--ink-soft); font-size: .93rem; }
+
+  .qlist { list-style: none; padding: 0; margin: 1.2rem 0; }
+  .qlist li {
+    padding: .85rem 0;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: .8rem;
+  }
+  .qlist li:last-child { border-bottom: 1px solid var(--line); }
+  .qlist .mark {
+    font-family: var(--mono);
+    color: var(--ink-faint);
+    flex-shrink: 0;
+  }
+
+  footer {
+    max-width: 68ch;
+    margin-top: 4rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid var(--line);
+    font-size: .82rem;
+    color: var(--ink-faint);
+  }
+</style>
+
+<div class="shell">
+  <nav class="rail" aria-label="Sections">
+    <p class="brand">Delivery Provider Engine</p>
+    <span class="brand-sub">Architecture review</span>
+    <ol>
+      <li><a href="#verdict"><span class="num">00</span>Verdict</a></li>
+      <li><a href="#review"><span class="num">01</span>Current system, reviewed</a></li>
+      <li><a href="#disagree"><span class="num">02</span>Where the brief needs pushback</a></li>
+      <li><a href="#architecture"><span class="num">03</span>Target architecture</a></li>
+      <li><a href="#component"><span class="num">04</span>Component diagram</a></li>
+      <li><a href="#flowchart"><span class="num">05</span>Selection flowchart</a></li>
+      <li><a href="#sequence"><span class="num">06</span>Sequence diagram</a></li>
+      <li><a href="#schema"><span class="num">07</span>Database schema</a></li>
+      <li><a href="#folders"><span class="num">08</span>Folder structure</a></li>
+      <li><a href="#interfaces"><span class="num">09</span>Interfaces &amp; adapters</a></li>
+      <li><a href="#migration"><span class="num">10</span>Migration plan</a></li>
+      <li><a href="#risks"><span class="num">11</span>Risks &amp; trade-offs</a></li>
+      <li><a href="#practices"><span class="num">12</span>Best practices</a></li>
+      <li><a href="#questions"><span class="num">13</span>Open questions</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <p class="eyebrow">Architecture review · tindahub-marketplace</p>
+      <h1>A Delivery Provider Engine for a stack that already exists</h1>
+      <p class="dek">The brief asked for a Laravel service layer. This repo runs React on Supabase — Postgres, RPCs, and Deno edge functions. Below is the same engine, translated to that stack, with the parts of the brief I'd push back on called out explicitly rather than quietly implemented.</p>
+      <div class="meta-row">
+        <span>Stack: Postgres · Deno edge functions · React/Vite</span>
+        <span>Scope: 1 real integration today (Lalamove) → N</span>
+      </div>
+    </header>
+
+    <section id="verdict">
+      <h2><span class="num">00</span>Verdict</h2>
+      <div class="verdict">
+        <p><strong>The core idea is right: a provider-agnostic engine with ownership tiers, priority, and fallback.</strong> Build it. But three parts of the brief as written would produce something worse than what you have today if implemented literally:</p>
+        <p>your two flowcharts (own-vs-reseller, admin-vs-subscription) are actually <em>one</em> priority chain, not two independent trees; "automatic selection + retry" pushes toward a synchronous multi-provider loop inside a user-facing request, which is a timeout risk against real courier APIs; and twelve deliverables shipped at once is a quarter of work disguised as a sprint, which cuts against your own "keep it simple" constraint. The design below keeps the ambition and fixes those three.</p>
+      </div>
+    </section>
+
+    <section id="review" class="wide">
+      <div class="wide-inner">
+        <h2><span class="num">01</span>Current system, reviewed</h2>
+        <p>Confirmed directly in the codebase, not assumed:</p>
+        <ul>
+          <li><code class="inline">delivery_provider</code> on <code class="inline">orders</code> is free text — a merchant types "Lalamove, J&amp;T, Grab" by hand in <code class="inline">DeliveryModal.jsx</code>. No FK, no validation, no analytics possible on which provider actually moved a package.</li>
+          <li>Lalamove is the only real integration, and it's wired directly into the shipping-fee flow via a courier-specific column (<code class="inline">orders.lalamove_quote_id</code>). A second courier means duplicating <code class="inline">lalamove-quote</code>/<code class="inline">lalamove-book</code> near-from-scratch, not implementing an interface.</li>
+          <li>Ownership only exists at the reseller tier — <code class="inline">lalamove_settings.owner_id</code>. There is no merchant-owned or platform-owned courier account anywhere. The exact chain your flowchart describes (own → reseller → admin+subscription) has <strong>zero</strong> supporting code today.</li>
+          <li>No retry, no fallback, no logging. A failed quote throws <code class="inline">LALAMOVE_NOT_CONNECTED</code> and stops. There is no concept of "try the next provider."</li>
+        </ul>
+
+        <h3>Why the redesign is worth it, concretely</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Concern</th><th>Today</th><th>Redesign</th></tr></thead>
+            <tbody>
+              <tr><td>Add a new courier</td><td>Copy an edge function, hand-adapt every call site</td><td>Implement one adapter interface, register it — nothing else changes</td></tr>
+              <tr><td>Provider ownership</td><td>Reseller only</td><td>Merchant / Reseller / Platform, same shape, same table</td></tr>
+              <tr><td>Fallback on failure</td><td>None — hard error, merchant fills in a fee by hand</td><td>Ordered candidate list with logged attempts</td></tr>
+              <tr><td>Double-booking risk</td><td>N/A (no retry exists)</td><td>Idempotency key per booking attempt, enforced at the DB</td></tr>
+              <tr><td>Reporting</td><td>Free-text field, unqueryable</td><td>Foreign-keyed provider + structured attempt log</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="disagree">
+      <h2><span class="num">02</span>Where the brief needs pushback</h2>
+
+      <div class="callout">
+        <span class="tag">Pushback 1 — your two flowcharts are one chain</span>
+        <p>The diagram you sent earlier (own API → reseller API) and the admin/subscription diagram in this brief aren't two separate decisions — they're three rungs of the same ladder: <strong>Merchant-owned → Reseller-owned → Platform-owned (subscription-gated)</strong>. Modeling them as one ordered candidate list, rather than two branching trees, is simpler to implement, simpler to reason about, and lets you add a fourth tier later without restructuring anything.</p>
+      </div>
+
+      <div class="callout">
+        <span class="tag">Pushback 2 — "automatic selection + retry" implies async, not a bigger loop</span>
+        <p>Real courier APIs are slow (1–5s+) and occasionally down. Looping through five of them synchronously inside one edge-function invocation risks timing out the merchant's browser request. This repo already has the right pattern for this — <code class="inline">notify_lalamove_dispatch_ready</code> is a DB trigger that fires an edge function asynchronously after a quote is accepted. Reuse it: the <em>first</em> attempt is synchronous (matches current UX, fast path), and fallback-to-next-provider on failure runs async via the same trigger mechanism, not a longer synchronous loop.</p>
+      </div>
+
+      <div class="callout">
+        <span class="tag">Pushback 3 — twelve deliverables now vs. "keep it simple"</span>
+        <p>Provider registration, config, ownership, priority, auto-selection, manual selection, fallback, retry, logging, quote, booking, tracking, cancellation — built simultaneously — is the definition of unnecessary complexity for a system with one live integration today. Phase it (§10): ship the adapter interface with Lalamove as the only adapter first, so the abstraction gets proven against a real integration before a second and third provider are added, and before auto-selection has anything to select between.</p>
+      </div>
+
+      <div class="callout">
+        <span class="tag">Pushback 4 — is "Merchant Delivery API" real demand yet?</span>
+        <p>Nothing in the current data model suggests merchants run their own delivery fleets — today merchants pack and hand off, resellers own the courier relationship and the end customer. Build the merchant ownership <em>slot</em> in the schema (it's free — same table, one enum value), but don't build onboarding UI for it until a merchant actually asks. Speculative UI is the expensive kind of speculative.</p>
+      </div>
+    </section>
+
+    <section id="architecture">
+      <h2><span class="num">03</span>Target architecture</h2>
+      <p>Four layers, matching what's already idiomatic in this repo — no new frameworks, no service-layer reinvention beyond what the engine itself needs:</p>
+      <ul>
+        <li><strong>Catalog &amp; config (Postgres)</strong> — what providers exist, who has an account with which one, at what priority. Source of truth, RLS-protected.</li>
+        <li><strong>Selection (Postgres RPC, <code class="inline">security definer</code>)</strong> — given an order, returns the ranked candidate list. Pure read, no side effects, cheap to call from anywhere.</li>
+        <li><strong>Adapters (Deno edge functions, shared module)</strong> — one small file per courier implementing a fixed interface: quote, book, track, cancel. This is the extension point; adding a provider never touches the selector or the UI.</li>
+        <li><strong>Orchestration (edge functions + DB trigger)</strong> — synchronous first attempt for UX; async trigger-driven fallback for resilience, reusing the pattern already proven by Lalamove auto-dispatch.</li>
+      </ul>
+    </section>
+
+    <section id="component" class="wide">
+      <div class="wide-inner">
+        <h2><span class="num">04</span>Component diagram</h2>
+        <p>Solid arrows are synchronous calls; the trigger→edge-function path at the bottom is the async fallback route.</p>
+      </div>
+      <div class="diagram-wrap">
+        <p class="cap">graph — components</p>
+        <pre class="mermaid">
+graph TD
+  subgraph FE["React / Vite"]
+    UI1["ShippingFeeModal.jsx"]
+    UI2["DeliveryModal.jsx"]
+    UI3["Admin / DeliveryProviders.jsx"]
+    UI4["Merchant &amp; Reseller / DeliverySettings.jsx"]
+  end
+  subgraph DB["Postgres (Supabase)"]
+    T1[("delivery_providers")]
+    T2[("delivery_provider_accounts")]
+    T3[("delivery_bookings")]
+    T4[("delivery_provider_logs")]
+    RPC1{{"resolve_delivery_candidates()"}}
+    TRG[["dispatch fallback trigger"]]
+  end
+  subgraph EDGE["Edge functions (Deno)"]
+    Q["delivery-quote"]
+    B["delivery-book"]
+    REG[["adapter registry"]]
+    A1["lalamove.ts"]
+    A2["grabexpress.ts"]
+    A3["borzo.ts"]
+    A4["ninjavan.ts"]
+    A5["jnt.ts"]
+    A6["manual.ts"]
+  end
+  subgraph EXT["Courier APIs"]
+    L1[("Lalamove")]
+    L2[("GrabExpress")]
+    L3[("Borzo")]
+    L4[("Ninja Van")]
+    L5[("J&amp;T")]
+  end
+
+  UI1 -->|invoke| Q
+  UI2 -->|invoke| B
+  UI3 -->|rpc| T1
+  UI4 -->|rpc| T2
+  Q --> RPC1 --> T2
+  RPC1 --> T1
+  Q --> REG
+  B --> REG
+  REG --> A1 & A2 & A3 & A4 & A5 & A6
+  A1 --> L1
+  A2 --> L2
+  A3 --> L3
+  A4 --> L4
+  A5 --> L5
+  Q --> T4
+  B --> T3
+  B --> T4
+  T3 -.on failure.-> TRG
+  TRG -.async retry.-> B
+        </pre>
+      </div>
+    </section>
+
+    <section id="flowchart" class="wide">
+      <div class="wide-inner">
+        <h2><span class="num">05</span>Selection flowchart — the unified priority chain</h2>
+        <p>This replaces both diagrams from earlier with one chain: manual override first, then merchant → reseller → platform, each tried in priority order, with transient errors retried in place and business errors skipping straight to the next candidate.</p>
+      </div>
+      <div class="diagram-wrap">
+        <p class="cap">flowchart — provider resolution</p>
+        <pre class="mermaid">
+flowchart TD
+  A["Order marked ready for delivery"] --> B{"Merchant picked a provider manually?"}
+  B -- Yes --> M["Use selected provider"] --> Q
+  B -- No --> C["Load candidates:<br/>Merchant → Reseller → Platform<br/>ordered by priority"]
+  C --> D{"Any enabled candidate left?"}
+  D -- No --> S["Standard / manual delivery —<br/>merchant enters fee &amp; provider by hand"]
+  D -- Yes --> E["Take next candidate"]
+  E --> F{"Platform-owned?"}
+  F -- Yes --> G{"Reseller subscription active?"}
+  G -- No --> D
+  G -- Yes --> H["Request quote"]
+  F -- No --> H
+  H --> I{"Quote result"}
+  I -- "transient error" --> J["Retry, up to 2x, backoff"]
+  J --> H
+  I -- "business error" --> D
+  I -- "success" --> K["Attempt booking"]
+  K --> L{"Booking result"}
+  L -- "failed" --> Log["Log failure"] --> D
+  L -- "confirmed" --> Q["Booking confirmed"]
+  Q --> T["Begin tracking"]
+        </pre>
+      </div>
+    </section>
+
+    <section id="sequence" class="wide">
+      <div class="wide-inner">
+        <h2><span class="num">06</span>Sequence diagram — quote through booking, with fallback</h2>
+      </div>
+      <div class="diagram-wrap">
+        <p class="cap">sequence — happy path + one fallback branch</p>
+        <pre class="mermaid">
+sequenceDiagram
+  participant M as Merchant (UI)
+  participant FE as ShippingFeeModal
+  participant Q as edge: delivery-quote
+  participant RPC as resolve_delivery_candidates()
+  participant AD as Provider Adapter
+  participant EXT as Courier API
+  participant DB as Postgres
+
+  M->>FE: Confirm order ready
+  FE->>Q: invoke({ order_id })
+  Q->>RPC: rpc(order_id)
+  RPC->>DB: fetch candidates, priority order
+  DB-->>RPC: [merchant?, reseller, platform?]
+  RPC-->>Q: ranked candidate list
+  loop until quote succeeds or list exhausted
+    Q->>AD: getQuote(candidate, order)
+    AD->>EXT: POST /quotations
+    EXT-->>AD: quote or error
+    AD-->>Q: QuoteResult
+  end
+  Q->>DB: insert delivery_provider_logs
+  Q-->>FE: { provider, fee, quote_id }
+  FE-->>M: Show fee for confirmation
+  M->>FE: Accept fee
+  FE->>Q: invoke delivery-book({ quote_id })
+  Q->>AD: createBooking(quote_id)
+  AD->>EXT: POST /orders
+  EXT-->>AD: booking or error
+  alt booking failed
+    AD-->>Q: error
+    Q->>DB: log failure, flag for async fallback
+    Note over DB: trigger schedules next candidate
+  else booking confirmed
+    AD-->>Q: BookingResult(tracking_number)
+    Q->>DB: insert delivery_bookings, update orders
+    Q-->>FE: confirmed + tracking
+  end
+        </pre>
+      </div>
+    </section>
+
+    <section id="schema" class="wide">
+      <div class="wide-inner">
+        <h2><span class="num">07</span>Database schema</h2>
+        <p>Follows the conventions already established in this repo's migrations: RLS enabled immediately on every new table, privileged RPCs as <code class="inline">security definer</code> with a pinned <code class="inline">search_path</code>, secrets never stored as plain columns, and a trailing <code class="inline">notify pgrst</code> to reload the schema cache.</p>
+      </div>
+      <div class="codeblock">
+        <div class="filebar"><span>supabase/migrations/20260801000100_delivery_provider_engine.sql</span><span>sql</span></div>
+        <pre><code>-- 1. Catalog of known provider types — extensible without touching code
+create table public.delivery_providers (
+  code text primary key,            -- 'lalamove' | 'grabexpress' | 'borzo' | 'ninjavan' | 'jnt' | 'manual'
+  name text not null,
+  supports_tracking boolean not null default true,
+  supports_cancellation boolean not null default true,
+  is_active boolean not null default true,   -- platform kill-switch, per provider
+  created_at timestamptz not null default now()
+);
+alter table public.delivery_providers enable row level security;
+create policy "providers are publicly readable"
+  on public.delivery_providers for select using (true);
+create policy "only admin can modify providers"
+  on public.delivery_providers for all using (public.is_admin());
+
+-- 2. Who has a configured account with which provider (replaces lalamove_settings)
+create type public.delivery_owner_type as enum ('merchant', 'reseller', 'platform');
+
+create table public.delivery_provider_accounts (
+  id uuid primary key default gen_random_uuid(),
+  owner_type public.delivery_owner_type not null,
+  owner_id uuid,                     -- null only when owner_type = 'platform'
+  provider_code text not null references public.delivery_providers(code),
+  is_enabled boolean not null default true,
+  priority int not null default 100, -- lower tried first, within the same owner_type
+  credentials_id uuid,               -- pointer into vault; never a raw secret column
+  metadata jsonb not null default '{}',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint owner_id_required_unless_platform
+    check (owner_type = 'platform' or owner_id is not null),
+  unique (owner_type, owner_id, provider_code)
+);
+alter table public.delivery_provider_accounts enable row level security;
+create policy "owners manage their own accounts"
+  on public.delivery_provider_accounts for all
+  using (owner_id = auth.uid() or public.is_admin());
+
+-- 3. One row per booking attempt lifecycle (replaces ad hoc columns on orders)
+create table public.delivery_bookings (
+  id uuid primary key default gen_random_uuid(),
+  order_id uuid not null references public.orders(id),
+  provider_account_id uuid references public.delivery_provider_accounts(id),
+  provider_code text not null,
+  status text not null default 'quoted',  -- quoted|booked|in_transit|delivered|cancelled|failed
+  external_quote_id text,
+  external_order_id text,
+  tracking_number text,
+  fee numeric(10,2),
+  idempotency_key text not null unique,   -- order_id + attempt — blocks double-booking on retry
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+alter table public.delivery_bookings enable row level security;
+create policy "participants can view their bookings"
+  on public.delivery_bookings for select
+  using (
+    exists (select 1 from public.orders o where o.id = order_id
+            and (o.merchant_id = auth.uid() or o.reseller_id = auth.uid()))
+    or public.is_admin()
+  );
+
+-- 4. Structured audit log per attempt (quote | book | track | cancel)
+create table public.delivery_provider_logs (
+  id bigint generated always as identity primary key,
+  order_id uuid references public.orders(id),
+  booking_id uuid references public.delivery_bookings(id),
+  provider_code text not null,
+  action text not null,
+  ok boolean not null,
+  request jsonb,
+  response jsonb,
+  error text,
+  created_at timestamptz not null default now()
+);
+alter table public.delivery_provider_logs enable row level security;
+create policy "admin can read logs"
+  on public.delivery_provider_logs for select using (public.is_admin());
+
+-- 5. Selection RPC — ranked candidates for an order, service_role only
+create or replace function public.resolve_delivery_candidates(p_order_id uuid)
+returns setof public.delivery_provider_accounts
+language sql security definer set search_path = public as $$
+  select dpa.*
+  from public.delivery_provider_accounts dpa
+  join public.delivery_providers dp on dp.code = dpa.provider_code and dp.is_active
+  join public.orders o on o.id = p_order_id
+  where dpa.is_enabled
+    and (
+      (dpa.owner_type = 'merchant' and dpa.owner_id = o.merchant_id) or
+      (dpa.owner_type = 'reseller' and dpa.owner_id = o.reseller_id) or
+      (dpa.owner_type = 'platform' and exists (
+         select 1 from public.subscriptions s
+         where s.owner_id = o.reseller_id and s.status = 'active'
+      ))
+    )
+  order by
+    case dpa.owner_type when 'merchant' then 1 when 'reseller' then 2 else 3 end,
+    dpa.priority asc;
+$$;
+revoke all on function public.resolve_delivery_candidates(uuid) from public, anon, authenticated;
+grant execute on function public.resolve_delivery_candidates(uuid) to service_role;
+
+notify pgrst, 'reload schema';</code></pre>
+      </div>
+      <p>Backward compatibility: keep <code class="inline">orders.delivery_provider</code> as a denormalized display column, synced from <code class="inline">delivery_bookings.provider_code</code> on write. Existing reporting/UI that reads it keeps working untouched.</p>
+    </section>
+
+    <section id="folders" class="wide">
+      <div class="wide-inner">
+        <h2><span class="num">08</span>Folder structure</h2>
+      </div>
+      <div class="tree">
+supabase/<br>
+&nbsp;&nbsp;migrations/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl">20260801000100_delivery_provider_engine.sql</span><br>
+&nbsp;&nbsp;functions/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;_shared/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;delivery/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl">types.ts</span> <span class="dim">— QuoteResult, BookingResult, DeliveryProviderAdapter</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl">registry.ts</span> <span class="dim">— code → adapter map</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl">selector.ts</span> <span class="dim">— fallback loop, retry/backoff</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl">credentials.ts</span> <span class="dim">— vault lookup by credentials_id</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;adapters/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lalamove.ts <span class="dim">— refactor of existing lalamove.ts, same shape</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;grabexpress.ts<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;borzo.ts<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ninjavan.ts<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;jnt.ts<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;manual.ts <span class="dim">— no-op adapter, always "succeeds"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;delivery-quote/index.ts<br>
+&nbsp;&nbsp;&nbsp;&nbsp;delivery-book/index.ts<br>
+&nbsp;&nbsp;&nbsp;&nbsp;delivery-track/index.ts<br>
+&nbsp;&nbsp;&nbsp;&nbsp;delivery-cancel/index.ts<br>
+&nbsp;&nbsp;&nbsp;&nbsp;delivery-dispatch-fallback/index.ts <span class="dim">— async worker, mirrors lalamove-book's trigger pattern</span><br>
+<br>
+src/<br>
+&nbsp;&nbsp;services/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl">deliveryService.js</span> <span class="dim">— new: quote(), book(), track(), cancel() — first service module in the repo</span><br>
+&nbsp;&nbsp;pages/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Admin/DeliveryProviders.jsx <span class="dim">— manage catalog + platform-tier account</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;Merchant/DeliverySettings.jsx <span class="dim">— new, mirrors the Reseller page below</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;Reseller/DeliverySettings.jsx <span class="dim">— existing, migrated to delivery_provider_accounts</span><br>
+&nbsp;&nbsp;components/order/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;DeliveryProviderSelector.jsx <span class="dim">— replaces the free-text input in DeliveryModal.jsx</span>
+      </div>
+      <p>Note the one deliberate deviation from current convention: <code class="inline">src/services/deliveryService.js</code>. Today every component calls <code class="inline">supabase.rpc()</code> / <code class="inline">supabase.functions.invoke()</code> directly — fine for one integration, not fine once <code class="inline">ShippingFeeModal</code>, <code class="inline">DeliveryModal</code>, and two new settings pages all need to call the same quote/book/track/cancel surface consistently.</p>
+    </section>
+
+    <section id="interfaces" class="wide">
+      <div class="wide-inner">
+        <h2><span class="num">09</span>Interfaces &amp; adapters</h2>
+        <p>The extension point. Everything above exists to keep this interface the <em>only</em> thing a new provider has to implement.</p>
+      </div>
+      <div class="codeblock">
+        <div class="filebar"><span>supabase/functions/_shared/delivery/types.ts</span><span>ts</span></div>
+        <pre><code>export interface QuoteResult {
+  ok: boolean;
+  externalQuoteId?: string;
+  fee?: number;
+  currency?: string;
+  etaMinutes?: number;
+  error?: { code: string; message: string; retryable: boolean };
+}
+
+export interface BookingResult {
+  ok: boolean;
+  externalOrderId?: string;
+  trackingNumber?: string;
+  error?: { code: string; message: string; retryable: boolean };
+}
+
+export interface DeliveryProviderAdapter {
+  code: string;
+  getQuote(input: QuoteInput, credentials: unknown): Promise&lt;QuoteResult&gt;;
+  createBooking(input: BookingInput, credentials: unknown): Promise&lt;BookingResult&gt;;
+  getTracking(externalOrderId: string, credentials: unknown): Promise&lt;TrackingResult&gt;;
+  cancelBooking(externalOrderId: string, credentials: unknown): Promise&lt;CancelResult&gt;;
+}</code></pre>
+      </div>
+      <div class="codeblock">
+        <div class="filebar"><span>supabase/functions/_shared/delivery/registry.ts</span><span>ts</span></div>
+        <pre><code>import { lalamoveAdapter } from "./adapters/lalamove.ts";
+import { manualAdapter } from "./adapters/manual.ts";
+// grabexpress / borzo / ninjavan / jnt slot in here as they ship — nothing else changes
+
+const registry = new Map&lt;string, DeliveryProviderAdapter&gt;([
+  [lalamoveAdapter.code, lalamoveAdapter],
+  [manualAdapter.code, manualAdapter],
+]);
+
+export function getAdapter(code: string): DeliveryProviderAdapter {
+  const adapter = registry.get(code);
+  if (!adapter) throw new Error(`No adapter registered for provider "${code}"`);
+  return adapter;
+}</code></pre>
+      </div>
+      <div class="codeblock">
+        <div class="filebar"><span>supabase/functions/_shared/delivery/selector.ts</span><span>ts</span></div>
+        <pre><code>const MAX_RETRIES = 2;
+
+export async function selectAndQuote(candidates: ProviderAccount[], order: Order) {
+  for (const candidate of candidates) {
+    const adapter = getAdapter(candidate.provider_code);
+    const creds = await loadCredentials(candidate.credentials_id);
+    let attempt = 0;
+    while (attempt <= MAX_RETRIES) {
+      const result = await adapter.getQuote(toQuoteInput(order), creds);
+      await logAttempt(order.id, candidate, "quote", result);
+      if (result.ok) return { candidate, result };
+      if (!result.error?.retryable) break;   // business error → next provider, no retry
+      attempt++;
+      await backoff(attempt);
+    }
+  }
+  return null; // exhausted → caller falls back to manual / standard delivery
+}</code></pre>
+      </div>
+      <p><code class="inline">manual.ts</code> is worth calling out: it implements the same interface but its <code class="inline">getQuote</code>/<code class="inline">createBooking</code> just echo back whatever the merchant typed, with <code class="inline">ok: true</code>. That's what lets "standard delivery" be the last candidate in the same list instead of a special case the selector has to know about.</p>
+    </section>
+
+    <section id="migration">
+      <h2><span class="num">10</span>Migration plan — six phases, each independently shippable</h2>
+      <p>Strangler-fig, not a rewrite. Every phase leaves the system in a fully working state; nothing waits for phase 6 to be useful.</p>
+      <div class="phases">
+        <div class="phase">
+          <span class="ph-num">Phase 0 · Catalog only</span>
+          <h4>Seed, don't switch anything over</h4>
+          <p>Create <code class="inline">delivery_providers</code>, seed six rows (five couriers + <code class="inline">manual</code>). Nothing reads it yet. Zero behavior change.</p>
+        </div>
+        <div class="phase">
+          <span class="ph-num">Phase 1 · Wrap Lalamove</span>
+          <h4>Refactor, not rewrite</h4>
+          <p>Move the existing Lalamove logic behind the adapter interface. <code class="inline">lalamove-quote</code>/<code class="inline">lalamove-book</code> keep their exact external request/response shape. Proves the interface against a real integration before a second provider exists.</p>
+        </div>
+        <div class="phase">
+          <span class="ph-num">Phase 2 · Formalize ownership</span>
+          <h4>Migrate reseller accounts</h4>
+          <p>Create <code class="inline">delivery_provider_accounts</code>, backfill from <code class="inline">lalamove_settings</code> (<code class="inline">owner_type='reseller'</code>). Keep <code class="inline">lalamove_settings</code> as a read-only compatibility view for one release, then drop it.</p>
+        </div>
+        <div class="phase">
+          <span class="ph-num">Phase 3 · Replace the free-text field</span>
+          <h4>DeliveryModal switches over</h4>
+          <p>Add <code class="inline">delivery_bookings</code>. Backfill <code class="inline">orders.delivery_provider</code> text into it by matching against the catalog — unmatched values fall to <code class="inline">manual</code>, original text preserved in <code class="inline">metadata</code>. Swap the free-text input for <code class="inline">DeliveryProviderSelector.jsx</code>.</p>
+        </div>
+        <div class="phase">
+          <span class="ph-num">Phase 4 · Add real adapters, one at a time</span>
+          <h4>GrabExpress, then Borzo, Ninja Van, J&amp;T</h4>
+          <p>Each ships behind its own <code class="inline">is_active</code> flag on <code class="inline">delivery_providers</code>, so a broken sandbox integration can't reach production traffic. Each gets its own contract tests before <code class="inline">is_active = true</code>.</p>
+        </div>
+        <div class="phase">
+          <span class="ph-num">Phase 5 · Selection engine goes live</span>
+          <h4>Auto-selection, fallback, retry</h4>
+          <p><code class="inline">resolve_delivery_candidates</code> + <code class="inline">selector.ts</code> + the async fallback trigger, rolled out per-reseller behind a feature flag so it's reversible if something misbehaves against real traffic.</p>
+        </div>
+        <div class="phase">
+          <span class="ph-num">Phase 6 · Platform tier + observability</span>
+          <h4>The part your flowchart was actually describing</h4>
+          <p>Platform-owned account, subscription gating, <code class="inline">delivery_provider_logs</code> dashboard for admin, and a circuit breaker that auto-disables a flapping provider.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="risks" class="wide">
+      <div class="wide-inner">
+        <h2><span class="num">11</span>Risks &amp; trade-offs</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Risk</th><th>Why it matters</th><th>Mitigation</th></tr></thead>
+          <tbody>
+            <tr><td><span class="pill risk">high</span> Double booking on fallback</td><td>Retrying a slow-but-successful provider could book twice</td><td><code class="inline">idempotency_key</code> unique constraint, check-before-book</td></tr>
+            <tr><td><span class="pill risk">high</span> Edge function timeout</td><td>Looping many couriers synchronously in one request</td><td>Sync first attempt only; fallback moves to the async trigger path</td></tr>
+            <tr><td><span class="pill change">medium</span> Cost surprises</td><td>Auto-fallback could silently pick a pricier courier</td><td>Surface fee delta to merchant above a configurable threshold before auto-booking</td></tr>
+            <tr><td><span class="pill change">medium</span> Adapter drift</td><td>Five external APIs evolve independently of each other</td><td>Contract tests per adapter against sandbox, run in CI</td></tr>
+            <tr><td><span class="pill keep">low</span> RLS complexity</td><td>Three owner types on one table</td><td>Keep predicates boolean-simple: <code class="inline">owner_id = auth.uid() or is_admin()</code> — no clever joins inside RLS</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="practices">
+      <h2><span class="num">12</span>Best practices</h2>
+      <ul>
+        <li><strong>Idempotency keys on every booking call</strong> — non-negotiable once retry exists.</li>
+        <li><strong>Vault-only secrets</strong>, one pattern for all five providers — this repo already has it, don't invent a second one.</li>
+        <li><strong><code class="inline">security definer</code> with a pinned <code class="inline">search_path</code></strong> on every privileged RPC, matching the existing migration convention.</li>
+        <li><strong>Circuit breaker per provider</strong> — auto-disable after N consecutive failures, alert admin, don't wait for a human to notice.</li>
+        <li><strong>Structured logs keyed by <code class="inline">order_id</code></strong> so a support ticket becomes one query, not five.</li>
+        <li><strong>Feature-flag the rollout</strong> per reseller — auto-selection is new failure surface against real money movement.</li>
+        <li><strong>Don't build a workflow/saga engine.</strong> An ordered candidate list plus one DB trigger is enough at current order volume. Revisit only if volume or provider count actually outgrow it — not before.</li>
+      </ul>
+    </section>
+
+    <section id="questions">
+      <h2><span class="num">13</span>Open questions — these are yours to answer, not mine</h2>
+      <ul class="qlist">
+        <li><span class="mark">?</span><span>Does any merchant run their own delivery fleet today, or is the merchant tier purely speculative? Decides whether Phase 4+ ever needs merchant-facing onboarding UI.</span></li>
+        <li><span class="mark">?</span><span>When the platform tier books a delivery, who's billed — same reseller-pays model as today, or a platform markup?</span></li>
+        <li><span class="mark">?</span><span>Should auto-selection ever book without merchant confirmation, or does every booking stay a human-confirmed action regardless of tier? Trades cost-control against friction.</span></li>
+        <li><span class="mark">?</span><span>Is "standard/manual delivery" a permanent floor in the priority chain, or should it eventually be retired once enough real providers are onboarded?</span></li>
+      </ul>
+    </section>
+
+    <footer>
+      Reviewed against the actual schema, migrations, and edge functions in <code class="inline">tindahub-marketplace/ecommerce-platform</code> as of 2026-08-01 — not the brief's assumed Laravel stack.
+    </footer>
+  </main>
+</div>

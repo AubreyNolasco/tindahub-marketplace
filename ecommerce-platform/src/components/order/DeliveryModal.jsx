@@ -25,7 +25,7 @@ export default function DeliveryModal({order,open,onClose,onSaved}){
     setCheckingBooking(true)
     supabase.from('lalamove_bookings').select('status, lalamove_order_id, failure_reason').eq('order_id', order.id).order('created_at', { ascending: false }).limit(1).maybeSingle()
       .then(({ data }) => { setBooking(data || null); setCheckingBooking(false) })
-  }, [open, order?.id])
+  }, [open, order])
 
   if(!open||!order)return null
 

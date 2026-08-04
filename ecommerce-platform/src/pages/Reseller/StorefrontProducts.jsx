@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Copy, ImagePlus, Loader2, Package, Plus, Store, Upload } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { Link } from 'react-router-dom'
@@ -20,7 +20,7 @@ export default function StorefrontProducts() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true)
     const {data,error}=await supabase.from('reseller_storefront_products').select('product_id,products(id,name,price,wholesale_price,images,stock_quantity,is_active,merchant_profiles(business_name))').eq('reseller_id',user.id).order('created_at',{ascending:false})
     if(error)toast.error(error.message)
@@ -29,9 +29,9 @@ export default function StorefrontProducts() {
     setStoreName(profile?.storefront_name || `${profile?.full_name || 'My'} Store`)
     setContacts({facebook:profile?.storefront_facebook_url||'',phone:profile?.storefront_contact_number||'',viber:profile?.storefront_viber_number||'',whatsapp:profile?.storefront_whatsapp_number||''})
     setLoading(false)
-  }
+  }, [user, profile])
 
-  useEffect(()=>{ if(user) load() },[user?.id])
+  useEffect(()=>{ if(user) load() },[user, load])
 
   const remove = async productId => {
     const {error}=await supabase.from('reseller_storefront_products').delete().eq('reseller_id',user.id).eq('product_id',productId)

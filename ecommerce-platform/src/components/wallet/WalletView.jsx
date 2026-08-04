@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Wallet, ArrowDownCircle, ArrowUpCircle, Plus, Banknote } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
@@ -21,11 +21,7 @@ export default function WalletView({ allowWithdraw = false }) {
   const [showTopup, setShowTopup] = useState(false)
   const [showWithdraw, setShowWithdraw] = useState(false)
 
-  useEffect(() => {
-    load()
-  }, [])
-
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true)
     const [
       { data: walletData, error: walletErr },
@@ -55,7 +51,9 @@ export default function WalletView({ allowWithdraw = false }) {
       setTransactions(tx || [])
     }
     setLoading(false)
-  }
+  }, [user, allowWithdraw])
+
+  useEffect(() => { load() }, [load])
 
   if (loading) return <div className="flex justify-center py-24"><Spinner /></div>
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, Trash2, X, RefreshCw, Send } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -20,15 +20,15 @@ export default function Customers() {
   const [showDetail, setShowDetail] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState(null)
 
-  useEffect(() => { load() }, [])
-
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true)
     const { data, error } = await supabase.from('customers').select('*').eq('reseller_id', user.id).order('created_at', { ascending: false })
     if (error) toast.error(error.message)
     setCustomers(data || [])
     setLoading(false)
-  }
+  }, [user])
+
+  useEffect(() => { load() }, [load])
 
   const handleAdd = async (e) => {
     e.preventDefault()

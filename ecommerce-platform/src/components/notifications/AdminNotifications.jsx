@@ -27,7 +27,7 @@ export default function AdminNotifications() {
     if (allowed('withdrawals')) requests.push(supabase.from('withdrawal_requests').select('id,amount,created_at').eq('status','pending').order('created_at',{ascending:false}).limit(20).then(({data})=>(data||[]).map(row=>({id:`withdrawal:${row.id}`,title:'New withdrawal request',message:`${peso(row.amount)} waiting for review`,to:'/admin/withdrawals',icon:WalletCards,tone:'mango',created_at:row.created_at}))))
     const groups = await Promise.all(requests)
     setItems(groups.flat().sort((a,b) => new Date(b.created_at) - new Date(a.created_at)))
-  }, [user?.id, profile, allowed])
+  }, [user, profile, allowed])
 
   useEffect(() => {
     load()
@@ -41,7 +41,7 @@ export default function AdminNotifications() {
     if (allowed('withdrawals')) channel.on('postgres_changes',{event:'*',schema:'public',table:'withdrawal_requests'},load)
     channel.subscribe()
     return () => { supabase.removeChannel(channel) }
-  }, [user?.id, allowed, load])
+  }, [user, profile, allowed, load])
 
   useEffect(() => {
     const close = event => { if (panelRef.current && !panelRef.current.contains(event.target)) setOpen(false) }

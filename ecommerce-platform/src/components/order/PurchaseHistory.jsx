@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { CircleDollarSign, PackageCheck, Printer, ShieldAlert, RefreshCw } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
@@ -24,9 +24,7 @@ export default function PurchaseHistory() {
   const [paymentOrder, setPaymentOrder] = useState(null)
   const [shippingDecisionOrder, setShippingDecisionOrder] = useState(null)
 
-  useEffect(() => { load() }, [])
-
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true)
     const { data, error } = await supabase
       .from('orders')
@@ -36,7 +34,9 @@ export default function PurchaseHistory() {
     if (error) toast.error(error.message)
     setOrders(data || [])
     setLoading(false)
-  }
+  }, [user])
+
+  useEffect(() => { load() }, [load])
 
   const confirmReceived = async (order) => {
     setConfirming(order.id)

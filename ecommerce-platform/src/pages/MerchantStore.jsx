@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Store, Package, MessageCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -15,11 +15,7 @@ export default function MerchantStore() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    load()
-  }, [id])
-
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true)
     const [{ data: m, error: merchantErr }, { data: p, error: productsErr }] = await Promise.all([
       supabase.from('merchant_profiles').select('id,business_name,business_description,status,created_at').eq('id', id).maybeSingle(),
@@ -30,7 +26,9 @@ export default function MerchantStore() {
     setMerchant(m)
     setProducts(p || [])
     setLoading(false)
-  }
+  }, [id])
+
+  useEffect(() => { load() }, [load])
 
   if (loading) return <div className="flex justify-center py-24"><Spinner /></div>
 

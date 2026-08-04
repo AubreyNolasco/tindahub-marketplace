@@ -50,6 +50,7 @@ export default function ChooseSubscription() {
             setPlanMonths(data[0].months);
         }
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- must fetch plans once on mount only; planMonths is read to validate the default selection, not to retrigger the fetch on every plan click
   }, []);
   const PLANS = plans;
   if (loading) return null;

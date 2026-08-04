@@ -1,6 +1,6 @@
 -- =====================================================================
 -- Adds wallet top-up requests (merchant + reseller, admin-approved) to an
--- EXISTING TindaHub project that was already set up with the old schema.sql
+-- EXISTING JOM HUB project that was already set up with the old schema.sql
 -- (i.e. wallets.merchant_id). Safe to run once — every step is idempotent.
 --
 -- If you're setting up a brand-new project instead, just run schema.sql —

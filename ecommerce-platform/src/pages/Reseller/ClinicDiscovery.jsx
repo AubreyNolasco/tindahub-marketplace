@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Handshake, Building2, UserRound, Clock, DollarSign, Send, X, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
@@ -20,7 +20,7 @@ export default function ClinicDiscovery() {
   const [manualAddress, setManualAddress] = useState('')
   const [sending, setSending] = useState(false)
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true)
     const [clinicResult, customerResult] = await Promise.all([
       supabase.rpc('get_clinic_merchants_with_services'),
@@ -31,9 +31,9 @@ export default function ClinicDiscovery() {
     setClinics(clinicResult.data || [])
     setCustomers(customerResult.data || [])
     setLoading(false)
-  }
+  }, [user])
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [load])
 
   const openRefer = (merchantId, service) => {
     setShowRefer({ merchantId, service })

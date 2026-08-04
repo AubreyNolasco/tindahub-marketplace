@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ChevronDown, Filter, PackageSearch, Search, SlidersHorizontal, Store, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
@@ -42,9 +42,7 @@ export default function Catalog() {
 
   useEffect(() => { Promise.all([supabase.from('categories').select('*').order('name'), supabase.from('merchant_profiles').select('id,business_name').eq('status', 'approved').order('business_name')]).then(([categoryResult, merchantResult]) => { if (categoryResult.error || merchantResult.error) toast.error(categoryResult.error?.message || merchantResult.error?.message); setCategories(categoryResult.data || []); setMerchants(merchantResult.data || []) }) }, [])
   useEffect(() => { const timer = setTimeout(() => setDebouncedSearch(search.trim()), 300); return () => clearTimeout(timer) }, [search])
-  useEffect(() => { loadProducts() }, [activeCategory, activeMerchant, debouncedSearch, minPrice, maxPrice, sort])
-
-  const loadProducts = async () => {
+  const loadProducts = useCallback(async () => {
     setLoading(true)
     let query = supabase.from('products').select('*, merchant_profiles(business_name,store_open_time,store_close_time,auto_pause_outside_hours,store_timezone)').eq('is_active', true)
     if (activeCategory) query = query.eq('category_id', activeCategory)
@@ -77,7 +75,9 @@ export default function Catalog() {
     const campaignDiscounts = await getActiveCampaignDiscounts()
     setProducts((data || []).filter(product => isStoreOpen(product.merchant_profiles)).map((product) => applyCampaignDiscount(product, campaignDiscounts)))
     setLoading(false)
-  }
+  }, [activeCategory, activeMerchant, debouncedSearch, minPrice, maxPrice, sort])
+
+  useEffect(() => { loadProducts() }, [loadProducts])
 
   const activeFilterCount = [activeCategory, activeMerchant, minPrice, maxPrice].filter(Boolean).length
   const activeCategoryName = useMemo(() => categories.find((category) => category.id === activeCategory)?.name, [categories, activeCategory])

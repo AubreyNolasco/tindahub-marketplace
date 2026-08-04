@@ -1,5 +1,5 @@
 -- =====================================================================
--- TindaHub Marketplace — Clinic & Referral System
+-- JOM HUB Marketplace — Clinic & Referral System
 -- Adds: service_type to merchant_profiles, clinic_services table,
 -- referral_appointments table, RPCs for wallet transfers
 -- =====================================================================

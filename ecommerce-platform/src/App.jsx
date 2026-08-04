@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from './contexts/AuthContext'
@@ -11,105 +12,114 @@ import PostLoginGuide from './components/onboarding/PostLoginGuide'
 import DeviceAccessGuard from './components/auth/DeviceAccessGuard'
 import MfaGuard from './components/auth/MfaGuard'
 import DemoModeBanner from './components/system/DemoModeBanner'
-
-import Home from './pages/Home'
-import NotFound from './pages/NotFound'
-import Catalog from './pages/Catalog'
-import ProductDetail from './pages/ProductDetail'
-import MerchantStore from './pages/MerchantStore'
-import Policy from './pages/Policy'
-import Login from './pages/Auth/Login'
-import PendingApproval from './pages/Auth/PendingApproval'
-import SubscriptionLocked from './pages/Merchant/SubscriptionLocked'
-import ChooseSubscription from './pages/Auth/ChooseSubscription'
-import AuthCallback from './pages/Auth/AuthCallback'
-import AuthContinue from './pages/Auth/AuthContinue'
-import Onboarding from './pages/Auth/Onboarding'
-import DeviceAccessAction from './pages/Auth/DeviceAccessAction'
-
-import ResellerLayout from './pages/Reseller/ResellerLayout'
-import ResellerDashboard from './pages/Reseller/ResellerDashboard'
-import Cart from './pages/Reseller/Cart'
-import Checkout from './pages/Reseller/Checkout'
-import OrderHistory from './pages/Reseller/OrderHistory'
-import Customers from './pages/Reseller/Customers'
-import ResellerWallet from './pages/Reseller/WalletPage'
-import ResellerChats from './pages/Reseller/Chats'
-import ResellerChatDetail from './pages/Reseller/ChatDetail'
-import ResellerSalesReport from './pages/Reseller/Reports/SalesReport'
-import ResellerInventoryReport from './pages/Reseller/Reports/InventoryReport'
-import ResellerTopupReport from './pages/Reseller/Reports/TopupReport'
-import ResellerWithdrawalReport from './pages/Reseller/Reports/WithdrawalReport'
-import ResellerOrderedReport from './pages/Reseller/Reports/OrderedReport'
-import StorefrontProducts from './pages/Reseller/StorefrontProducts'
-import ResellerStorefront from './pages/ResellerStorefront'
-import ClinicDiscovery from './pages/Reseller/ClinicDiscovery'
-import MyReferrals from './pages/Reseller/MyReferrals'
-import DeliverySettings from './pages/Reseller/DeliverySettings'
-import IdVerification from './pages/Reseller/IdVerification'
-
-import MerchantLayout from './pages/Merchant/MerchantLayout'
-import ServiceSettings from './pages/Merchant/ServiceSettings'
-import ClinicServices from './pages/Merchant/ClinicServices'
-import ReferralRequests from './pages/Merchant/ReferralRequests'
-import MerchantDashboard from './pages/Merchant/MerchantDashboard'
-import Products from './pages/Merchant/Products'
-import ProductForm from './pages/Merchant/ProductForm'
-import Orders from './pages/Merchant/Orders'
-import WalletPage from './pages/Merchant/WalletPage'
-import Purchases from './pages/Merchant/Purchases'
-import MerchantChats from './pages/Merchant/Chats'
-import MerchantChatDetail from './pages/Merchant/ChatDetail'
-import MerchantSalesReport from './pages/Merchant/Reports/SalesReport'
-import MerchantInventoryReport from './pages/Merchant/Reports/InventoryReport'
-import MerchantTopupReport from './pages/Merchant/Reports/TopupReport'
-import MerchantWithdrawalReport from './pages/Merchant/Reports/WithdrawalReport'
-import MerchantOrderedReport from './pages/Merchant/Reports/OrderedReport'
-
-import AdminLayout from './pages/Admin/AdminLayout'
-import AdminDashboard from './pages/Admin/AdminDashboard'
-import Merchants from './pages/Admin/Merchants'
-import MerchantFollowups from './pages/Admin/MerchantFollowups'
-import SupportChats from './pages/Admin/SupportChats'
-import MerchantSupportChat from './pages/Merchant/SupportChat'
-import ResellerSupportChat from './pages/Reseller/SupportChat'
-import Payments from './pages/Admin/Payments'
-import TopupRequests from './pages/Admin/TopupRequests'
-import WithdrawalRequests from './pages/Admin/WithdrawalRequests'
-import ChatHistory from './pages/Admin/ChatHistory'
-import ChatHistoryDetail from './pages/Admin/ChatHistoryDetail'
-import Categories from './pages/Admin/Categories'
-import Subscriptions from './pages/Admin/Subscriptions'
-import HomepageEditor from './pages/Admin/HomepageEditor'
-import ProcessPresentation from './pages/Admin/ProcessPresentation'
-import AdminWallet from './pages/Admin/Wallet'
-import Sales from './pages/Admin/Sales'
-import AdminSalesReport from './pages/Admin/Reports/SalesReport'
-import AdminInventoryReport from './pages/Admin/Reports/InventoryReport'
-import AdminTopupReport from './pages/Admin/Reports/TopupReport'
-import AdminWithdrawalReport from './pages/Admin/Reports/WithdrawalReport'
-import AdminOrderedReport from './pages/Admin/Reports/OrderedReport'
-import LoginHistory from './pages/Admin/LoginHistory'
-import ReviewsManagement from './pages/ReviewsManagement'
-import AdminCampaigns from './pages/Admin/Campaigns'
-import MerchantCampaigns from './pages/Merchant/Campaigns'
-import ProfileAddress from './pages/ProfileAddress'
-import AccountSettings from './pages/AccountSettings'
-import AdminRegistrations from './pages/Admin/Registrations'
-import BusinessPermit from './pages/Merchant/BusinessPermit'
-import StaffManagement from './pages/Admin/StaffManagement'
-import AdminDeliveryProviders from './pages/Admin/DeliveryProviders'
-import MerchantDeliverySettings from './pages/Merchant/DeliverySettings'
-import LegalSettings from './pages/Admin/LegalSettings'
-import ProcessGuide from './pages/Admin/ProcessGuide'
-import SystemFlowchart from './pages/Admin/SystemFlowchart'
 import AdminPermissionRoute from './components/auth/AdminPermissionRoute'
-import AdminFullAccess from './pages/Admin/FullAccess'
-import ApprovalCenter from './pages/Admin/ApprovalCenter'
-import OrderCases from './pages/Admin/OrderCases'
-import ActivityLog from './pages/Admin/ActivityLog'
-import TestAccounts from './pages/Admin/TestAccounts'
-import ResellerVerifications from './pages/Admin/ResellerVerifications'
+import Spinner from './components/ui/Spinner'
+
+// Route-level code splitting: every page below loads on demand instead
+// of being bundled into one of three giant Admin/Merchant/Reseller
+// chunks. That path-based grouping (see vite.config.js history) is what
+// caused the circular-chunk warnings and the 665KB reseller-pages
+// bundle — pages in different sections import each other's components,
+// so Rollup couldn't split them cleanly. Per-route lazy() lets Rollup
+// split along the real import graph instead.
+const Home = lazy(() => import('./pages/Home'))
+const NotFound = lazy(() => import('./pages/NotFound'))
+const Catalog = lazy(() => import('./pages/Catalog'))
+const ProductDetail = lazy(() => import('./pages/ProductDetail'))
+const MerchantStore = lazy(() => import('./pages/MerchantStore'))
+const Policy = lazy(() => import('./pages/Policy'))
+const Login = lazy(() => import('./pages/Auth/Login'))
+const PendingApproval = lazy(() => import('./pages/Auth/PendingApproval'))
+const SubscriptionLocked = lazy(() => import('./pages/Merchant/SubscriptionLocked'))
+const ChooseSubscription = lazy(() => import('./pages/Auth/ChooseSubscription'))
+const AuthCallback = lazy(() => import('./pages/Auth/AuthCallback'))
+const AuthContinue = lazy(() => import('./pages/Auth/AuthContinue'))
+const Onboarding = lazy(() => import('./pages/Auth/Onboarding'))
+const DeviceAccessAction = lazy(() => import('./pages/Auth/DeviceAccessAction'))
+
+const ResellerLayout = lazy(() => import('./pages/Reseller/ResellerLayout'))
+const ResellerDashboard = lazy(() => import('./pages/Reseller/ResellerDashboard'))
+const Cart = lazy(() => import('./pages/Reseller/Cart'))
+const Checkout = lazy(() => import('./pages/Reseller/Checkout'))
+const OrderHistory = lazy(() => import('./pages/Reseller/OrderHistory'))
+const Customers = lazy(() => import('./pages/Reseller/Customers'))
+const ResellerWallet = lazy(() => import('./pages/Reseller/WalletPage'))
+const ResellerChats = lazy(() => import('./pages/Reseller/Chats'))
+const ResellerChatDetail = lazy(() => import('./pages/Reseller/ChatDetail'))
+const ResellerSalesReport = lazy(() => import('./pages/Reseller/Reports/SalesReport'))
+const ResellerInventoryReport = lazy(() => import('./pages/Reseller/Reports/InventoryReport'))
+const ResellerTopupReport = lazy(() => import('./pages/Reseller/Reports/TopupReport'))
+const ResellerWithdrawalReport = lazy(() => import('./pages/Reseller/Reports/WithdrawalReport'))
+const ResellerOrderedReport = lazy(() => import('./pages/Reseller/Reports/OrderedReport'))
+const StorefrontProducts = lazy(() => import('./pages/Reseller/StorefrontProducts'))
+const ResellerStorefront = lazy(() => import('./pages/ResellerStorefront'))
+const ClinicDiscovery = lazy(() => import('./pages/Reseller/ClinicDiscovery'))
+const MyReferrals = lazy(() => import('./pages/Reseller/MyReferrals'))
+const DeliverySettings = lazy(() => import('./pages/Reseller/DeliverySettings'))
+const IdVerification = lazy(() => import('./pages/Reseller/IdVerification'))
+
+const MerchantLayout = lazy(() => import('./pages/Merchant/MerchantLayout'))
+const ServiceSettings = lazy(() => import('./pages/Merchant/ServiceSettings'))
+const ClinicServices = lazy(() => import('./pages/Merchant/ClinicServices'))
+const ReferralRequests = lazy(() => import('./pages/Merchant/ReferralRequests'))
+const MerchantDashboard = lazy(() => import('./pages/Merchant/MerchantDashboard'))
+const Products = lazy(() => import('./pages/Merchant/Products'))
+const ProductForm = lazy(() => import('./pages/Merchant/ProductForm'))
+const Orders = lazy(() => import('./pages/Merchant/Orders'))
+const WalletPage = lazy(() => import('./pages/Merchant/WalletPage'))
+const Purchases = lazy(() => import('./pages/Merchant/Purchases'))
+const MerchantChats = lazy(() => import('./pages/Merchant/Chats'))
+const MerchantChatDetail = lazy(() => import('./pages/Merchant/ChatDetail'))
+const MerchantSalesReport = lazy(() => import('./pages/Merchant/Reports/SalesReport'))
+const MerchantInventoryReport = lazy(() => import('./pages/Merchant/Reports/InventoryReport'))
+const MerchantTopupReport = lazy(() => import('./pages/Merchant/Reports/TopupReport'))
+const MerchantWithdrawalReport = lazy(() => import('./pages/Merchant/Reports/WithdrawalReport'))
+const MerchantOrderedReport = lazy(() => import('./pages/Merchant/Reports/OrderedReport'))
+
+const AdminLayout = lazy(() => import('./pages/Admin/AdminLayout'))
+const AdminDashboard = lazy(() => import('./pages/Admin/AdminDashboard'))
+const Merchants = lazy(() => import('./pages/Admin/Merchants'))
+const MerchantFollowups = lazy(() => import('./pages/Admin/MerchantFollowups'))
+const SupportChats = lazy(() => import('./pages/Admin/SupportChats'))
+const MerchantSupportChat = lazy(() => import('./pages/Merchant/SupportChat'))
+const ResellerSupportChat = lazy(() => import('./pages/Reseller/SupportChat'))
+const Payments = lazy(() => import('./pages/Admin/Payments'))
+const TopupRequests = lazy(() => import('./pages/Admin/TopupRequests'))
+const WithdrawalRequests = lazy(() => import('./pages/Admin/WithdrawalRequests'))
+const ChatHistory = lazy(() => import('./pages/Admin/ChatHistory'))
+const ChatHistoryDetail = lazy(() => import('./pages/Admin/ChatHistoryDetail'))
+const Categories = lazy(() => import('./pages/Admin/Categories'))
+const Subscriptions = lazy(() => import('./pages/Admin/Subscriptions'))
+const HomepageEditor = lazy(() => import('./pages/Admin/HomepageEditor'))
+const ProcessPresentation = lazy(() => import('./pages/Admin/ProcessPresentation'))
+const AdminWallet = lazy(() => import('./pages/Admin/Wallet'))
+const Sales = lazy(() => import('./pages/Admin/Sales'))
+const AdminSalesReport = lazy(() => import('./pages/Admin/Reports/SalesReport'))
+const AdminInventoryReport = lazy(() => import('./pages/Admin/Reports/InventoryReport'))
+const AdminTopupReport = lazy(() => import('./pages/Admin/Reports/TopupReport'))
+const AdminWithdrawalReport = lazy(() => import('./pages/Admin/Reports/WithdrawalReport'))
+const AdminOrderedReport = lazy(() => import('./pages/Admin/Reports/OrderedReport'))
+const LoginHistory = lazy(() => import('./pages/Admin/LoginHistory'))
+const ReviewsManagement = lazy(() => import('./pages/ReviewsManagement'))
+const AdminCampaigns = lazy(() => import('./pages/Admin/Campaigns'))
+const MerchantCampaigns = lazy(() => import('./pages/Merchant/Campaigns'))
+const ProfileAddress = lazy(() => import('./pages/ProfileAddress'))
+const AccountSettings = lazy(() => import('./pages/AccountSettings'))
+const AdminRegistrations = lazy(() => import('./pages/Admin/Registrations'))
+const BusinessPermit = lazy(() => import('./pages/Merchant/BusinessPermit'))
+const StaffManagement = lazy(() => import('./pages/Admin/StaffManagement'))
+const AdminDeliveryProviders = lazy(() => import('./pages/Admin/DeliveryProviders'))
+const MerchantDeliverySettings = lazy(() => import('./pages/Merchant/DeliverySettings'))
+const LegalSettings = lazy(() => import('./pages/Admin/LegalSettings'))
+const ProcessGuide = lazy(() => import('./pages/Admin/ProcessGuide'))
+const SystemFlowchart = lazy(() => import('./pages/Admin/SystemFlowchart'))
+const AdminFullAccess = lazy(() => import('./pages/Admin/FullAccess'))
+const ApprovalCenter = lazy(() => import('./pages/Admin/ApprovalCenter'))
+const OrderCases = lazy(() => import('./pages/Admin/OrderCases'))
+const ActivityLog = lazy(() => import('./pages/Admin/ActivityLog'))
+const TestAccounts = lazy(() => import('./pages/Admin/TestAccounts'))
+const ResellerVerifications = lazy(() => import('./pages/Admin/ResellerVerifications'))
+const Integrations = lazy(() => import('./pages/Admin/Integrations'))
 
 export default function App() {
   return (
@@ -141,6 +151,7 @@ export default function App() {
               }}
             />
             <main className="flex-1">
+              <Suspense fallback={<div className="flex justify-center py-24"><Spinner /></div>}>
               <Routes>
 <Route path="/" element={<Home />} />
                 <Route path="/catalog" element={<ProtectedRoute allowedRoles={['reseller','merchant','admin','staff']}><Catalog /></ProtectedRoute>} />
@@ -228,6 +239,7 @@ export default function App() {
                   <Route path="products/:id/edit" element={<AdminPermissionRoute adminOnly><ProductForm admin /></AdminPermissionRoute>} />
                   <Route path="legal" element={<AdminPermissionRoute adminOnly><LegalSettings /></AdminPermissionRoute>} />
                   <Route path="delivery-providers" element={<AdminPermissionRoute adminOnly><AdminDeliveryProviders /></AdminPermissionRoute>} />
+                  <Route path="integrations" element={<AdminPermissionRoute adminOnly><Integrations /></AdminPermissionRoute>} />
                   <Route path="system-flowchart" element={<AdminPermissionRoute adminOnly><SystemFlowchart /></AdminPermissionRoute>} />
                   <Route path="process-guide" element={<AdminPermissionRoute adminOnly><ProcessGuide /></AdminPermissionRoute>} />
                   <Route path="merchant-presentation" element={<AdminPermissionRoute adminOnly><ProcessPresentation audience="merchant" /></AdminPermissionRoute>} />
@@ -259,6 +271,7 @@ export default function App() {
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              </Suspense>
             </main>
             <Footer />
           </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Check, X, Truck, ShieldAlert, RefreshCw, Eye, Printer } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
@@ -29,9 +29,7 @@ export default function Orders() {
   const [caseOrder, setCaseOrder] = useState(null)
   const [shippingFeeOrder, setShippingFeeOrder] = useState(null)
 
-  useEffect(() => { load() }, [])
-
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true)
     const { data, error } = await supabase
       .from('orders')
@@ -41,7 +39,9 @@ export default function Orders() {
     if (error) toast.error(error.message)
     setOrders(data || [])
     setLoading(false)
-  }
+  }, [user])
+
+  useEffect(() => { load() }, [load])
 
   const viewProof = async (order) => {
     const payment = order.payments?.[0]

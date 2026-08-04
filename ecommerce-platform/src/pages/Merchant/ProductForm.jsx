@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Loader2, Plus, ShieldAlert, Trash2, Upload, X } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -41,27 +41,21 @@ export default function ProductForm({ admin = false }) {
   const hasOperateGrace = merchantProfile?.operate_grace_until && new Date(merchantProfile.operate_grace_until) > new Date()
   const permitRestricted = !admin && merchantProfile?.business_permit_status !== 'approved' && !hasOperateGrace
 
-  useEffect(() => {
-    loadCategories()
-    if (admin) loadMerchants()
-    if (isEdit) loadProduct()
-  }, [id])
-
-  const loadMerchants = async () => {
+  const loadMerchants = useCallback(async () => {
     const { data, error } = await supabase.rpc('get_admin_merchant_profiles')
     if (error) return toast.error(error.message)
     const approved = (data || []).filter((merchant) => merchant.status === 'approved')
     setMerchants(approved)
     if (!isEdit && approved.length === 1) setMerchantId(approved[0].id)
-  }
+  }, [isEdit])
 
-  const loadCategories = async () => {
+  const loadCategories = useCallback(async () => {
     const { data, error } = await supabase.from('categories').select('*').order('name')
     if (error) toast.error(error.message)
     setCategories(data || [])
-  }
+  }, [])
 
-  const loadProduct = async () => {
+  const loadProduct = useCallback(async () => {
     const { data, error } = await supabase.from('products').select('*').eq('id', id).maybeSingle()
     if (error) toast.error(error.message)
     if (data) {
@@ -86,7 +80,13 @@ export default function ProductForm({ admin = false }) {
       })
       setExistingImage(data.images?.[0] || null)
     }
-  }
+  }, [id])
+
+  useEffect(() => {
+    loadCategories()
+    if (admin) loadMerchants()
+    if (isEdit) loadProduct()
+  }, [admin, isEdit, loadCategories, loadMerchants, loadProduct])
 
   const update = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
   const toggle = (key) => (e) => setForm((current) => ({ ...current, [key]: e.target.checked }))

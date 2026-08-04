@@ -1,5 +1,5 @@
 -- =====================================================================
--- TindaHub Marketplace — Add Real Estate as a Service Type
+-- JOM HUB Marketplace — Add Real Estate as a Service Type
 -- Same referral workflow as clinic (reseller refers, merchant pays fee)
 -- =====================================================================
 

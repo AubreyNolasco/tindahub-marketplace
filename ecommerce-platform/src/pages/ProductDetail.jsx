@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { BadgeCheck, Check, MessageCircle, Minus, Package, PackageSearch, Plus, ShieldCheck, Store } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -34,10 +34,10 @@ export default function ProductDetail() {
   const [listedForCustomers, setListedForCustomers] = useState(false)
   const [listing, setListing] = useState(false)
 
-  const loadReviews = async () => {
+  const loadReviews = useCallback(async () => {
     const { data, error } = await supabase.from('product_reviews').select('*').eq('product_id', id).order('created_at', { ascending: false })
     if (!error) setReviews(data || [])
-  }
+  }, [id])
 
   useEffect(() => {
     const load = async () => {
@@ -48,7 +48,7 @@ export default function ProductDetail() {
       setLoading(false)
     }
     load()
-  }, [id])
+  }, [id, loadReviews])
 
   useEffect(() => {
     if (!user || role !== 'reseller') return
@@ -61,7 +61,7 @@ export default function ProductDetail() {
       if (reviewResult.data) { setMyReview(reviewResult.data); setRating(reviewResult.data.rating); setComment(reviewResult.data.comment) }
       setListedForCustomers(Boolean(listingResult.data))
     })
-  }, [id, user?.id, role])
+  }, [id, user, role])
 
   const average = useMemo(() => reviews.length ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length : 0, [reviews])
   const submitReview = async (event) => {

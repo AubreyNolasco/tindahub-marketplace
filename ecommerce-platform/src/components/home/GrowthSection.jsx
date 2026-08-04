@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowRight, BadgeCheck, BarChart3, Boxes, Building2, Handshake, Megaphone, PackageCheck, ReceiptText, Share2, ShieldCheck, ShoppingBag, Store, TrendingUp, UserPlus, UsersRound, WalletCards, Stethoscope, Truck } from 'lucide-react'
+import { ArrowDown, ArrowRight, BadgeCheck, BarChart3, Building2, Handshake, Megaphone, PackageCheck, ReceiptText, Share2, ShieldCheck, ShoppingBag, Store, TrendingUp, UserPlus, UsersRound, WalletCards, Stethoscope } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 const merchantBenefits = [

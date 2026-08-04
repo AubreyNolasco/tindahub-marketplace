@@ -1,5 +1,5 @@
 -- =====================================================================
--- TindaHub Marketplace — System UX Overhaul Migration
+-- JOM HUB Marketplace — System UX Overhaul Migration
 -- Adds: Lalamove integration, system guides, table-friendly helpers
 -- =====================================================================
 

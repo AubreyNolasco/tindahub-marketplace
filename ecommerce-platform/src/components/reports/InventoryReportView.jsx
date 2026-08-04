@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Package, Boxes, PhilippinePeso, AlertTriangle, XCircle, Store } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
@@ -39,9 +39,7 @@ function MerchantInventory({ user, role }) {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => { load() }, [])
-
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true)
     let query = supabase
       .from('products')
@@ -52,7 +50,9 @@ function MerchantInventory({ user, role }) {
     if (error) toast.error(error.message)
     setProducts(data || [])
     setLoading(false)
-  }
+  }, [role, user])
+
+  useEffect(() => { load() }, [load])
 
   const totalStock = products.reduce((sum, p) => sum + Number(p.stock_quantity), 0)
   const totalValue = products.reduce((sum, p) => sum + Number(p.price) * Number(p.stock_quantity), 0)
@@ -124,9 +124,7 @@ function ResellerInventory({ user }) {
   const [loading, setLoading] = useState(true)
   const [appliedRange, setAppliedRange] = useState({ start: firstDayOfMonth(), end: today() })
 
-  useEffect(() => { load() }, [])
-
-  const load = async (rangeStart = startDate, rangeEnd = endDate) => {
+  const load = useCallback(async (rangeStart = startDate, rangeEnd = endDate) => {
     if (rangeStart > rangeEnd) return toast.error('The start date must be before or the same as the end date.')
     setLoading(true)
     const { data, error } = await supabase
@@ -159,7 +157,10 @@ function ResellerInventory({ user }) {
     setRows(aggregated)
     if (!error) setAppliedRange({ start: rangeStart, end: rangeEnd })
     setLoading(false)
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- startDate/endDate are only defaults for the initial mount call; onApply always passes explicit dates
+  }, [user])
+
+  useEffect(() => { load() }, [load])
 
   const totalQty = rows.reduce((sum, r) => sum + r.totalQty, 0)
   const totalSpent = rows.reduce((sum, r) => sum + r.totalSpent, 0)

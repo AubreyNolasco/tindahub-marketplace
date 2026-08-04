@@ -24,10 +24,24 @@ export default [
       }
     },
     rules: {
-      'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
       'no-undef': 'error',
       'no-console': ['warn', { allow: ['error'] }],
       'react-hooks/exhaustive-deps': 'warn'
+    }
+  },
+  {
+    // Plain scripts loaded directly by index.html (not part of the src/
+    // module graph), so they need the browser globals declared here too.
+    files: ['public/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'script',
+      globals: { ...globals.browser }
+    },
+    rules: {
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
+      'no-undef': 'error'
     }
   }
 ]

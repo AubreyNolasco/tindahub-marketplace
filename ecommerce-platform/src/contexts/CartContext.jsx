@@ -35,7 +35,7 @@ export function CartProvider({ children }) {
   const { user, role } = useAuth()
   const storageKey = `${STORAGE_PREFIX}:${user?.id || 'guest'}`
   const [cart, setCart] = useState(() => ({ key: storageKey, items: readCart(storageKey) }))
-  const items = cart.key === storageKey ? cart.items : []
+  const items = useMemo(() => (cart.key === storageKey ? cart.items : []), [cart, storageKey])
 
   const setItems = (update) => setCart((current) => {
     const currentItems = current.key === storageKey ? current.items : readCart(storageKey)

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Plus, Pencil, Trash2, Handshake, X, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
@@ -19,7 +19,7 @@ export default function ClinicServices() {
   const [form, setForm] = useState(emptyService)
   const [saving, setSaving] = useState(false)
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true)
     const { data, error } = await supabase
       .from('clinic_services')
@@ -29,9 +29,9 @@ export default function ClinicServices() {
     if (error) toast.error(error.message)
     setServices(data || [])
     setLoading(false)
-  }
+  }, [user])
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [load])
 
   const resetForm = () => {
     setForm(emptyService)

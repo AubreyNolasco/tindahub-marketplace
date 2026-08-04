@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { MessageSquareText, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
@@ -12,7 +12,7 @@ export default function ReviewsManagement({ admin = false }) {
   const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(true)
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true)
     let query = supabase.from('product_reviews').select('*, products!inner(name, merchant_id)').order('created_at', { ascending: false })
     if (!admin) query = query.eq('products.merchant_id', user.id)
@@ -20,8 +20,8 @@ export default function ReviewsManagement({ admin = false }) {
     if (error) toast.error(error.message)
     setReviews(data || [])
     setLoading(false)
-  }
-  useEffect(() => { if (user) load() }, [user?.id])
+  }, [admin, user])
+  useEffect(() => { if (user) load() }, [user, load])
 
   const remove = async (id) => {
     if (!admin || !window.confirm('Delete this review?')) return

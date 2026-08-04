@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { ClipboardList, Boxes, PhilippinePeso, Layers } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
@@ -39,9 +39,7 @@ export default function OrderedReportView({ role }) {
   const [loading, setLoading] = useState(true)
   const [appliedRange, setAppliedRange] = useState({ start: firstDayOfMonth(), end: today() })
 
-  useEffect(() => { load() }, [])
-
-  const load = async (rangeStart = startDate, rangeEnd = endDate) => {
+  const load = useCallback(async (rangeStart = startDate, rangeEnd = endDate) => {
     if (rangeStart > rangeEnd) return toast.error('The start date must be before or the same as the end date.')
     setLoading(true)
     let query = supabase
@@ -56,7 +54,10 @@ export default function OrderedReportView({ role }) {
     setOrders(data || [])
     if (!error) setAppliedRange({ start: rangeStart, end: rangeEnd })
     setLoading(false)
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- startDate/endDate are only defaults for the initial mount call; onApply always passes explicit dates
+  }, [role, user])
+
+  useEffect(() => { load() }, [load])
 
   const lines = flattenLines(role, orders)
   const totalUnits = lines.reduce((sum, l) => sum + Number(l.item.quantity), 0)

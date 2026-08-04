@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MessageCircle, Search } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -13,11 +13,7 @@ export default function Chats() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
 
-  useEffect(() => {
-    load()
-  }, [])
-
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true)
     const { data, error } = await supabase
       .from('chat_messages')
@@ -42,7 +38,9 @@ export default function Chats() {
     }
     setThreads(Object.values(grouped))
     setLoading(false)
-  }
+  }, [user])
+
+  useEffect(() => { load() }, [load])
 
   if (loading) return <div className="flex justify-center py-24"><Spinner /></div>
 

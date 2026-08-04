@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { Loader2, Wallet, ShoppingBag, Truck } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -28,7 +28,7 @@ export default function Checkout() {
   const customerId = searchParams.get('customer')
   const { groupedOrders, clearOrderItems } = useCart()
   const group = groupedOrders[`${merchantId}__${customerId || 'self'}`]
-  const items = group?.items || []
+  const items = useMemo(() => group?.items || [], [group])
 
   const [merchant, setMerchant] = useState(null)
   const [wallet, setWallet] = useState(null)
@@ -42,7 +42,7 @@ export default function Checkout() {
   useEffect(() => {
     if (merchantId) loadMerchant()
     loadWallet()
-  }, [merchantId])
+  }, [merchantId, loadMerchant, loadWallet])
   useEffect(() => { if (!customerId && profile?.address) setAddress(profile.address) }, [customerId, profile?.address])
 
   useEffect(() => {
@@ -54,7 +54,7 @@ export default function Checkout() {
     return () => { active = false }
   }, [merchantId, items])
 
-  const loadMerchant = async () => {
+  const loadMerchant = useCallback(async () => {
     const { data, error } = await supabase
       .from('merchant_profiles')
       .select('id, business_name')
@@ -62,13 +62,13 @@ export default function Checkout() {
       .maybeSingle()
     if (error) toast.error(error.message)
     setMerchant(data)
-  }
+  }, [merchantId])
 
-  const loadWallet = async () => {
+  const loadWallet = useCallback(async () => {
     const { data, error } = await supabase.from('wallets').select('balance').eq('owner_id', user.id).maybeSingle()
     if (error) toast.error(error.message)
     setWallet(data)
-  }
+  }, [user])
 
   if (items.length === 0) {
     return (

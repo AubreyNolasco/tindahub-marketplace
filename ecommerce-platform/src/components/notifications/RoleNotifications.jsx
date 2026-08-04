@@ -46,7 +46,7 @@ export default function RoleNotifications() {
       orders?.flatMap(order=>(order.order_cases||[]).map(caseItem=>({order,caseItem}))).filter(({caseItem})=>['open','merchant_review','admin_review'].includes(caseItem.status)).forEach(({order,caseItem})=>items.unshift({id:`case:${caseItem.id}:${caseItem.updated_at}`,title:'Order case update',message:`${caseItem.case_type} request for ${order.order_number} is ${caseItem.status.replace('_',' ')}.`,to:'/reseller/orders',action:'View case',icon:ShieldAlert,tone:'coral'}))
     }
     setNotifications(items)
-  }, [user?.id, role])
+  }, [user, role])
 
   useEffect(() => {
     load()
@@ -60,7 +60,7 @@ export default function RoleNotifications() {
     if (role === 'merchant') channel.on('postgres_changes', { event:'*', schema:'public', table:'subscriptions', filter:`owner_id=eq.${user.id}` }, load)
     channel.subscribe()
     return () => { supabase.removeChannel(channel) }
-  }, [user?.id, role, load])
+  }, [user, role, load])
 
   useEffect(() => {
     const close = event => { if (panelRef.current && !panelRef.current.contains(event.target)) setOpen(false) }

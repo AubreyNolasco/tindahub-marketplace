@@ -7,10 +7,12 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
+        // Page-level splitting now comes from the lazy()/Suspense routes
+        // in src/App.jsx instead of grouping by /src/pages/<Role>/ path
+        // — that grouping was forcing pages that import across sections
+        // into the same three chunks, which is what caused the circular
+        // chunk warnings. Vendor libraries still get their own chunks.
         manualChunks(id) {
-          if (id.includes('/src/pages/Admin/')) return 'admin-pages'
-          if (id.includes('/src/pages/Merchant/')) return 'merchant-pages'
-          if (id.includes('/src/pages/Reseller/')) return 'reseller-pages'
           if (!id.includes('node_modules')) return
           if (id.includes('@supabase')) return 'supabase'
           if (id.includes('lucide-react')) return 'icons'

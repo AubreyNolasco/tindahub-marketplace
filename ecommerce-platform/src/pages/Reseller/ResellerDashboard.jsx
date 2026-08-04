@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, BarChart3, CheckCircle2, ClipboardList, RefreshCw, ShoppingBag, Store, Truck, Users, Wallet, XCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -53,8 +53,7 @@ export default function ResellerDashboard() {
   const [orders, setOrders] = useState([])
   const [lalamove, setLalamove] = useState(null)
   const [loading, setLoading] = useState(true)
-  useEffect(() => { load() }, [])
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true)
     const [ordersRes, customers, wallet, lalamoveRes] = await Promise.all([
       supabase.from('orders').select('id,order_number,total,status,created_at,merchant_id,delivery_provider,tracking_number,merchant_profiles(business_name)').eq('reseller_id', user.id).order('created_at', { ascending: false }),
@@ -69,7 +68,9 @@ export default function ResellerDashboard() {
     setOrders(orderRows)
     if (!lalamoveRes.error) setLalamove(lalamoveRes.data)
     setLoading(false)
-  }
+  }, [user])
+
+  useEffect(() => { load() }, [load])
   const activityTrend = useMemo(() => buildDailyTrend(orders), [orders])
   const topMerchants = useMemo(() => buildTopMerchants(orders), [orders])
   const recentOrders = orders.slice(0, 6)

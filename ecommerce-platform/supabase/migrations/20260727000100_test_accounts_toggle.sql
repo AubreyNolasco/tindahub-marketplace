@@ -1,5 +1,5 @@
 -- =====================================================================
--- TindaHub Marketplace — Test Accounts Toggle
+-- JOM HUB Marketplace — Test Accounts Toggle
 -- Adds a site_settings row for admin to enable/disable test accounts
 -- =====================================================================
 
