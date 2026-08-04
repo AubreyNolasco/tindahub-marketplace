@@ -8,4 +8,5 @@
 - [x] Create service file `src/lib/services/dashboardStats.js` calling the RPCs
 - [x] Create component `src/components/dashboard/LeaderboardCard.jsx`
 - [x] Modify `src/pages/Admin/AdminDashboard.jsx` to add the three leaderboard cards
-- [x] Build to verify no errors (`npm run build`) — build succeeded, `AdminDashboard-BsUecLQl.js` produced
+- [x] Build to verify no errors (`npm run build`)
+</content>
