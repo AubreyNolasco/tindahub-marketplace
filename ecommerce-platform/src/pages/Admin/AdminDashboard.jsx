@@ -4,12 +4,13 @@ import {
   ArrowRight, Banknote, Building2, CircleDollarSign,
   ClipboardCheck, Landmark, RefreshCw, ShieldAlert, ShoppingBag,
   TrendingUp, Users, Wallet, CalendarDays, CheckCircle2, Activity,
-  Package, Store, UserRound
+  Package, Store, UserRound, CalendarRange
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { peso } from '../../utils/format'
 import { getTopProduct, getTopReseller, getTopMerchant } from '../../lib/services/dashboardStats'
+import { REPORT_PERIODS, reportPeriodRange } from '../../utils/reportDates'
 import NextActionCard from '../../components/dashboard/NextActionCard'
 import LeaderboardCard from '../../components/dashboard/LeaderboardCard'
 import PageHeader from '../../components/ui/PageHeader'
@@ -52,8 +53,18 @@ export default function AdminDashboard() {
   const [topReseller, setTopReseller] = useState(null)
   const [topMerchant, setTopMerchant] = useState(null)
   const [leaderboardErrors, setLeaderboardErrors] = useState({ product: null, reseller: null, merchant: null })
+  const [leaderboardLoading, setLeaderboardLoading] = useState(true)
+  const [leaderboardStart, setLeaderboardStart] = useState(() => reportPeriodRange('last30').start)
+  const [leaderboardEnd, setLeaderboardEnd] = useState(() => reportPeriodRange('last30').end)
+  const [leaderboardPeriod, setLeaderboardPeriod] = useState('last30')
 
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    load()
+    loadLeaderboards(leaderboardStart, leaderboardEnd)
+    // Mount-only: leaderboardStart/leaderboardEnd changes are fetched
+    // explicitly by their own handlers (dropdown, Apply, Refresh).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const load = async () => {
     setLoading(true)
@@ -67,14 +78,11 @@ export default function AdminDashboard() {
       supabase.from('withdrawal_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
       supabase.from('subscription_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
       supabase.from('platform_wallet').select('balance').eq('id', true).maybeSingle(),
-      supabase.from('registration_appointments').select('*', { count: 'exact' }).eq('status', 'pending').order('created_at', { ascending: false }).limit(5),
-      getTopProduct().then((data) => ({ data, error: null })).catch((error) => ({ data: null, error })),
-      getTopReseller().then((data) => ({ data, error: null })).catch((error) => ({ data: null, error })),
-      getTopMerchant().then((data) => ({ data, error: null })).catch((error) => ({ data: null, error }))
+      supabase.from('registration_appointments').select('*', { count: 'exact' }).eq('status', 'pending').order('created_at', { ascending: false }).limit(5)
     ])
     const firstError = results.find((result) => result.error)
     if (firstError) toast.error(firstError.error.message)
-    const [merchants, approved, pending, resellers, orders, topups, withdrawals, subscriptions, wallet, registrations, product, reseller, merchant] = results
+    const [merchants, approved, pending, resellers, orders, topups, withdrawals, subscriptions, wallet, registrations] = results
     setStats({
       merchants: merchants.count || 0, approvedMerchants: approved.count || 0,
       pendingMerchants: pending.count || 0, resellers: resellers.count || 0,
@@ -85,6 +93,21 @@ export default function AdminDashboard() {
     })
     setRevenueTrend(buildDailyTrend(orders.data || []))
     setRecentRegistrations(registrations.data || [])
+    setLoading(false)
+  }
+
+  // Takes the date range as arguments (rather than reading leaderboardStart/
+  // leaderboardEnd from closure) so callers can trigger a fetch with a range
+  // that was just computed, before the corresponding setState has committed.
+  const loadLeaderboards = async (startDate, endDate) => {
+    setLeaderboardLoading(true)
+    const [product, reseller, merchant] = await Promise.all([
+      getTopProduct(startDate, endDate).then((data) => ({ data, error: null })).catch((error) => ({ data: null, error })),
+      getTopReseller(startDate, endDate).then((data) => ({ data, error: null })).catch((error) => ({ data: null, error })),
+      getTopMerchant(startDate, endDate).then((data) => ({ data, error: null })).catch((error) => ({ data: null, error }))
+    ])
+    const firstError = [product, reseller, merchant].find((result) => result.error)
+    if (firstError) toast.error(firstError.error.message)
     setTopProduct(product.data)
     setTopReseller(reseller.data)
     setTopMerchant(merchant.data)
@@ -93,7 +116,7 @@ export default function AdminDashboard() {
       reseller: reseller.error,
       merchant: merchant.error
     })
-    setLoading(false)
+    setLeaderboardLoading(false)
   }
 
   const actionCount = stats.pendingMerchants + stats.pendingTopups + stats.pendingWithdrawals + stats.pendingSubscriptions + stats.pendingRegistrations
@@ -122,7 +145,7 @@ export default function AdminDashboard() {
       <PageHeader
         title="Marketplace overview"
         description="Monitor operations, review account requests, and keep JOM HUB running smoothly."
-        actions={<Button variant="secondary" size="sm" icon={RefreshCw} loading={loading} onClick={load}>Refresh</Button>}
+        actions={<Button variant="secondary" size="sm" icon={RefreshCw} loading={loading} onClick={() => { load(); loadLeaderboards(leaderboardStart, leaderboardEnd) }}>Refresh</Button>}
       />
 
       {!loading && <NextActionCard {...nextAction} />}
@@ -132,10 +155,44 @@ export default function AdminDashboard() {
       </div>
 
       <div>
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="font-display text-lg font-bold text-fg">Top performers</h2>
             <p className="text-xs text-fg-muted">Ranked by total sales across the marketplace</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <CalendarRange size={16} className="text-fg-muted" />
+            <select
+              value={leaderboardPeriod}
+              onChange={(e) => {
+                const period = e.target.value
+                setLeaderboardPeriod(period)
+                const range = period !== 'all' ? reportPeriodRange(period) : { start: null, end: null }
+                setLeaderboardStart(range.start)
+                setLeaderboardEnd(range.end)
+                loadLeaderboards(range.start, range.end)
+              }}
+              className="input-field min-h-9 text-sm"
+            >
+              <option value="all">All time</option>
+              {REPORT_PERIODS.filter((p) => p.value !== 'custom').map((period) => (
+                <option key={period.value} value={period.value}>{period.label}</option>
+              ))}
+            </select>
+            <input
+              type="date"
+              value={leaderboardStart || ''}
+              onChange={(e) => setLeaderboardStart(e.target.value)}
+              className="input-field min-h-9 text-sm"
+            />
+            <span className="text-xs text-fg-muted">to</span>
+            <input
+              type="date"
+              value={leaderboardEnd || ''}
+              onChange={(e) => setLeaderboardEnd(e.target.value)}
+              className="input-field min-h-9 text-sm"
+            />
+            <Button variant="secondary" size="sm" icon={RefreshCw} loading={leaderboardLoading} onClick={() => loadLeaderboards(leaderboardStart, leaderboardEnd)}>Apply</Button>
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -143,10 +200,10 @@ export default function AdminDashboard() {
             title="Top Product"
             subtitle="Most units sold"
             icon={Package}
-            loading={loading}
+            loading={leaderboardLoading}
             error={leaderboardErrors.product}
             data={topProduct}
-            onRetry={load}
+            onRetry={() => loadLeaderboards(leaderboardStart, leaderboardEnd)}
             image={topProduct?.image_url}
             name={topProduct?.product_name}
             emptyMessage="No product sales recorded yet."
@@ -159,10 +216,10 @@ export default function AdminDashboard() {
             title="Top Reseller"
             subtitle="Highest total sales"
             icon={UserRound}
-            loading={loading}
+            loading={leaderboardLoading}
             error={leaderboardErrors.reseller}
             data={topReseller}
-            onRetry={load}
+            onRetry={() => loadLeaderboards(leaderboardStart, leaderboardEnd)}
             image={topReseller?.avatar_url}
             name={topReseller?.reseller_name}
             emptyMessage="No reseller sales recorded yet."
@@ -175,10 +232,10 @@ export default function AdminDashboard() {
             title="Top Merchant"
             subtitle="Highest total sales"
             icon={Store}
-            loading={loading}
+            loading={leaderboardLoading}
             error={leaderboardErrors.merchant}
             data={topMerchant}
-            onRetry={load}
+            onRetry={() => loadLeaderboards(leaderboardStart, leaderboardEnd)}
             image={topMerchant?.logo_url}
             name={topMerchant?.merchant_name}
             emptyMessage="No merchant sales recorded yet."
