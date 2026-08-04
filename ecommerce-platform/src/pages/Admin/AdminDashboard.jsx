@@ -3,12 +3,15 @@ import { Link } from 'react-router-dom'
 import {
   ArrowRight, Banknote, Building2, CircleDollarSign,
   ClipboardCheck, Landmark, RefreshCw, ShieldAlert, ShoppingBag,
-  TrendingUp, Users, Wallet, CalendarDays, CheckCircle2, Activity
+  TrendingUp, Users, Wallet, CalendarDays, CheckCircle2, Activity,
+  Package, Store, UserRound
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { peso } from '../../utils/format'
+import { getTopProduct, getTopReseller, getTopMerchant } from '../../lib/services/dashboardStats'
 import NextActionCard from '../../components/dashboard/NextActionCard'
+import LeaderboardCard from '../../components/dashboard/LeaderboardCard'
 import PageHeader from '../../components/ui/PageHeader'
 import StatCard from '../../components/ui/StatCard'
 import AnalyticsPanel from '../../components/ui/AnalyticsPanel'
@@ -45,6 +48,10 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [recentRegistrations, setRecentRegistrations] = useState([])
   const [revenueTrend, setRevenueTrend] = useState([])
+  const [topProduct, setTopProduct] = useState(null)
+  const [topReseller, setTopReseller] = useState(null)
+  const [topMerchant, setTopMerchant] = useState(null)
+  const [leaderboardErrors, setLeaderboardErrors] = useState({ product: null, reseller: null, merchant: null })
 
   useEffect(() => { load() }, [])
 
@@ -60,11 +67,14 @@ export default function AdminDashboard() {
       supabase.from('withdrawal_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
       supabase.from('subscription_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
       supabase.from('platform_wallet').select('balance').eq('id', true).maybeSingle(),
-      supabase.from('registration_appointments').select('*', { count: 'exact' }).eq('status', 'pending').order('created_at', { ascending: false }).limit(5)
+      supabase.from('registration_appointments').select('*', { count: 'exact' }).eq('status', 'pending').order('created_at', { ascending: false }).limit(5),
+      getTopProduct().then((data) => ({ data, error: null })).catch((error) => ({ data: null, error })),
+      getTopReseller().then((data) => ({ data, error: null })).catch((error) => ({ data: null, error })),
+      getTopMerchant().then((data) => ({ data, error: null })).catch((error) => ({ data: null, error }))
     ])
     const firstError = results.find((result) => result.error)
     if (firstError) toast.error(firstError.error.message)
-    const [merchants, approved, pending, resellers, orders, topups, withdrawals, subscriptions, wallet, registrations] = results
+    const [merchants, approved, pending, resellers, orders, topups, withdrawals, subscriptions, wallet, registrations, product, reseller, merchant] = results
     setStats({
       merchants: merchants.count || 0, approvedMerchants: approved.count || 0,
       pendingMerchants: pending.count || 0, resellers: resellers.count || 0,
@@ -75,6 +85,14 @@ export default function AdminDashboard() {
     })
     setRevenueTrend(buildDailyTrend(orders.data || []))
     setRecentRegistrations(registrations.data || [])
+    setTopProduct(product.data)
+    setTopReseller(reseller.data)
+    setTopMerchant(merchant.data)
+    setLeaderboardErrors({
+      product: product.error,
+      reseller: reseller.error,
+      merchant: merchant.error
+    })
     setLoading(false)
   }
 
@@ -111,6 +129,65 @@ export default function AdminDashboard() {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {metrics.map((metric) => <StatCard key={metric.label} {...metric} />)}
+      </div>
+
+      <div>
+        <div className="mb-3 flex items-center justify-between">
+          <div>
+            <h2 className="font-display text-lg font-bold text-fg">Top performers</h2>
+            <p className="text-xs text-fg-muted">Ranked by total sales across the marketplace</p>
+          </div>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <LeaderboardCard
+            title="Top Product"
+            subtitle="Most units sold"
+            icon={Package}
+            loading={loading}
+            error={leaderboardErrors.product}
+            data={topProduct}
+            onRetry={load}
+            image={topProduct?.image_url}
+            name={topProduct?.product_name}
+            emptyMessage="No product sales recorded yet."
+            stats={[
+              { label: 'Total sold', value: topProduct ? Number(topProduct.total_sold).toLocaleString('en-PH') : '—' },
+              { label: 'Total revenue', value: topProduct ? peso(topProduct.total_revenue) : '—' }
+            ]}
+          />
+          <LeaderboardCard
+            title="Top Reseller"
+            subtitle="Highest total sales"
+            icon={UserRound}
+            loading={loading}
+            error={leaderboardErrors.reseller}
+            data={topReseller}
+            onRetry={load}
+            image={topReseller?.avatar_url}
+            name={topReseller?.reseller_name}
+            emptyMessage="No reseller sales recorded yet."
+            stats={[
+              { label: 'Total sales', value: topReseller ? peso(topReseller.total_sales) : '—' },
+              { label: 'Total orders', value: topReseller ? Number(topReseller.total_orders).toLocaleString('en-PH') : '—' }
+            ]}
+          />
+          <LeaderboardCard
+            title="Top Merchant"
+            subtitle="Highest total sales"
+            icon={Store}
+            loading={loading}
+            error={leaderboardErrors.merchant}
+            data={topMerchant}
+            onRetry={load}
+            image={topMerchant?.logo_url}
+            name={topMerchant?.merchant_name}
+            emptyMessage="No merchant sales recorded yet."
+            stats={[
+              { label: 'Total sales', value: topMerchant ? peso(topMerchant.total_sales) : '—' },
+              { label: 'Total orders', value: topMerchant ? Number(topMerchant.total_orders).toLocaleString('en-PH') : '—' }
+            ]}
+          />
+        </div>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
