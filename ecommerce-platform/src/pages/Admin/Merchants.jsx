@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Store, Check, X, Ban, Eye, FileWarning, CalendarClock } from 'lucide-react'
+import { Store, Check, X, Ban, Eye, FileWarning, CalendarClock, Sparkles, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { formatDate } from '../../utils/format'
+import { isOcrEnabled, readBusinessPermit } from '../../lib/services/ocr'
 import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
 
@@ -18,10 +19,26 @@ export default function Merchants() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('pending')
   const [expiryModal, setExpiryModal] = useState(null) // { merchant, expires_at }
+  const [ocrAvailable, setOcrAvailable] = useState(false)
+  const [ocrResults, setOcrResults] = useState({}) // merchantId -> { loading, raw_text, candidate_dates }
 
   useEffect(() => {
     load()
+    isOcrEnabled().then(setOcrAvailable).catch(() => setOcrAvailable(false))
   }, [])
+
+  // Advisory only — never sets business_permit_status. Reviewer still has
+  // to click "Permit valid"/"Reject permit" themselves either way.
+  const readWithAi = async (merchant) => {
+    setOcrResults((prev) => ({ ...prev, [merchant.id]: { loading: true } }))
+    try {
+      const result = await readBusinessPermit(merchant.id)
+      setOcrResults((prev) => ({ ...prev, [merchant.id]: { loading: false, ...result } }))
+    } catch (error) {
+      setOcrResults((prev) => ({ ...prev, [merchant.id]: undefined }))
+      toast.error(error.message || 'Could not read the permit with AI.')
+    }
+  }
 
   const load = async () => {
     setLoading(true)
@@ -50,11 +67,15 @@ export default function Merchants() {
 
   const reviewPermit = async (merchant, approved) => {
     if (approved) {
-      // Open expiry date modal instead of approving immediately
+      // Open expiry date modal instead of approving immediately.
+      // Pre-fills from the AI-read candidate date when there is one and
+      // the admin hasn't already got an expiry on file — still just a
+      // starting point in an editable field, not an auto-set value.
+      const aiCandidate = ocrResults[merchant.id]?.candidate_dates?.[0]
       setExpiryModal({
         id: merchant.id,
         business_name: merchant.business_name,
-        expires_at: merchant.business_permit_expires_at || ''
+        expires_at: merchant.business_permit_expires_at || aiCandidate || ''
       })
       return
     }
@@ -152,12 +173,31 @@ export default function Merchants() {
                       </span>
                     )}
                   </div>
+                  {ocrResults[m.id]?.raw_text !== undefined && (
+                    <div className="mt-2 rounded-xl border border-teal-100 bg-teal-50/60 p-3 text-xs">
+                      <p className="flex items-center gap-1 font-semibold text-teal-800">
+                        <Sparkles size={12} /> AI-read text {ocrResults[m.id].candidate_dates?.length > 0 && `— possible expiry date${ocrResults[m.id].candidate_dates.length > 1 ? 's' : ''}: ${ocrResults[m.id].candidate_dates.join(', ')}`}
+                      </p>
+                      <p className="mt-1 max-h-24 overflow-y-auto whitespace-pre-wrap text-ink/60">{ocrResults[m.id].raw_text || 'No text detected.'}</p>
+                      <p className="mt-1 text-[10px] text-ink/40">Verify against the actual image — this is a machine reading, not a decision.</p>
+                    </div>
+                  )}
                 </div>
                 <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
                   <span className={`badge capitalize ${STATUS_COLORS[m.status]}`}>{m.status}</span>
                   {m.business_permit_url && (
                     <button onClick={() => viewPermit(m)} className="btn-secondary flex items-center gap-1 px-3 py-1.5 text-xs">
                       <Eye size={13} /> View permit
+                    </button>
+                  )}
+                  {m.business_permit_url && ocrAvailable && (
+                    <button
+                      onClick={() => readWithAi(m)}
+                      disabled={ocrResults[m.id]?.loading}
+                      className="btn-secondary flex items-center gap-1 px-3 py-1.5 text-xs disabled:opacity-50"
+                    >
+                      {ocrResults[m.id]?.loading ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
+                      Read with AI
                     </button>
                   )}
                   {m.business_permit_status === 'pending' && (
