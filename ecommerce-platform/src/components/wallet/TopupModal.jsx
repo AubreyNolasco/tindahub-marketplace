@@ -1,11 +1,12 @@
-import { useState } from 'react'
-import { Loader2, Upload, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Loader2, Upload, X, Zap } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { cleanText, compressImage, safeUploadPath, validateImage, validatePaymentReference } from '../../utils/security'
 import BankTransferQr from '../payment/BankTransferQr'
 import { ensurePaymentReferenceAvailable, paymentReferenceErrorMessage } from '../../lib/paymentReference'
+import { createPaymongoCheckout, isPaymongoEnabled } from '../../lib/services/paymongo'
 
 export default function TopupModal({ open, onClose, onSubmitted }) {
   const { user } = useAuth()
@@ -15,8 +16,31 @@ export default function TopupModal({ open, onClose, onSubmitted }) {
   const [proofFile, setProofFile] = useState(null)
   const [proofPreview, setProofPreview] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+  const [paymongoAvailable, setPaymongoAvailable] = useState(false)
+  const [payingOnline, setPayingOnline] = useState(false)
+
+  // Manual form below is always rendered regardless of this check — Pay
+  // Online is purely additive and silently disappears if PayMongo isn't
+  // configured (or the check itself fails), never blocking the existing flow.
+  useEffect(() => {
+    if (!open) return
+    isPaymongoEnabled().then(setPaymongoAvailable).catch(() => setPaymongoAvailable(false))
+  }, [open])
 
   if (!open) return null
+
+  const payOnline = async () => {
+    const numericAmount = Number(amount)
+    if (!numericAmount || numericAmount <= 0) return toast.error('Enter a valid amount.')
+    setPayingOnline(true)
+    try {
+      const { checkout_url: checkoutUrl } = await createPaymongoCheckout(numericAmount)
+      window.location.href = checkoutUrl
+    } catch (err) {
+      toast.error(err.message === 'NOT_CONFIGURED' ? 'Online payment is unavailable right now — use the form below.' : (err.message || 'Could not start online payment. Use the form below.'))
+      setPayingOnline(false)
+    }
+  }
 
   const reset = () => {
     setAmount('')
@@ -99,6 +123,23 @@ export default function TopupModal({ open, onClose, onSubmitted }) {
               onChange={(e) => setAmount(e.target.value)}
             />
           </div>
+
+          {paymongoAvailable && (
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={payOnline}
+                disabled={payingOnline}
+                className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {payingOnline ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
+                {payingOnline ? 'Redirecting to PayMongo...' : 'Pay Online (instant)'}
+              </button>
+              <div className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.14em] text-ink/35">
+                <span className="h-px flex-1 bg-black/10" />or pay manually<span className="h-px flex-1 bg-black/10" />
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="text-sm font-medium text-ink/70">Paraan ng Pagbayad</label>

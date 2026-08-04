@@ -28,6 +28,9 @@ export interface RefundResult {
 export interface PaymentProviderAdapter {
   code: string
   createIntent(order: OrderRef, credentials: unknown): Promise<IntentResult>
-  verifyWebhook(headers: Headers, rawBody: string, webhookSecret: string): boolean
+  // Promise, not boolean: every gateway's signature scheme (PayMongo's
+  // HMAC-SHA256 included) goes through Web Crypto's crypto.subtle, which
+  // is promise-based — a sync contract would force adapters to fake it.
+  verifyWebhook(headers: Headers, rawBody: string, webhookSecret: string): Promise<boolean>
   refund(externalRef: string, amount: number, credentials: unknown): Promise<RefundResult>
 }

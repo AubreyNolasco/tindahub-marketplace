@@ -2,15 +2,17 @@
 // registering it here — nothing else in the engine changes. Same
 // convention as _shared/delivery/registry.ts.
 //
-// Empty until the first real API key exists (payments.paymongo,
-// payments.maya, payments.gcash, payments.stripe, payments.paypal in
-// integration_configs) — no placeholder/fake adapter is registered here
-// so there's nothing to accidentally call before credentials are real.
+// Registering an adapter here does NOT turn it on — integration_configs.enabled
+// (checked by get_integration_credentials in the calling edge function) still
+// gates whether it's ever reached. Remaining providers (payments.maya,
+// payments.gcash, payments.stripe, payments.paypal) stay unregistered until
+// their own adapters/<code>.ts exists.
 
 import type { PaymentProviderAdapter } from './types.ts'
+import { paymongoAdapter } from './adapters/paymongo.ts'
 
 const registry = new Map<string, PaymentProviderAdapter>([
-  // [paymongoAdapter.code, paymongoAdapter],
+  [paymongoAdapter.code, paymongoAdapter],
 ])
 
 export function getAdapter(code: string): PaymentProviderAdapter {
