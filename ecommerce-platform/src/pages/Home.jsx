@@ -340,51 +340,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* ===== REAL ESTATE REFERRAL ===== */}
-      <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 sm:pb-20">
-        <div className="relative overflow-hidden rounded-[2rem] border border-teal-100 bg-surface shadow-2xl shadow-teal-900/[0.06]">
-          <div className="grid lg:grid-cols-[1fr_1fr]">
-            <div className="relative flex min-h-[250px] items-center justify-center overflow-hidden p-6 sm:p-10">
-              <img
-                src="/hero/real-estate-property.jpg"
-                alt="Modern house exterior with stone facade"
-                className="absolute inset-0 h-full w-full object-cover"
-                loading="lazy"
-              />
-              <div className="absolute inset-0 bg-gradient-to-br from-mango-800/85 via-amber-800/80 to-mango-900/90" />
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(242,169,59,0.2),transparent_50%)]" />
-              <div className="relative w-full max-w-sm">
-                <div className="rounded-[1.75rem] border border-white/25 bg-white/15 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl transition-transform duration-300 hover:scale-[1.02]">
-                  <div className="flex items-center gap-3">
-                    <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white/90 text-mango-700 shadow-lg"><Building2 size={24} /></span>
-                    <div><p className="text-xs text-white/80">REAL ESTATE</p><p className="font-bold text-white drop-shadow-sm">Property referral fees</p></div>
-                  </div>
-                  <div className="mt-4 rounded-xl bg-white/20 p-4 text-center backdrop-blur-sm">
-                    <p className="text-3xl font-bold text-white">🏠</p>
-                    <p className="mt-2 text-sm font-semibold text-white">Condos · Houses · Lots</p>
-                  </div>
-                  <p className="mt-3 text-xs text-white/70 text-center">Refer your customer to a partner real estate agent and earn a referral fee.</p>
-                </div>
-              </div>
-            </div>
-            <div className="p-6 sm:p-10 lg:p-14">
-              <span className="inline-flex items-center gap-2 rounded-full bg-mango-100 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-mango-700"><Building2 size={15} /> Real Estate Referral</span>
-              <h3 className="mt-5 max-w-xl font-display text-3xl font-extrabold leading-tight text-ink sm:text-4xl">Earn by referring property buyers.</h3>
-              <p className="mt-4 max-w-xl text-sm leading-7 text-ink/60 sm:text-base">Refer your customer to a partner real estate agent for a condo, house and lot, or commercial property. <strong>No upfront cost</strong> — earn a referral fee after a successful transaction.</p>
-              <div className="mt-6 grid gap-3">
-                <div className="flex items-center gap-3 rounded-xl border border-teal-100 bg-surface p-4"><Check size={18} className="shrink-0 text-teal-600" /><p className="text-sm text-ink/70">Partner real estate agents with verified properties</p></div>
-                <div className="flex items-center gap-3 rounded-xl border border-teal-100 bg-surface p-4"><Check size={18} className="shrink-0 text-teal-600" /><p className="text-sm text-ink/70">Condos, houses, lots, and commercial spaces</p></div>
-                <div className="flex items-center gap-3 rounded-xl border border-teal-100 bg-surface p-4"><Check size={18} className="shrink-0 text-teal-600" /><p className="text-sm text-ink/70">Referral fee credited automatically to your wallet</p></div>
-              </div>
-              <div className="mt-6 flex flex-wrap gap-3">
-                <Link to="/clinics" className="btn-accent inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold">View properties <ArrowRight size={16} /></Link>
-                <Link to="/signup" className="btn-secondary inline-flex items-center gap-2 px-5 py-2.5 text-sm">Sign up as a Reseller</Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
 
     {content.banners?.some((banner) => banner.visible) && <section className="mx-auto max-w-7xl space-y-4 px-4 py-8 sm:px-6">{content.banners.filter((banner) => banner.visible).map((banner) => <div key={banner.id} className={`overflow-hidden p-6 sm:p-8 ${safeImageUrl(banner.image_url) ? 'grid items-center gap-6 md:grid-cols-[1fr_280px]' : ''}`} style={{ background: banner.background, color: banner.text_color, border: `${Math.min(8, Math.max(0, Number(banner.border_width) || 0))}px ${['solid', 'dashed', 'dotted', 'double'].includes(banner.border_style) ? banner.border_style : 'solid'} ${banner.border_color}`, borderRadius: `${Math.min(60, Math.max(0, Number(banner.radius) || 0))}px` }}><div><h2 className="font-display text-2xl font-bold sm:text-3xl">{banner.title}</h2><p className="mt-2 max-w-2xl text-sm leading-6 opacity-70">{banner.text}</p>{banner.button_label && <Link to={safeInternalLink(banner.button_link, '/catalog')} className="mt-5 inline-flex items-center gap-2 rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-bold text-white hover:opacity-90">{banner.button_label} <ArrowRight size={15} /></Link>}</div>{safeImageUrl(banner.image_url) && <img src={safeImageUrl(banner.image_url)} alt="" className="aspect-[16/9] w-full rounded-xl object-cover" />}</div>)}</section>}
