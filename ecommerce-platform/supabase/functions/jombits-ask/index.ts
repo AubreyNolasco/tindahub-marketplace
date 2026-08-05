@@ -2,7 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { getAdapter } from '../_shared/ai/registry.ts'
 import { getKnowledgeScope } from '../_shared/ai/knowledge.ts'
 
-const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type' }
+const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info' }
 
 // Signed-in-user-invoked from JomBits.jsx when ai.groq is enabled.
 // Deliberately stateless and narrow: only ever sees the typed question,
