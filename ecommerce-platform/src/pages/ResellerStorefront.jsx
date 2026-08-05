@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Facebook, MessageCircle, Package, Phone, ShieldCheck, ShoppingBag, Store, X } from 'lucide-react'
+import { CheckCircle2, Facebook, Loader2, MessageCircle, Minus, Package, Phone, Plus, ShieldCheck, ShoppingBag, Store, X } from 'lucide-react'
 import { useParams } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 import Spinner from '../components/ui/Spinner'
 import EmptyState from '../components/ui/EmptyState'
@@ -8,12 +9,25 @@ import Modal from '../components/ui/Modal'
 import { applyCampaignDiscount, getActiveCampaignDiscounts } from '../utils/campaigns'
 import { isStoreOpen } from '../utils/storeHours'
 
+const REQUEST_ERROR_MESSAGES = {
+  RESELLER_NOT_AVAILABLE: 'This storefront is no longer available.',
+  PRODUCT_NOT_ON_STOREFRONT: 'This product is no longer listed on this storefront.',
+  PRODUCT_UNAVAILABLE: 'This product is no longer available.',
+  QUANTITY_BELOW_MINIMUM: 'Please order at least the minimum quantity for this product.',
+  QUANTITY_EXCEEDS_STOCK: 'Only limited stock is available — please lower the quantity.',
+  CUSTOMER_NAME_REQUIRED: 'Please enter your name.',
+  TOO_MANY_ORDER_REQUESTS: 'Too many requests sent recently — please try again in a bit.'
+}
+
 export default function ResellerStorefront() {
   const { id, slug } = useParams()
   const [store, setStore] = useState(null)
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
-  const [buying, setBuying] = useState(null)
+  const [viewingProduct, setViewingProduct] = useState(null)
+  const [view, setView] = useState('detail')
+  const [orderForm, setOrderForm] = useState({ quantity: 1, name: '', phone: '', address: '', notes: '' })
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     (async () => {
@@ -42,6 +56,37 @@ export default function ResellerStorefront() {
     store.storefront_whatsapp_number && { label: 'Open WhatsApp', href: `https://wa.me/${digits(store.storefront_whatsapp_number)}`, icon: MessageCircle }
   ].filter(Boolean)
 
+  const openProduct = (product) => {
+    setViewingProduct(product)
+    setView('detail')
+    setOrderForm({ quantity: product.min_order_qty || 1, name: '', phone: '', address: '', notes: '' })
+  }
+  const closeProduct = () => setViewingProduct(null)
+
+  const adjustQuantity = (delta) => {
+    const min = viewingProduct.min_order_qty || 1
+    const max = viewingProduct.stock_quantity
+    setOrderForm((prev) => ({ ...prev, quantity: Math.min(max, Math.max(min, prev.quantity + delta)) }))
+  }
+
+  const submitOrder = async (event) => {
+    event.preventDefault()
+    if (!orderForm.name.trim()) return toast.error('Please enter your name.')
+    setSubmitting(true)
+    const { error } = await supabase.rpc('submit_storefront_order_request', {
+      p_reseller_id: store.id,
+      p_product_id: viewingProduct.id,
+      p_quantity: orderForm.quantity,
+      p_customer_name: orderForm.name,
+      p_customer_phone: orderForm.phone || null,
+      p_customer_address: orderForm.address || null,
+      p_customer_notes: orderForm.notes || null
+    })
+    setSubmitting(false)
+    if (error) return toast.error(REQUEST_ERROR_MESSAGES[error.message] || error.message)
+    setView('done')
+  }
+
   return (
     <div className="min-h-screen bg-bg pb-12">
       <div className="relative h-44 overflow-hidden bg-gradient-to-br from-teal-950 to-teal-600 sm:h-64">
@@ -69,51 +114,100 @@ export default function ResellerStorefront() {
           <div className="grid grid-cols-2 gap-2 min-[360px]:grid-cols-4 sm:gap-4">
             {products.map((product) => (
               <article key={product.id} className="overflow-hidden rounded-xl border border-black/[.06] bg-surface shadow-card sm:rounded-2xl">
-                <div className="aspect-square bg-teal-50">
-                  {product.images?.[0] ? <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" /> : <Package className="m-auto h-full text-teal-300" />}
-                </div>
-                <div className="p-2 sm:p-4">
-                  <p className="truncate text-[8px] font-bold uppercase text-teal-700 sm:text-xs">{product.merchant_profiles?.business_name}</p>
-                  <h3 className="mt-1 line-clamp-2 min-h-8 text-[10px] font-semibold sm:min-h-10 sm:text-sm">{product.name}</h3>
-                  <p className="mt-2 font-display text-xs font-bold text-teal-700 sm:text-lg">₱{Number(product.price).toLocaleString()}</p>
-                  <button onClick={() => setBuying(product)} className="mt-2 flex w-full items-center justify-center gap-1 rounded-lg bg-teal-600 px-2 py-2 text-[9px] font-bold text-white sm:mt-3 sm:gap-2 sm:rounded-xl sm:text-sm"><ShoppingBag size={14} /> How to Buy</button>
+                <button type="button" onClick={() => openProduct(product)} className="block w-full text-left">
+                  <div className="aspect-square bg-teal-50">
+                    {product.images?.[0] ? <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" /> : <Package className="m-auto h-full text-teal-300" />}
+                  </div>
+                  <div className="p-2 pb-0 sm:p-4 sm:pb-0">
+                    <p className="truncate text-[8px] font-bold uppercase text-teal-700 sm:text-xs">{product.merchant_profiles?.business_name}</p>
+                    <h3 className="mt-1 line-clamp-2 min-h-8 text-[10px] font-semibold sm:min-h-10 sm:text-sm">{product.name}</h3>
+                    <p className="mt-2 font-display text-xs font-bold text-teal-700 sm:text-lg">₱{Number(product.price).toLocaleString()}</p>
+                  </div>
+                </button>
+                <div className="p-2 pt-2 sm:p-4 sm:pt-3">
+                  <button onClick={() => openProduct(product)} className="flex w-full items-center justify-center gap-1 rounded-lg bg-teal-600 px-2 py-2 text-[9px] font-bold text-white sm:gap-2 sm:rounded-xl sm:text-sm"><ShoppingBag size={14} /> View &amp; Order</button>
                 </div>
               </article>
             ))}
           </div>
         )}
       </main>
-      <Modal open={!!buying} onClose={() => setBuying(null)} hideHeader bodyClassName="" size="md" ariaLabel={buying ? `Buying guide for ${buying.name}` : undefined}>
-        {buying && (
+      <Modal open={!!viewingProduct} onClose={closeProduct} hideHeader bodyClassName="" size="md" ariaLabel={viewingProduct ? viewingProduct.name : undefined}>
+        {viewingProduct && (
           <>
-            <header className="flex items-start justify-between rounded-t-3xl bg-gradient-to-br from-teal-950 to-teal-700 p-5 text-white">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-mango-300">Customer buying guide</p>
-                <h2 className="mt-2 font-display text-xl font-bold">{buying.name}</h2>
-              </div>
-              <button onClick={() => setBuying(null)} className="rounded-xl bg-white/10 p-2" aria-label="Close"><X size={18} /></button>
+            <header className="relative rounded-t-3xl bg-gradient-to-br from-teal-950 to-teal-700 p-5 text-white">
+              <button onClick={closeProduct} className="absolute right-4 top-4 rounded-xl bg-white/10 p-2" aria-label="Close"><X size={18} /></button>
+              <p className="pr-10 text-xs font-bold uppercase tracking-wider text-mango-300">
+                {view === 'order' ? 'Order this product' : view === 'done' ? 'Request sent' : 'Product details'}
+              </p>
+              <h2 className="mt-2 pr-10 font-display text-xl font-bold">{viewingProduct.name}</h2>
             </header>
-            <div className="p-5">
-              <ol className="space-y-3">
-                {['Choose an available contact option below.', 'Tell the Reseller the product name and quantity you want.', 'Confirm the final price, delivery address, shipping fee, and payment method.', 'Pay only after you verify the Reseller details and complete order information.'].map((step, index) => (
-                  <li key={step} className="flex gap-3 rounded-xl bg-surface-inset p-3 text-sm leading-5 text-ink/65">
-                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-teal-600 text-xs font-bold text-white">{index + 1}</span>{step}
-                  </li>
-                ))}
-              </ol>
-              <div className="mt-5">
-                <h3 className="break-words font-bold">Contact {store.storefront_name}</h3>
-                {channels.length ? (
-                  <div className="mt-3 grid gap-2">
-                    {channels.map((channel) => {
-                      const Icon = channel.icon
-                      return <a key={channel.label} href={channel.href} target={channel.href.startsWith('http') ? '_blank' : undefined} rel="noreferrer" className="btn-secondary flex items-center justify-center gap-2 py-3"><Icon size={17} />{channel.label}</a>
-                    })}
-                  </div>
-                ) : <p className="mt-3 rounded-xl bg-mango-100 p-4 text-sm text-ink/60">This Reseller has not published a contact channel yet.</p>}
+
+            {view === 'detail' && (
+              <div className="p-5">
+                <div className="aspect-video overflow-hidden rounded-2xl bg-teal-50">
+                  {viewingProduct.images?.[0] ? <img src={viewingProduct.images[0]} alt={viewingProduct.name} className="h-full w-full object-cover" /> : <Package className="m-auto h-full text-teal-300" />}
+                </div>
+                <p className="mt-4 font-display text-2xl font-bold text-teal-700">₱{Number(viewingProduct.price).toLocaleString()}</p>
+                <p className="text-xs text-ink/45">{viewingProduct.merchant_profiles?.business_name}</p>
+                {viewingProduct.description && <p className="mt-3 text-sm leading-6 text-ink/65">{viewingProduct.description}</p>}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <span className="badge bg-teal-50 text-teal-700">Min order: {viewingProduct.min_order_qty || 1}</span>
+                  <span className="badge bg-mango-100 text-mango-700">{viewingProduct.stock_quantity} in stock</span>
+                </div>
+                <button onClick={() => setView('order')} className="btn-primary mt-5 flex w-full items-center justify-center gap-2"><ShoppingBag size={16} /> Order this product</button>
+                <div className="mt-5">
+                  <h3 className="break-words text-sm font-bold text-ink">Prefer to contact {store.storefront_name} directly?</h3>
+                  {channels.length ? (
+                    <div className="mt-2 grid gap-2">
+                      {channels.map((channel) => {
+                        const Icon = channel.icon
+                        return <a key={channel.label} href={channel.href} target={channel.href.startsWith('http') ? '_blank' : undefined} rel="noreferrer" className="btn-secondary flex items-center justify-center gap-2 py-2.5 text-sm"><Icon size={16} />{channel.label}</a>
+                      })}
+                    </div>
+                  ) : <p className="mt-2 text-xs text-ink/45">No direct contact channel published — use the order button above.</p>}
+                </div>
               </div>
-              <p className="mt-5 flex gap-2 rounded-xl bg-coral-100 p-3 text-xs leading-5 text-coral-700"><ShieldCheck size={16} className="mt-0.5 shrink-0" />Never share your email OTP, password, banking OTP, or recovery code. Keep a copy of your confirmed order and payment receipt.</p>
-            </div>
+            )}
+
+            {view === 'order' && (
+              <form onSubmit={submitOrder} className="space-y-4 p-5">
+                <button type="button" onClick={() => setView('detail')} className="text-xs font-semibold text-teal-700">&larr; Back to details</button>
+                <div>
+                  <label className="text-sm font-semibold text-ink/70">Quantity</label>
+                  <div className="mt-1.5 flex w-fit items-center rounded-xl border border-black/10">
+                    <button type="button" onClick={() => adjustQuantity(-1)} className="p-2.5 hover:bg-teal-50" aria-label="Decrease quantity"><Minus size={14} /></button>
+                    <span className="w-10 text-center text-sm font-semibold">{orderForm.quantity}</span>
+                    <button type="button" onClick={() => adjustQuantity(1)} className="p-2.5 hover:bg-teal-50" aria-label="Increase quantity"><Plus size={14} /></button>
+                  </div>
+                  <p className="mt-1 text-[11px] text-ink/40">Min {viewingProduct.min_order_qty || 1} · {viewingProduct.stock_quantity} in stock</p>
+                </div>
+                <label className="block text-sm font-semibold text-ink/70">Your name *
+                  <input required maxLength={200} value={orderForm.name} onChange={(e) => setOrderForm({ ...orderForm, name: e.target.value })} className="input-field mt-1.5" placeholder="Juan Dela Cruz" />
+                </label>
+                <label className="block text-sm font-semibold text-ink/70">Phone number
+                  <input type="tel" maxLength={30} value={orderForm.phone} onChange={(e) => setOrderForm({ ...orderForm, phone: e.target.value })} className="input-field mt-1.5" placeholder="+63 912 345 6789" />
+                </label>
+                <label className="block text-sm font-semibold text-ink/70">Delivery address
+                  <textarea maxLength={500} rows={2} value={orderForm.address} onChange={(e) => setOrderForm({ ...orderForm, address: e.target.value })} className="input-field mt-1.5 resize-none" placeholder="House/unit, street, barangay, city" />
+                </label>
+                <label className="block text-sm font-semibold text-ink/70">Note (optional)
+                  <textarea maxLength={500} rows={2} value={orderForm.notes} onChange={(e) => setOrderForm({ ...orderForm, notes: e.target.value })} className="input-field mt-1.5 resize-none" placeholder="Preferred delivery time, color/variant, etc." />
+                </label>
+                <p className="flex gap-2 rounded-xl bg-coral-100 p-3 text-xs leading-5 text-coral-700"><ShieldCheck size={16} className="mt-0.5 shrink-0" />Never share your email OTP, password, banking OTP, or recovery code. The Reseller will contact you to confirm final price, delivery, and payment.</p>
+                <button disabled={submitting} className="btn-primary flex w-full items-center justify-center gap-2">
+                  {submitting && <Loader2 size={16} className="animate-spin" />}{submitting ? 'Sending…' : 'Send order request'}
+                </button>
+              </form>
+            )}
+
+            {view === 'done' && (
+              <div className="p-5 text-center">
+                <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-teal-100 text-teal-700"><CheckCircle2 size={28} /></span>
+                <p className="mt-4 text-sm leading-6 text-ink/65">Your order request was sent to <strong>{store.storefront_name}</strong>. They&apos;ll contact you{orderForm.phone ? ` at ${orderForm.phone}` : ''} to confirm the details.</p>
+                <button onClick={closeProduct} className="btn-primary mt-5 w-full">Done</button>
+              </div>
+            )}
           </>
         )}
       </Modal>
