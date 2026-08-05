@@ -131,7 +131,7 @@ export default function ClinicDiscovery() {
                 <h2 className="mt-1 font-display text-lg font-bold">{showRefer.service.name}</h2>
                 <p className="mt-1 text-sm text-white/60">Service fee: {peso(showRefer.service.service_fee)}</p>
               </div>
-              <button onClick={() => setShowRefer(null)} className="rounded-xl bg-white/10 p-2"><X size={18} /></button>
+              <button onClick={() => setShowRefer(null)} className="rounded-xl bg-white/10 p-2" aria-label="Close"><X size={18} /></button>
             </div>
             <div className="p-6 space-y-4">
               {customers.length > 0 && (

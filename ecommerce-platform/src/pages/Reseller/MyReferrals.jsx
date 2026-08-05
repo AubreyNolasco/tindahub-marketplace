@@ -54,7 +54,7 @@ export default function MyReferrals() {
         </div>
         <div className="flex items-center gap-2">
           <PageGuideButton pageKey="clinic-flow" />
-          <button onClick={load} className="btn-secondary p-2.5">
+          <button onClick={load} className="btn-secondary p-2.5" aria-label="Refresh referrals">
             <RefreshCw size={17} className={loading ? 'animate-spin' : ''} />
           </button>
         </div>

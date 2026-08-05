@@ -58,15 +58,15 @@ export default function Cart() {
                       {role === 'reseller' && <p className={`mt-1 text-[11px] font-semibold ${(Number(item.customer_selling_price ?? getSuggestedCustomerPrice(item)) - unitPrice(item)) * item.quantity > 0 ? 'text-mango-600' : 'text-coral-600'}`}>Item gross profit: {peso((Number(item.customer_selling_price ?? getSuggestedCustomerPrice(item)) - unitPrice(item)) * item.quantity)}</p>}
                     </div>
                     <div className="col-start-2 flex w-fit items-center rounded-lg border border-black/10 sm:col-auto">
-                      <button onClick={() => updateQuantity(item.cart_key, item.quantity - 1)} className="p-1.5 hover:bg-teal-50">
+                      <button onClick={() => updateQuantity(item.cart_key, item.quantity - 1)} className="p-1.5 hover:bg-teal-50" aria-label="Decrease quantity">
                         <Minus size={14} />
                       </button>
                       <span className="px-3 text-sm font-semibold">{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.cart_key, item.quantity + 1)} className="p-1.5 hover:bg-teal-50">
+                      <button onClick={() => updateQuantity(item.cart_key, item.quantity + 1)} className="p-1.5 hover:bg-teal-50" aria-label="Increase quantity">
                         <Plus size={14} />
                       </button>
                     </div>
-                    <button onClick={() => removeItem(item.cart_key)} className="col-start-3 row-start-1 grid h-10 w-10 place-items-center rounded-lg text-ink/40 hover:bg-coral-50 hover:text-coral-500 sm:col-auto sm:row-auto">
+                    <button onClick={() => removeItem(item.cart_key)} className="col-start-3 row-start-1 grid h-10 w-10 place-items-center rounded-lg text-ink/40 hover:bg-coral-50 hover:text-coral-500 sm:col-auto sm:row-auto" aria-label={`Remove ${item.name} from cart`}>
                       <Trash2 size={16} />
                     </button>
                   </div>

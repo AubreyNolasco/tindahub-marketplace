@@ -86,7 +86,7 @@ export default function Customers() {
             {showForm ? <X size={16} /> : <Plus size={16} />}
             {showForm ? 'Cancel' : 'Add Customer'}
           </button>
-          <button onClick={load} className="btn-secondary p-2.5">
+          <button onClick={load} className="btn-secondary p-2.5" aria-label="Refresh customers">
             <RefreshCw size={17} className={loading ? 'animate-spin' : ''} />
           </button>
         </div>
