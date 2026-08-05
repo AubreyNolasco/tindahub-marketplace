@@ -1,8 +1,12 @@
-# LocationIQ Address Autocomplete
+# Address Fields: PSGC Dropdowns + LocationIQ Autocomplete
 
-Splits every address fill-up form in the system (reseller address, merchant pickup address, saved customers, checkout shipping address) into real fields — House/Unit No. & Street, Barangay, City, Province, Postal Code — instead of one free-text textarea. On top of that, once enabled, a search box lets a user type their address and pick from a dropdown of suggestions to have every field (plus GPS coordinates, where the table has room for them) filled in automatically.
+Splits every address fill-up form in the system (reseller address, merchant pickup address, saved customers, checkout shipping address) into real fields instead of one free-text textarea:
 
-**The structured fields always work, with or without this integration.** LocationIQ only adds the search-and-autofill shortcut; enabling/disabling it never removes the manual fields, and typing a location by hand always works, minus the one-click autofill.
+- **Province / City / Municipality / Barangay** — searchable dropdowns backed by the official PSGC (Philippine Standard Geographic Code) reference data, cascading: the City list only shows cities in the selected Province, the Barangay list only shows barangays in the selected City. There is no free-text option for these three — a barangay can never be paired with a city it doesn't actually belong to. Always on, no integration/API key needed (`20260806000600_psgc_reference_data.sql`, imported once from the official list — never a live third-party call).
+- **House/Unit No. & Street, Postal Code** — plain text (PSGC doesn't cover street level).
+- **LocationIQ search box** (optional, needs setup below) — speeds up filling in Street + GPS coordinates by typing a full address and picking a suggestion. It deliberately never touches Province/City/Barangay — a geocoder's free-text guess for those could disagree with the official PSGC name and desync the dropdowns from what's actually stored.
+
+**The dropdowns and manual fields always work, with or without LocationIQ.** LocationIQ only adds the street/coordinates shortcut; enabling/disabling it never removes anything else, and typing the street by hand always works, minus the one-click autofill.
 
 ## Why LocationIQ instead of Google Maps
 
@@ -20,6 +24,7 @@ LocationIQ's key is called directly from the browser (`fetch()` on every keystro
 
 - `supabase/migrations/20260806000400_structured_addresses.sql` — adds `street`, `barangay`, `city`, `province`, `postal_code` to `profiles`, `merchant_profiles`, `customers`, plus `latitude`/`longitude` to `profiles`. Reuses the coordinate columns that already existed: `merchant_profiles.pickup_latitude/pickup_longitude`, `customers.latitude/longitude` — both were already required by the delivery/Lalamove pipeline but **nothing in the app was ever writing to them** before this change.
 - `supabase/migrations/20260806000500_switch_maps_to_locationiq.sql` — replaces the `maps.google` row seeded by the migration above (never enabled, no credentials — dead the moment this project pivoted to LocationIQ) with `maps.locationiq`.
+- `supabase/migrations/20260806000600_psgc_reference_data.sql` — the full official PSGC list: `psgc_provinces` (82 rows, including a synthetic "Metro Manila" for NCR, which has no province in the real PSGC hierarchy), `psgc_cities` (1,634 rows), `psgc_barangays` (42,046 rows), imported once from [psgc.gitlab.io/api](https://psgc.gitlab.io/api/) so the dropdowns never depend on a third party being reachable. Read-only reference tables, `authenticated`-only RLS.
 
 The original single-text columns (`profiles.address`, `merchant_profiles.business_address`, `customers.address`, `orders.shipping_address`) are untouched — the frontend composes them from the structured parts on save, so every existing reader (delivery adapters, admin tables, order history, `isCompleteAddress()`) keeps working unchanged.
 
@@ -48,25 +53,36 @@ The search box only appears once **both** this is enabled **and** the deployed b
 
 ## 5. Test flow
 
+**PSGC dropdowns (always on, test this regardless of LocationIQ):**
 1. Open Reseller/Merchant → Address (or Onboarding, or Reseller → Customers → Add Customer, or Checkout's shipping address).
-2. Type at least 3 characters of a real PH address in the search box — confirm a dropdown of suggestions appears within about a second.
-3. Click a suggestion — confirm House/Unit No. & Street, Barangay, City, Province, and Postal Code populate (some may come back blank for addresses OSM has less detail on — that's expected, just fill those in by hand), and (on the Address pages and Add Customer) the "Location pinned from search" note appears.
-4. Manually edit any field afterward — confirm the pin note disappears (the coordinates are cleared rather than silently kept against a changed address).
-5. Save, then check the row directly: `customers.latitude`/`longitude` or `merchant_profiles.pickup_latitude`/`pickup_longitude` should be populated for the first time — previously always `null` from the UI.
-6. Disable the integration and confirm every form still works with the 5 plain fields, no search box, no error.
+2. Click Province — confirm a searchable list of all provinces (plus Metro Manila) appears; type to filter.
+3. Pick a province — confirm City becomes enabled and only shows cities/municipalities in that province.
+4. Pick a city — confirm Barangay becomes enabled and only shows barangays in that city.
+5. Reopen an address that was already saved — confirm Province/City/Barangay show the existing selection (not blank), via `resolvePsgcCodes()` matching the saved names back to PSGC codes.
+
+**LocationIQ search box (needs setup above):**
+6. Type at least 3 characters of a real PH address in the search box — confirm a dropdown of suggestions appears within about a second.
+7. Click a suggestion — confirm House/Unit No. & Street and (on the Address pages and Add Customer) the "Location pinned from search" note appear. Province/City/Barangay are **not** touched by this — they stay whatever was already picked in the dropdowns above.
+8. Manually edit the street afterward — confirm the pin note disappears (coordinates are cleared rather than silently kept against a changed address).
+9. Save, then check the row directly: `customers.latitude`/`longitude` or `merchant_profiles.pickup_latitude`/`pickup_longitude` should be populated for the first time — previously always `null` from the UI.
+10. Disable the integration and confirm every form still works — dropdowns and manual fields unaffected, just no search box.
 
 ## Files
 
 ```text
 supabase/migrations/
 ├── 20260806000400_structured_addresses.sql
-└── 20260806000500_switch_maps_to_locationiq.sql
+├── 20260806000500_switch_maps_to_locationiq.sql
+└── 20260806000600_psgc_reference_data.sql
 
 src/
 ├── utils/address.js                       (composeAddress, partsFromLegacyAddress — legacy-compatible)
 ├── lib/locationiq.js                      (searchAddress fetch wrapper, VITE_LOCATIONIQ_API_KEY)
 ├── lib/services/maps.js                   (isMapsEnabled)
-├── components/address/AddressFields.jsx   (the shared split-field + search dropdown component)
+├── lib/services/psgc.js                   (listProvinces/listCities/listBarangays, resolvePsgcCodes)
+├── components/address/
+│   ├── AddressFields.jsx                  (the shared field layout — dropdowns + street/postal + search box)
+│   └── SearchableSelect.jsx               (generic searchable dropdown used for Province/City/Barangay)
 └── pages/
     ├── ProfileAddress.jsx                 (reseller address / merchant pickup address)
     ├── Auth/Onboarding.jsx                (signup-time address)

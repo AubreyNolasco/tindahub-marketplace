@@ -10,6 +10,7 @@ import { getSuggestedCustomerPrice, getUnitPrice, getResellerUnitPrice } from '.
 import EmptyState from '../../components/ui/EmptyState'
 import { composeAddress, isCompleteAddress, partsFromLegacyAddress } from '../../utils/address'
 import AddressFields from '../../components/address/AddressFields'
+import { resolvePsgcCodes } from '../../lib/services/psgc'
 
 const ERROR_MESSAGES = {
   STORE_CLOSED: 'The Merchant store is currently closed. Try again during its published store hours.',
@@ -48,9 +49,12 @@ export default function Checkout() {
   useEffect(() => {
     if (customerId || !profile?.address) return
     const hasStructured = profile.street || profile.barangay || profile.city || profile.province || profile.postal_code
-    setAddressParts(hasStructured
-      ? { street: profile.street || '', barangay: profile.barangay || '', city: profile.city || '', province: profile.province || '', postalCode: profile.postal_code || '', latitude: null, longitude: null }
-      : partsFromLegacyAddress(profile.address))
+    if (!hasStructured) { setAddressParts(partsFromLegacyAddress(profile.address)); return }
+    const loaded = { street: profile.street || '', barangay: profile.barangay || '', city: profile.city || '', province: profile.province || '', postalCode: profile.postal_code || '', latitude: null, longitude: null, provinceCode: null, cityCode: null }
+    setAddressParts(loaded)
+    resolvePsgcCodes(loaded.province, loaded.city).then(({ provinceCode, cityCode }) => {
+      setAddressParts((current) => (current.province === loaded.province && current.city === loaded.city ? { ...current, provinceCode, cityCode } : current))
+    }).catch(() => {})
   }, [customerId, profile])
 
   useEffect(() => {
