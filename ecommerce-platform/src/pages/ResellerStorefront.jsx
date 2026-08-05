@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import Spinner from '../components/ui/Spinner'
 import EmptyState from '../components/ui/EmptyState'
+import Modal from '../components/ui/Modal'
 import { applyCampaignDiscount, getActiveCampaignDiscounts } from '../utils/campaigns'
 import { isStoreOpen } from '../utils/storeHours'
 
@@ -82,15 +83,15 @@ export default function ResellerStorefront() {
           </div>
         )}
       </main>
-      {buying && (
-        <div className="fixed inset-0 z-[100] grid place-items-center bg-scrim/65 p-3 backdrop-blur-sm" role="dialog" aria-modal="true">
-          <div className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-surface shadow-2xl">
-            <header className="flex items-start justify-between bg-gradient-to-br from-teal-950 to-teal-700 p-5 text-white">
+      <Modal open={!!buying} onClose={() => setBuying(null)} hideHeader bodyClassName="" size="md" ariaLabel={buying ? `Buying guide for ${buying.name}` : undefined}>
+        {buying && (
+          <>
+            <header className="flex items-start justify-between rounded-t-3xl bg-gradient-to-br from-teal-950 to-teal-700 p-5 text-white">
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-mango-300">Customer buying guide</p>
                 <h2 className="mt-2 font-display text-xl font-bold">{buying.name}</h2>
               </div>
-              <button onClick={() => setBuying(null)} className="rounded-xl bg-white/10 p-2"><X size={18} /></button>
+              <button onClick={() => setBuying(null)} className="rounded-xl bg-white/10 p-2" aria-label="Close"><X size={18} /></button>
             </header>
             <div className="p-5">
               <ol className="space-y-3">
@@ -113,9 +114,9 @@ export default function ResellerStorefront() {
               </div>
               <p className="mt-5 flex gap-2 rounded-xl bg-coral-100 p-3 text-xs leading-5 text-coral-700"><ShieldCheck size={16} className="mt-0.5 shrink-0" />Never share your email OTP, password, banking OTP, or recovery code. Keep a copy of your confirmed order and payment receipt.</p>
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
     </div>
   )
 }
