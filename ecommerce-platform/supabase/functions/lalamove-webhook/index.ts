@@ -20,10 +20,17 @@ function timingSafeEqual(a: string, b: string): boolean {
   return diff === 0
 }
 
-// Public endpoint Lalamove calls with delivery status updates. Each
-// reseller owns their own Lalamove account/secret, so the signing secret
-// to verify against depends on which reseller's booking this event is for
-// — looked up via lalamove_bookings before the secret can be fetched.
+// Public endpoint Lalamove calls with delivery status updates. The
+// signing secret to verify against depends on whichever account
+// (Merchant, Reseller, or Platform tier) actually produced the booking
+// — resolved via the order's delivery_quote_account_id, same source
+// delivery-book itself used to book it. (Previously this looked up
+// credentials via the reseller-only get_lalamove_credentials/
+// lalamove_settings path, which stopped being written to once
+// save_delivery_provider_account/delivery_provider_accounts became the
+// live credential store — that made cred always come back empty here,
+// silently skipping signature verification for every booking made
+// through the current system.)
 // Deliberately does NOT touch orders.status: the existing 7-day
 // buyer-confirmation flow (complete_due_deliveries) stays the source of
 // truth for order completion even after Lalamove reports COMPLETED.
@@ -43,7 +50,7 @@ Deno.serve(async (req) => {
 
     const { data: booking } = await admin
       .from('lalamove_bookings')
-      .select('id, reseller_id')
+      .select('id, order_id, reseller_id')
       .eq('lalamove_order_id', lalamoveOrderId)
       .not('status', 'in', '(cancelled,failed)')
       .maybeSingle()
@@ -56,8 +63,10 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ ok: true, skipped: 'UNKNOWN_BOOKING' }), { headers: { ...cors, 'Content-Type': 'application/json' } })
     }
 
-    const { data: creds } = await admin.rpc('get_lalamove_credentials', { p_owner_id: booking.reseller_id })
-    const cred = Array.isArray(creds) ? creds[0] : creds
+    const { data: order } = await admin.from('orders').select('delivery_quote_account_id').eq('id', booking.order_id).maybeSingle()
+    const { data: cred } = order?.delivery_quote_account_id
+      ? await admin.rpc('get_delivery_provider_credentials', { p_account_id: order.delivery_quote_account_id })
+      : { data: null }
     const signatureHeader = req.headers.get(SIGNATURE_HEADER) || ''
     if (cred?.api_secret) {
       const expected = await hmacSha256Hex(cred.api_secret, rawBody)
