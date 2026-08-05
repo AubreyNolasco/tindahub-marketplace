@@ -129,7 +129,7 @@ export default function Products({ admin = false }) {
                   <button onClick={() => toggleActive(p)} className="btn-secondary text-xs px-3 py-1.5">
                     {p.is_active ? 'Itago' : 'Ipakita'}
                   </button>
-                  <button onClick={() => handleDelete(p.id)} className="p-1.5 text-ink/40 hover:text-coral-500 ml-auto">
+                  <button onClick={() => handleDelete(p.id)} className="p-1.5 text-ink/40 hover:text-coral-500 ml-auto" aria-label={`Delete ${p.name}`}>
                     <Trash2 size={15} />
                   </button>
                 </div>

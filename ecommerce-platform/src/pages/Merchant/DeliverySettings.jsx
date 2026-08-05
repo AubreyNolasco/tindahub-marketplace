@@ -141,6 +141,7 @@ export default function DeliverySettings() {
                   type="button"
                   onClick={() => setShowSecret(!showSecret)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-ink/40 hover:text-ink"
+                  aria-label={showSecret ? 'Hide secret' : 'Show secret'}
                 >
                   {showSecret ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>

@@ -114,7 +114,7 @@ export default function Orders() {
         </div>
         <div className="flex items-center gap-2">
           <PageGuideButton pageKey="product-flow" />
-          <button onClick={load} className="btn-secondary p-2.5">
+          <button onClick={load} className="btn-secondary p-2.5" aria-label="Refresh orders">
             <RefreshCw size={17} className={loading ? 'animate-spin' : ''} />
           </button>
         </div>

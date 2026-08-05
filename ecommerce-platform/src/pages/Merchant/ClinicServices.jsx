@@ -114,7 +114,7 @@ export default function ClinicServices() {
         <form onSubmit={handleSave} className="card mb-6 space-y-4 p-5">
           <div className="flex items-center justify-between">
             <h2 className="font-display font-bold">{editing ? 'Edit Service' : 'New Service'}</h2>
-            <button type="button" onClick={resetForm} className="p-1.5 text-ink/40 hover:text-coral-500"><X size={18} /></button>
+            <button type="button" onClick={resetForm} className="p-1.5 text-ink/40 hover:text-coral-500" aria-label="Close"><X size={18} /></button>
           </div>
           <div>
             <label className="text-sm font-semibold text-ink/70">Service Name</label>
@@ -174,7 +174,7 @@ export default function ClinicServices() {
                 <div className="flex items-center gap-2 shrink-0">
                   <button onClick={() => openEdit(service)} className="btn-secondary px-3 py-1.5 text-xs"><Pencil size={13} /> Edit</button>
                   <button onClick={() => toggleActive(service)} className="btn-secondary px-3 py-1.5 text-xs">{service.is_active ? 'Pause' : 'Activate'}</button>
-                  <button onClick={() => handleDelete(service.id)} className="p-2 text-ink/40 hover:text-coral-500"><Trash2 size={15} /></button>
+                  <button onClick={() => handleDelete(service.id)} className="p-2 text-ink/40 hover:text-coral-500" aria-label={`Delete ${service.name}`}><Trash2 size={15} /></button>
                 </div>
               </div>
             </div>

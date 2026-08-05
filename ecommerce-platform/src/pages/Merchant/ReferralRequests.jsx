@@ -82,7 +82,7 @@ export default function ReferralRequests() {
           <h1 className="mt-1 font-display text-2xl font-bold text-ink">Incoming Referrals</h1>
           <p className="mt-1 text-sm text-ink/50">Resellers refer their customers to your clinic services.</p>
         </div>
-        <button onClick={load} className="btn-secondary p-2.5"><RefreshCw size={17} className={loading ? 'animate-spin' : ''} /></button>
+        <button onClick={load} className="btn-secondary p-2.5" aria-label="Refresh referrals"><RefreshCw size={17} className={loading ? 'animate-spin' : ''} /></button>
       </div>
 
       {loading ? (
