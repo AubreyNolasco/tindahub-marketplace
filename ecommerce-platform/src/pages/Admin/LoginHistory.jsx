@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { CalendarDays, Clock3, Laptop, RefreshCw, Search, ShieldCheck } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
-import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
+import DataTable from '../../components/ui/DataTable'
+import Badge from '../../components/ui/Badge'
 
 function deviceLabel(agent = '') {
   const browser = /Edg\//.test(agent) ? 'Edge' : /Chrome\//.test(agent) ? 'Chrome' : /Firefox\//.test(agent) ? 'Firefox' : /Safari\//.test(agent) ? 'Safari' : 'Browser'
@@ -51,7 +52,21 @@ export default function LoginHistory() {
 
     <div className="mt-6 grid gap-3 rounded-2xl border border-black/[0.06] bg-surface p-4 shadow-card sm:grid-cols-[1fr_170px_180px]"><label className="relative"><Search size={17} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink/35" /><input value={search} onChange={(e) => setSearch(e.target.value)} className="input-field pl-10" placeholder="Search name or IP address" /></label><select value={role} onChange={(e) => setRole(e.target.value)} className="input-field"><option value="all">All roles</option><option value="admin">Admin</option><option value="merchant">Merchant</option><option value="reseller">Reseller</option></select><input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="input-field" /></div>
 
-    <div className="mt-4 overflow-hidden rounded-2xl border border-black/[0.06] bg-surface shadow-card">{filtered.length === 0 ? <EmptyState icon={Clock3} title="No login records found" message="Try changing the search or date filters." /> : <div className="overflow-x-auto"><table className="w-full min-w-[820px] text-left text-sm"><thead className="border-b border-black/5 bg-teal-50/70 text-xs uppercase tracking-wide text-ink/45 dark:bg-teal-500/10"><tr><th className="px-5 py-3.5 font-semibold">Account</th><th className="px-5 py-3.5 font-semibold">Role</th><th className="px-5 py-3.5 font-semibold">Date and time</th><th className="px-5 py-3.5 font-semibold">IP address</th><th className="px-5 py-3.5 font-semibold">Browser / device</th></tr></thead><tbody className="divide-y divide-black/5">{filtered.map((event) => { const profile = event.profiles; const name = profile?.merchant_profiles?.business_name || profile?.full_name || 'Unknown account'; return <tr key={event.id} className="transition hover:bg-teal-50/40"><td className="px-5 py-4"><p className="font-semibold text-ink">{name}</p>{profile?.merchant_profiles?.business_name && <p className="text-xs text-ink/45">{profile.full_name}</p>}</td><td className="px-5 py-4"><span className="badge capitalize bg-teal-50 text-teal-700">{profile?.role || 'unknown'}</span></td><td className="px-5 py-4 whitespace-nowrap text-ink/65">{formatLoginDate(event.logged_in_at)}</td><td className="px-5 py-4 font-mono text-xs text-ink/55">{event.ip_address || 'Not available'}</td><td className="px-5 py-4"><span className="flex items-center gap-2 text-ink/60"><Laptop size={16} className="text-teal-600" /> {deviceLabel(event.user_agent)}</span></td></tr> })}</tbody></table></div>}</div>
+    <div className="mt-4">
+      <DataTable
+        columns={[
+          { header: 'Account', sortable: false, render: (event) => { const profile = event.profiles; const name = profile?.merchant_profiles?.business_name || profile?.full_name || 'Unknown account'; return <>{name}{profile?.merchant_profiles?.business_name && <p className="text-xs text-ink/45">{profile.full_name}</p>}</> } },
+          { header: 'Role', sortable: false, render: (event) => <Badge tone="info">{event.profiles?.role || 'unknown'}</Badge> },
+          { header: 'Date and time', accessor: 'logged_in_at', render: (event) => <span className="whitespace-nowrap">{formatLoginDate(event.logged_in_at)}</span> },
+          { header: 'IP address', accessor: 'ip_address', render: (event) => <span className="font-mono text-xs">{event.ip_address || 'Not available'}</span> },
+          { header: 'Browser / device', sortable: false, render: (event) => <span className="flex items-center gap-2"><Laptop size={16} className="text-teal-600" /> {deviceLabel(event.user_agent)}</span> }
+        ]}
+        data={filtered}
+        searchable={false}
+        emptyTitle="No login records found"
+        emptyMessage="Try changing the search or date filters."
+      />
+    </div>
     <p className="mt-3 text-xs text-ink/40">Showing up to the 500 most recent successful login records. Dates use your device timezone.</p>
   </div>
 }
