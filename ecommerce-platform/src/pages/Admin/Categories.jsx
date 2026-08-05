@@ -94,7 +94,7 @@ export default function Categories() {
                 <p className="font-semibold text-ink">{c.name}</p>
                 <p className="text-xs text-ink/40">{c.slug}</p>
               </div>
-              <button onClick={() => handleDelete(c.id)} className="p-2 text-ink/40 hover:text-coral-500">
+              <button onClick={() => handleDelete(c.id)} className="p-2 text-ink/40 hover:text-coral-500" aria-label={`Delete ${c.name}`}>
                 <Trash2 size={16} />
               </button>
             </div>
