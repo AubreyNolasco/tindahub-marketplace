@@ -4,6 +4,12 @@ Lets a Merchant, a Reseller, or the Platform (Admin, as a shared fallback) conne
 
 This doc exists because, unlike the other integrations (PayMongo, Google Vision, Semaphore SMS), Lalamove **predates** the shared `integration_configs`/Vault pattern and has its own dedicated table (`delivery_provider_accounts`) that supports three independent owners instead of one global on/off switch. Read this before entering a real API key — there are two setup steps outside the app UI that are easy to miss and fail silently if skipped.
 
+## Current status in this deployment (checked 2026-08-05)
+
+- Both `LALAMOVE_ENV` and `LALAMOVE_DISPATCH_SECRET` edge function secrets **already exist** (set 2026-07-29), and a matching `lalamove_dispatch_secret` Vault secret also exists from the same date — Steps 3 and 4 below appear to already be done. **Confirm `LALAMOVE_ENV`'s actual value in the Supabase Dashboard** (Edge Functions → Secrets — the CLI redacts values, this can't be verified from here) before assuming it's set to `production`; if it's unset or anything other than `production`, real API keys will silently hit the sandbox endpoint instead.
+- `lalamove-webhook` was just redeployed with the credential-lookup fix described below — no action needed there.
+- **Bottom line for entering your API key now**: connecting your Lalamove account through Delivery Settings will correctly save your credentials to the live system either way. Whether quotes/bookings actually succeed with a *production* key depends on `LALAMOVE_ENV` being confirmed as `production` first — do the sandbox test in Step 7 either way before trusting a real order to it, since the underlying client has never been live-tested (Step 6).
+
 ## How it works
 
 - Three tiers can each connect their own Lalamove account, from their own settings page: **Merchant** (`/merchant/delivery`), **Reseller** (`/reseller/delivery`), and **Platform/Admin** (`/admin/delivery-providers`, used as a shared fallback when neither party in an order has their own).
