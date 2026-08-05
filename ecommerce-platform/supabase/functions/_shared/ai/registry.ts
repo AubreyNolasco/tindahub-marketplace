@@ -3,15 +3,15 @@
 // convention as _shared/delivery/registry.ts.
 //
 // ai.openai stays unregistered (seeded but never built — a paid
-// provider nobody asked for yet). Until ai.gemini has a real key in
+// provider nobody asked for yet). Until ai.groq has a real key in
 // integration_configs, JomBits keeps answering from
 // src/config/jomBitsKnowledge.js exactly as it does today.
 
 import type { AiProviderAdapter } from './types.ts'
-import { geminiAdapter } from './adapters/gemini.ts'
+import { groqAdapter } from './adapters/groq.ts'
 
 const registry = new Map<string, AiProviderAdapter>([
-  [geminiAdapter.code, geminiAdapter],
+  [groqAdapter.code, groqAdapter],
 ])
 
 export function getAdapter(code: string): AiProviderAdapter {

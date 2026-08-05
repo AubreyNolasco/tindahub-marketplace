@@ -1,12 +1,12 @@
 import { supabase } from '../supabase'
 
-// Thin wrapper around the Gemini-backed JomBits upgrade. The keyword
+// Thin wrapper around the Groq-backed JomBits upgrade. The keyword
 // matcher in config/jomBitsKnowledge.js is always available and is what
 // JomBits falls back to the instant this call is disabled, unconfigured,
-// or fails for any reason — see JomBits.jsx's ask().
+// rate-limited, or fails for any reason — see JomBits.jsx's ask().
 
 export async function isAiEnabled() {
-  const { data, error } = await supabase.rpc('is_integration_enabled', { p_key: 'ai.gemini' })
+  const { data, error } = await supabase.rpc('is_integration_enabled', { p_key: 'ai.groq' })
   if (error) throw error
   return !!data
 }
