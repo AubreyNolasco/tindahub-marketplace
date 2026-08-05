@@ -66,7 +66,7 @@ export default function ResellerStorefront() {
           <p className="mt-1 text-sm text-ink/45">{products.length} product{products.length === 1 ? '' : 's'} selected by this Reseller</p>
         </div>
         {products.length === 0 ? <EmptyState icon={Package} title="No products listed yet" /> : (
-          <div className="grid grid-cols-2 gap-2 min-[360px]:grid-cols-4 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2 min-[360px]:grid-cols-4 sm:gap-4">
             {products.map((product) => (
               <article key={product.id} className="overflow-hidden rounded-xl border border-black/[.06] bg-surface shadow-card sm:rounded-2xl">
                 <div className="aspect-square bg-teal-50">

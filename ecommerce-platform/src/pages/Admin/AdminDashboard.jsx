@@ -150,7 +150,7 @@ export default function AdminDashboard() {
 
       {!loading && <NextActionCard {...nextAction} />}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
         {metrics.map((metric) => <StatCard key={metric.label} {...metric} />)}
       </div>
 
