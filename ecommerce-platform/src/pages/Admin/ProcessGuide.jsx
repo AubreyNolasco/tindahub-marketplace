@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Activity, BarChart3, BookOpenCheck, CalendarDays, ChevronRight, CircleDollarSign, FileCheck2, House, Megaphone, MessageSquare, PackageCheck, Printer, RefreshCw, ShieldCheck, ShoppingCart, Store, Truck, UserCog, UsersRound, WalletCards, X } from 'lucide-react'
+import Modal from '../../components/ui/Modal'
 
 const guides = [
   { category:'Accounts', icon:UsersRound, title:'Merchant & Reseller Registration', summary:'From 6-digit email OTP to an approved marketplace account.', owner:'Admin + Applicant', steps:['Applicant enters an email and verifies the 6-digit OTP.','Applicant chooses Merchant or Reseller and completes the required profile, then lands in their dashboard immediately — no separate approval step blocks them from seeing it.','Merchant submits a readable permit and subscription proof; Reseller separately verifies identity and submits an initial wallet top-up, both from their own dashboard whenever ready (not required to finish signing up).','Admin validates identity, payment destination, amount, and unique reference.','Admin approves both required items; the account can then place orders or post products. Products/orders themselves stay blocked at the database level until then, regardless of what the applicant sees on screen.'], checks:['Never approve from a screenshot alone—match the actual payment record.','Never request an email OTP, Gmail password, bank OTP, or App Password.','A rejected renewal must not reject an already active Merchant.'], result:'The approved account receives only the access intended for its role; until then it can browse but not transact.' },
@@ -73,10 +74,10 @@ export default function ProcessGuide() {
           </section>
         ))}
       </div>
-      {selected && (
-        <div className="fixed inset-0 z-[90] overflow-y-auto bg-scrim/60 p-3 backdrop-blur-sm sm:p-6" role="dialog" aria-modal="true">
-          <div className="mx-auto max-w-2xl overflow-hidden rounded-3xl bg-surface shadow-2xl">
-            <header className="bg-teal-950 p-6 text-white sm:p-8">
+      <Modal open={!!selected} onClose={() => setSelected(null)} hideHeader bodyClassName="" size="lg" ariaLabel={selected ? selected.title : undefined}>
+        {selected && (
+          <>
+            <header className="rounded-t-3xl bg-teal-950 p-6 text-white sm:p-8">
               <div className="flex items-start justify-between gap-4">
                 <span className="grid h-12 w-12 place-items-center rounded-2xl bg-mango-500 text-ink"><selected.icon size={23} /></span>
                 <button onClick={() => setSelected(null)} className="rounded-xl bg-white/10 p-2 hover:bg-white/20" aria-label="Close guide"><X size={20} /></button>
@@ -111,9 +112,9 @@ export default function ProcessGuide() {
               </section>
               <button onClick={() => setSelected(null)} className="btn-primary w-full">Done</button>
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
     </div>
   )
 }
