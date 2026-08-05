@@ -8,6 +8,7 @@ import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
 import Tabs from '../../components/ui/Tabs'
 import Button from '../../components/ui/Button'
+import Modal from '../../components/ui/Modal'
 
 const STATUS_COLORS = {
   pending: 'bg-mango-100 text-mango-600',
@@ -224,42 +225,29 @@ export default function Merchants() {
       )}
 
       {/* Expiry date modal */}
-      {expiryModal && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-scrim/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-3xl bg-surface p-6 shadow-2xl">
-            <div className="flex items-center gap-3">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-teal-100 text-teal-700">
-                <CalendarClock size={20} />
-              </span>
-              <div>
-                <h2 className="font-display font-bold text-lg">Set permit duration</h2>
-                <p className="text-sm text-ink/50">{expiryModal.business_name}</p>
-              </div>
-            </div>
-            <p className="mt-3 text-sm text-ink/60">
-              Choose when this business permit expires. The merchant will be notified before expiry.
-            </p>
-            <label className="mt-4 block text-sm font-semibold text-ink/70">
-              Expiry date (optional — leave empty for no expiry)
-              <input
-                type="date"
-                className="input-field mt-1.5"
-                value={expiryModal.expires_at ? expiryModal.expires_at.split('T')[0] : ''}
-                min={new Date(Date.now() + 86400000).toISOString().split('T')[0]}
-                onChange={(e) => setExpiryModal({ ...expiryModal, expires_at: e.target.value || '' })}
-              />
-            </label>
-            <div className="mt-5 flex gap-3">
-              <button onClick={confirmPermitApproval} className="btn-primary flex-1">
-                Approve permit
-              </button>
-              <button onClick={() => setExpiryModal(null)} className="btn-secondary flex-1">
-                Cancel
-              </button>
-            </div>
-          </div>
+      <Modal open={!!expiryModal} onClose={() => setExpiryModal(null)} title="Set permit duration" subtitle={expiryModal?.business_name} icon={CalendarClock} size="sm">
+        <p className="text-sm text-ink/60">
+          Choose when this business permit expires. The merchant will be notified before expiry.
+        </p>
+        <label className="mt-4 block text-sm font-semibold text-ink/70">
+          Expiry date (optional — leave empty for no expiry)
+          <input
+            type="date"
+            className="input-field mt-1.5"
+            value={expiryModal?.expires_at ? expiryModal.expires_at.split('T')[0] : ''}
+            min={new Date(Date.now() + 86400000).toISOString().split('T')[0]}
+            onChange={(e) => setExpiryModal({ ...expiryModal, expires_at: e.target.value || '' })}
+          />
+        </label>
+        <div className="mt-5 flex gap-3">
+          <button onClick={confirmPermitApproval} className="btn-primary flex-1">
+            Approve permit
+          </button>
+          <button onClick={() => setExpiryModal(null)} className="btn-secondary flex-1">
+            Cancel
+          </button>
         </div>
-      )}
+      </Modal>
     </div>
   )
 }

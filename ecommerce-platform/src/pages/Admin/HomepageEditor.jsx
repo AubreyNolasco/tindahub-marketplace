@@ -3,6 +3,7 @@ import { ArrowDown, ArrowUp, Eye, EyeOff, Image, LayoutTemplate, Loader2, Monito
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { applyCurrentBrand } from '../../utils/brand'
+import Modal from '../../components/ui/Modal'
 
 const defaults = {
   eyebrow: 'Built for growing Filipino businesses', title: 'Grow your wholesale business in one trusted marketplace.',
@@ -55,6 +56,9 @@ export default function HomepageEditor() {
 
       <section className="hidden p-6 xl:block"><div className="mb-4 flex items-center justify-between"><p className="text-xs font-bold uppercase tracking-wider text-ink/40">Live preview</p><div className="flex rounded-lg bg-surface p-1 shadow-sm"><button onClick={() => setMobilePreview(false)} className={`rounded-md p-2 ${!mobilePreview ? 'bg-teal-50 text-teal-700' : 'text-ink/35'}`}><Monitor size={16} /></button><button onClick={() => setMobilePreview(true)} className={`rounded-md p-2 ${mobilePreview ? 'bg-teal-50 text-teal-700' : 'text-ink/35'}`}><Smartphone size={16} /></button></div></div><HeroPreview value={form} mobile={mobilePreview} /></section>
     </div>
-    {previewOpen && <div className="fixed inset-0 z-50 overflow-y-auto bg-scrim/60 p-4 backdrop-blur-sm"><div className="mx-auto max-w-4xl"><div className="mb-3 flex justify-end"><button onClick={() => setPreviewOpen(false)} className="rounded-full bg-surface p-2 text-ink"><X size={20} /></button></div><HeroPreview value={form} mobile={false} /></div></div>}
+    <Modal open={previewOpen} onClose={() => setPreviewOpen(false)} size="xl" hideHeader bodyClassName="p-4" ariaLabel="Homepage hero preview">
+      <div className="mb-3 flex justify-end"><button onClick={() => setPreviewOpen(false)} className="rounded-full bg-surface-inset p-2 text-ink" aria-label="Close preview"><X size={20} /></button></div>
+      <HeroPreview value={form} mobile={false} />
+    </Modal>
   </div>
 }

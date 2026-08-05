@@ -12,6 +12,7 @@ import RegistrationCalendar from '../components/registration/RegistrationCalenda
 import useHomeContent from '../hooks/useHomeContent'
 import useScrollToHash from '../hooks/useScrollToHash'
 import { fallback, plans, benefits, categoryCards, transactionSteps, featuredHighlights, testimonials, faqs } from '../config/homeContent'
+import Modal from '../components/ui/Modal'
 
 const safeInternalLink = (value, fallbackValue) => typeof value === 'string' && value.startsWith('/') && !value.startsWith('//') ? value : fallbackValue
 const safeImageUrl = (value, fallbackValue = '') => typeof value === 'string' && (value.startsWith('/') || value.startsWith('https://')) ? value : fallbackValue
@@ -80,8 +81,7 @@ export default function Home() {
   const heroRadius = content.hero_border === 'square' ? 'rounded-none' : content.hero_border === 'soft' ? 'rounded-xl' : 'rounded-[1.75rem]'
 
   return <div className="overflow-hidden bg-bg">
-    {subscriptionPopup && <div className="fixed inset-0 z-[95] flex items-center justify-center bg-scrim/65 p-2 backdrop-blur-sm sm:p-4" role="dialog" aria-modal="true" aria-label="Join JOM HUB">
-      <div className="max-h-[calc(100dvh-1rem)] w-full max-w-xl overflow-y-auto rounded-2xl bg-surface shadow-2xl sm:max-h-[92vh] sm:rounded-3xl">
+    <Modal open={subscriptionPopup} onClose={closeSubscriptionPopup} size="md" hideHeader bodyClassName="" ariaLabel="Join JOM HUB">
         <div className="relative overflow-hidden bg-gradient-to-br from-teal-950 via-teal-800 to-teal-600 px-4 py-5 text-white sm:px-7 sm:py-6">
           <div className="absolute -right-12 -top-16 h-52 w-52 rounded-full bg-mango-400/20 blur-2xl" />
           <button type="button" onClick={closeSubscriptionPopup} className="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white/80 transition hover:bg-white/20 hover:text-white sm:right-4 sm:top-4" aria-label="Close"><X size={19} /></button>
@@ -97,8 +97,7 @@ export default function Home() {
           <div className="mt-3 rounded-xl border border-black/[0.06] p-3"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-teal-700 sm:text-xs">Merchants get 6 months free — renew anytime after with</p><div className="mt-2 grid grid-cols-3 gap-1.5 text-center">{plans.map((plan) => <div key={plan.duration} className={`rounded-lg px-1 py-2 ${plan.featured ? 'bg-teal-700 text-white' : 'bg-surface-inset text-ink'}`}><p className="text-[9px] font-semibold opacity-70 sm:text-[11px]">{plan.duration}</p><p className="mt-0.5 whitespace-nowrap font-display text-sm font-bold sm:text-base">{plan.price}</p></div>)}</div><p className="mt-2 text-center text-[10px] leading-4 text-ink/45 sm:text-xs">No payment needed to activate your free 6-month subscription at signup.</p></div>
           <div className="mt-4 flex flex-col gap-2 sm:flex-row"><Link to="/signup" onClick={closeSubscriptionPopup} className="btn-primary flex flex-1 items-center justify-center gap-2 py-2.5 text-sm">Join JOM HUB <ArrowRight size={16} /></Link><button type="button" onClick={closeSubscriptionPopup} className="btn-secondary flex-1 py-2.5 text-sm">Explore the homepage</button></div>
         </div>
-      </div>
-    </div>}
+    </Modal>
     {content.announcement?.enabled && <div style={{ background: content.announcement.background, color: content.announcement.color }} className="relative z-20 px-4 py-2.5 text-center text-xs font-semibold sm:text-sm"><span>{content.announcement.text}</span>{content.announcement.link_text && <Link to={safeInternalLink(content.announcement.link_url, '/signup')} className="ml-2 inline-flex items-center gap-1 font-bold underline decoration-white/30 underline-offset-2">{content.announcement.link_text} <ArrowRight size={13} /></Link>}</div>}
 
     {/* ===== HERO SECTION ===== */}
