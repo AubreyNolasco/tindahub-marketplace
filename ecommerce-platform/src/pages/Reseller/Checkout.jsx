@@ -11,6 +11,7 @@ import EmptyState from '../../components/ui/EmptyState'
 import { composeAddress, isCompleteAddress, partsFromLegacyAddress } from '../../utils/address'
 import AddressFields from '../../components/address/AddressFields'
 import { resolvePsgcCodes } from '../../lib/services/psgc'
+import Modal from '../../components/ui/Modal'
 
 const ERROR_MESSAGES = {
   STORE_CLOSED: 'The Merchant store is currently closed. Try again during its published store hours.',
@@ -202,7 +203,29 @@ export default function Checkout() {
           {submitting ? 'Submitting...' : `Pay & Place Order — ${peso(total)}`}
         </button>
       </form>
-      {shippingGuideOpen && <div className="fixed inset-0 z-[90] flex items-center justify-center bg-scrim/60 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Shipping payment reminder"><div className="w-full max-w-md overflow-hidden rounded-3xl bg-surface shadow-2xl"><div className="bg-gradient-to-br from-mango-500 to-mango-600 px-6 py-7 text-ink"><div className="flex items-start justify-between"><span className="grid h-14 w-14 place-items-center rounded-2xl bg-white/80 shadow-sm"><Truck size={28} /></span><button type="button" onClick={() => setShippingGuideOpen(false)} className="rounded-xl bg-white/30 px-3 py-2 text-xl leading-none hover:bg-white/50" aria-label="Close shipping guide">×</button></div><h2 className="mt-5 font-display text-2xl font-bold">Important shipping reminder</h2></div><div className="p-6"><p className="text-sm leading-7 text-ink/65">The shipping fee is <strong className="text-ink">not included</strong> in the {peso(total)} JOM HUB wallet payment.</p><div className="mt-4 rounded-2xl border border-mango-300 bg-mango-100/50 p-4 dark:border-mango-700 dark:bg-mango-500/10"><p className="font-semibold text-ink">Who pays the shipping fee?</p><p className="mt-2 text-sm leading-6 text-ink/60">The reseller or selected customer must pay the actual shipping fee directly to the rider or delivery provider when the item arrives.</p></div><label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl bg-teal-50 p-3 text-sm leading-5 text-teal-800"><input type="checkbox" checked={shippingAccepted} onChange={(event) => setShippingAccepted(event.target.checked)} className="mt-1 accent-teal-600" /> I understand that shipping is paid separately upon delivery.</label><div className="mt-6 flex gap-3"><button type="button" onClick={() => setShippingGuideOpen(false)} className="btn-secondary flex-1">Go back</button><button type="button" disabled={!shippingAccepted || submitting} onClick={placeOrder} className="btn-primary flex-1">{submitting ? 'Placing...' : 'Confirm order'}</button></div></div></div></div>}
+      <Modal open={shippingGuideOpen} onClose={() => setShippingGuideOpen(false)} size="sm" hideHeader bodyClassName="" ariaLabel="Shipping payment reminder">
+        <div className="bg-gradient-to-br from-mango-500 to-mango-600 px-6 py-7 text-ink">
+          <div className="flex items-start justify-between">
+            <span className="grid h-14 w-14 place-items-center rounded-2xl bg-white/80 shadow-sm"><Truck size={28} /></span>
+            <button type="button" onClick={() => setShippingGuideOpen(false)} className="rounded-xl bg-white/30 px-3 py-2 text-xl leading-none hover:bg-white/50" aria-label="Close shipping guide">×</button>
+          </div>
+          <h2 className="mt-5 font-display text-2xl font-bold">Important shipping reminder</h2>
+        </div>
+        <div className="p-6">
+          <p className="text-sm leading-7 text-ink/65">The shipping fee is <strong className="text-ink">not included</strong> in the {peso(total)} JOM HUB wallet payment.</p>
+          <div className="mt-4 rounded-2xl border border-mango-300 bg-mango-100/50 p-4 dark:border-mango-700 dark:bg-mango-500/10">
+            <p className="font-semibold text-ink">Who pays the shipping fee?</p>
+            <p className="mt-2 text-sm leading-6 text-ink/60">The reseller or selected customer must pay the actual shipping fee directly to the rider or delivery provider when the item arrives.</p>
+          </div>
+          <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl bg-teal-50 p-3 text-sm leading-5 text-teal-800">
+            <input type="checkbox" checked={shippingAccepted} onChange={(event) => setShippingAccepted(event.target.checked)} className="mt-1 accent-teal-600" /> I understand that shipping is paid separately upon delivery.
+          </label>
+          <div className="mt-6 flex gap-3">
+            <button type="button" onClick={() => setShippingGuideOpen(false)} className="btn-secondary flex-1">Go back</button>
+            <button type="button" disabled={!shippingAccepted || submitting} onClick={placeOrder} className="btn-primary flex-1">{submitting ? 'Placing...' : 'Confirm order'}</button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

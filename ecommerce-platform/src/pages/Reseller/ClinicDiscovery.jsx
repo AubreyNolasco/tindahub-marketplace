@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { peso } from '../../utils/format'
 import Spinner from '../../components/ui/Spinner'
 import EmptyState from '../../components/ui/EmptyState'
+import Modal from '../../components/ui/Modal'
 import { cleanText } from '../../utils/security'
 
 export default function ClinicDiscovery() {
@@ -123,8 +124,7 @@ export default function ClinicDiscovery() {
 
       {/* Referral Modal */}
       {showRefer && (
-        <div className="fixed inset-0 z-[100] grid place-items-center bg-scrim/65 p-3 backdrop-blur-sm" role="dialog" aria-modal="true">
-          <div className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-surface shadow-2xl">
+        <Modal open={!!showRefer} onClose={() => setShowRefer(null)} size="md" hideHeader bodyClassName="" ariaLabel={`Refer customer to ${showRefer.service.name}`}>
             <div className="flex items-start justify-between bg-gradient-to-br from-teal-950 to-teal-700 px-6 py-5 text-white">
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-mango-300">Refer customer</p>
@@ -170,8 +170,7 @@ export default function ClinicDiscovery() {
                 <button onClick={() => setShowRefer(null)} className="btn-secondary px-4">Cancel</button>
               </div>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
     </div>
   )

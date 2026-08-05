@@ -18,7 +18,7 @@ const ICON_TONES = {
 // even for callers still on static text-ink content, since `ink` itself
 // resolves to the same --fg token (see tailwind.config.js) — text and
 // surface flip together everywhere, not just in migrated components.
-export default function Modal({ open, onClose, title, subtitle, icon: Icon, iconTone = 'teal', size = 'md', footer, children }) {
+export default function Modal({ open, onClose, title, subtitle, icon: Icon, iconTone = 'teal', size = 'md', footer, children, hideHeader = false, bodyClassName = 'px-6 py-5', ariaLabel }) {
   useEffect(() => {
     if (!open) return
     const onKey = (e) => { if (e.key === 'Escape') onClose?.() }
@@ -33,10 +33,11 @@ export default function Modal({ open, onClose, title, subtitle, icon: Icon, icon
       className="fixed inset-0 z-[100] grid place-items-center bg-scrim/65 p-3 backdrop-blur-sm animate-fade-in"
       role="dialog"
       aria-modal="true"
+      aria-label={hideHeader ? ariaLabel : undefined}
       onMouseDown={(e) => { if (e.target === e.currentTarget) onClose?.() }}
     >
       <div className={`max-h-[92vh] w-full ${SIZES[size] || SIZES.md} overflow-y-auto rounded-3xl bg-surface shadow-2xl animate-scale-in`}>
-        {(title || onClose) && (
+        {!hideHeader && (title || onClose) && (
           <div className="sticky top-0 z-10 flex items-start justify-between gap-4 rounded-t-3xl border-b border-line bg-surface px-6 pb-4 pt-5">
             <div className="flex min-w-0 items-center gap-3">
               {Icon && (
@@ -56,7 +57,7 @@ export default function Modal({ open, onClose, title, subtitle, icon: Icon, icon
             )}
           </div>
         )}
-        <div className="px-6 py-5">{children}</div>
+        <div className={bodyClassName}>{children}</div>
         {footer && <div className="border-t border-line px-6 py-4">{footer}</div>}
       </div>
     </div>
