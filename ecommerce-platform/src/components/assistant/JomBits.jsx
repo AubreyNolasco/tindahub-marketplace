@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Bot, ExternalLink, Send, Sparkles, X } from 'lucide-react'
+import { Bot, ExternalLink, Loader2, Send, Sparkles, X } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { answerJomBits, getJomBitsSuggestions } from '../../config/jomBitsKnowledge'
+import { askJomBitsAi, isAiEnabled } from '../../lib/services/ai'
 
 export default function JomBits({ publicMode = false, workspace = false }) {
   const { user, profile, role } = useAuth()
@@ -15,7 +16,10 @@ export default function JomBits({ publicMode = false, workspace = false }) {
   const firstName = profile?.full_name?.trim().split(/\s+/)[0] || (publicMode && !user ? 'there' : activeRole === 'merchant' ? 'Merchant' : 'Reseller')
   const welcome = useMemo(() => ({ from: 'assistant', title: `Hello, ${firstName}!`, answer: `I am JOM Bits, your ${activeRole} system assistant. I can explain JOM HUB features and the process for this account type.` }), [firstName, activeRole])
   const [messages, setMessages] = useState([welcome])
+  const [aiEnabled, setAiEnabled] = useState(false)
   const endRef = useRef(null)
+
+  useEffect(() => { isAiEnabled().then(setAiEnabled).catch(() => setAiEnabled(false)) }, [])
 
   useEffect(() => {
     if (!storageKey) return
@@ -32,12 +36,28 @@ export default function JomBits({ publicMode = false, workspace = false }) {
   useEffect(() => { if (open) endRef.current?.scrollIntoView() }, [open])
 
   if (!publicMode && !['reseller', 'merchant'].includes(role)) return null
-  const ask = (text) => {
+  const ask = async (text) => {
     const clean = text.trim().slice(0, 500)
     if (!clean) return
-    const response = answerJomBits(clean, activeRole, location.pathname)
-    setMessages((current) => [...current, { from: 'user', answer: clean }, { from: 'assistant', ...response }].slice(-12))
     setQuestion('')
+    const userMessage = { from: 'user', answer: clean }
+    if (!aiEnabled) {
+      const response = answerJomBits(clean, activeRole, location.pathname)
+      setMessages((current) => [...current, userMessage, { from: 'assistant', ...response }].slice(-12))
+      return
+    }
+    const pendingId = `pending-${Date.now()}`
+    setMessages((current) => [...current, userMessage, { from: 'assistant', id: pendingId, pending: true, answer: '' }].slice(-12))
+    try {
+      const answer = await askJomBitsAi(clean, activeRole)
+      setMessages((current) => current.map((message) => (message.id === pendingId ? { from: 'assistant', answer } : message)))
+    } catch {
+      // Disabled mid-request, no credentials, rate-limited, network error —
+      // whatever the reason, fall back to the same local matcher used
+      // when AI is off, so the user always gets an answer.
+      const response = answerJomBits(clean, activeRole, location.pathname)
+      setMessages((current) => current.map((message) => (message.id === pendingId ? { from: 'assistant', ...response } : message)))
+    }
   }
   const submit = (event) => { event.preventDefault(); ask(question) }
   const suggestions = getJomBitsSuggestions(activeRole, location.pathname)
@@ -57,8 +77,8 @@ export default function JomBits({ publicMode = false, workspace = false }) {
     {open && <section style={{ bottom: workspace ? 'calc(max(.5rem, env(safe-area-inset-bottom)) + 8.5rem)' : 'calc(max(1rem, env(safe-area-inset-bottom)) + 4.5rem)', right: 'max(.75rem, env(safe-area-inset-right))' }} className="fixed z-[69] flex h-[min(620px,calc(100dvh-10.5rem-env(safe-area-inset-bottom)))] w-[calc(100vw-1.5rem)] flex-col overflow-hidden rounded-3xl border border-black/10 bg-surface shadow-2xl shadow-ink/25 sm:h-[min(620px,calc(100dvh-6.5rem-env(safe-area-inset-bottom)))] sm:w-[390px]" role="dialog" aria-labelledby="jom-bits-title">
         <header className="flex items-center gap-3 bg-gradient-to-br from-teal-950 to-teal-700 px-4 py-3.5 text-white"><span className="grid h-10 w-10 place-items-center rounded-full bg-white/10"><Sparkles size={19} className="text-mango-300"/></span><div className="min-w-0 flex-1"><h2 id="jom-bits-title" className="font-display text-base font-bold">JOM Bits</h2><p className="text-[11px] capitalize text-white/65">{activeRole} system assistant · Online</p></div><button type="button" onClick={() => setOpen(false)} className="rounded-full p-2 hover:bg-white/10" aria-label="Close JOM Bits"><X size={18}/></button></header>
         {publicMode && !['reseller','merchant'].includes(role) && <div className="grid grid-cols-2 gap-2 border-b border-black/5 bg-surface p-3"><button type="button" onClick={() => { setAudience('reseller'); setMessages([]) }} className={`rounded-xl px-3 py-2 text-xs font-bold ${activeRole === 'reseller' ? 'bg-teal-700 text-white' : 'bg-teal-50 text-teal-800'}`}>I am a Reseller</button><button type="button" onClick={() => { setAudience('merchant'); setMessages([]) }} className={`rounded-xl px-3 py-2 text-xs font-bold ${activeRole === 'merchant' ? 'bg-teal-700 text-white' : 'bg-teal-50 text-teal-800'}`}>I am a Merchant</button></div>}
-        <div className="border-b border-black/5 bg-teal-50 px-4 py-2 text-[11px] leading-4 text-teal-900">Private role-aware guidance. JOM Bits answers only from approved JOM HUB processes and does not send your data to a third party.</div>
-        <div className="flex-1 space-y-3 overflow-y-auto bg-surface-inset/60 p-4" aria-live="polite">{messages.map((message, index) => <div key={`${message.from}-${index}`} className={`flex ${message.from === 'user' ? 'justify-end' : 'justify-start'}`}><div className={`max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-6 ${message.from === 'user' ? 'rounded-br-md bg-teal-700 text-white' : 'rounded-bl-md border border-black/5 bg-surface text-ink/70 shadow-sm'}`}>{message.title && <p className="mb-1 font-bold text-ink">{message.title}</p>}<p>{message.answer}</p>{message.from === 'assistant' && message.route && !(message.route === location.pathname) && <Link to={message.route} onClick={(event) => openRoute(message.route, event)} className="mt-2 inline-flex items-center gap-1 font-bold text-teal-700">{message.actionLabel || 'Open relevant page'} <ExternalLink size={13}/></Link>}</div></div>)}<div ref={endRef}/></div>
+        <div className="border-b border-black/5 bg-teal-50 px-4 py-2 text-[11px] leading-4 text-teal-900">{aiEnabled ? "AI-enhanced answers may be processed by Google Gemini. Only your typed question and JOM HUB's public process guide are sent — never your account, wallet, or order data." : 'Private role-aware guidance. JOM Bits answers only from approved JOM HUB processes and does not send your data to a third party.'}</div>
+        <div className="flex-1 space-y-3 overflow-y-auto bg-surface-inset/60 p-4" aria-live="polite">{messages.map((message, index) => <div key={message.id || `${message.from}-${index}`} className={`flex ${message.from === 'user' ? 'justify-end' : 'justify-start'}`}><div className={`max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-6 ${message.from === 'user' ? 'rounded-br-md bg-teal-700 text-white' : 'rounded-bl-md border border-black/5 bg-surface text-ink/70 shadow-sm'}`}>{message.title && <p className="mb-1 font-bold text-ink">{message.title}</p>}{message.pending ? <span className="inline-flex items-center gap-1.5 text-ink/45"><Loader2 size={13} className="animate-spin"/> Thinking...</span> : <p>{message.answer}</p>}{message.from === 'assistant' && message.route && !(message.route === location.pathname) && <Link to={message.route} onClick={(event) => openRoute(message.route, event)} className="mt-2 inline-flex items-center gap-1 font-bold text-teal-700">{message.actionLabel || 'Open relevant page'} <ExternalLink size={13}/></Link>}</div></div>)}<div ref={endRef}/></div>
         <div className="border-t border-black/5 bg-surface p-3"><div className="mb-3 flex gap-2 overflow-x-auto pb-1">{suggestions.map((suggestion) => <button type="button" key={suggestion} onClick={() => ask(suggestion)} className="shrink-0 rounded-full border border-teal-200 bg-teal-50 px-3 py-1.5 text-xs font-semibold text-teal-800 hover:bg-teal-100">{suggestion}</button>)}</div><form onSubmit={submit} className="flex items-end gap-2"><label className="sr-only" htmlFor="jom-bits-question">Ask JOM Bits</label><textarea id="jom-bits-question" rows="1" maxLength="500" value={question} onChange={(event) => setQuestion(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); ask(question) } }} placeholder="Ask about your JOM HUB account..." className="input-field max-h-28 min-h-11 flex-1 resize-none py-3 text-sm"/><button type="submit" disabled={!question.trim()} className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-teal-700 text-white hover:bg-teal-800 disabled:bg-black/15" aria-label="Send question"><Send size={17}/></button></form></div>
     </section>}
   </>
