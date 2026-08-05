@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Truck, RefreshCw, Loader2, Eye, EyeOff, ExternalLink } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
+import Switch from '../../components/ui/Switch'
 
 export default function DeliveryProviders() {
   const [loading, setLoading] = useState(true)
@@ -86,19 +87,7 @@ export default function DeliveryProviders() {
                   : 'Standard shipping estimation is used when no account is available.'}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => setForm({ ...form, is_enabled: !form.is_enabled })}
-              className={`relative h-7 w-12 rounded-full transition-colors ${
-                form.is_enabled ? 'bg-teal-600' : 'bg-ink/20'
-              }`}
-            >
-              <span
-                className={`absolute left-0.5 top-0.5 h-6 w-6 rounded-full bg-surface shadow transition-transform ${
-                  form.is_enabled ? 'translate-x-5' : 'translate-x-0'
-                }`}
-              />
-            </button>
+            <Switch checked={form.is_enabled} onChange={(value) => setForm({ ...form, is_enabled: value })} />
           </label>
         </div>
 

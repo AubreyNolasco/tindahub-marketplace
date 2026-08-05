@@ -84,7 +84,7 @@ function Sidebar({ open, collapsed, onClose, onToggleCollapse, visibleSections, 
             {!collapsed && <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-fg-muted">{section.label}</p>}
             <div className="space-y-1">{section.items.map(({ to, label, icon: Icon, end, highlight }) =>
               <NavLink key={`${to}-${label}`} to={to} end={end} onClick={onClose} title={collapsed ? label : undefined} data-guide-current-nav={currentPath === to || (!end && currentPath.startsWith(to)) ? 'true' : undefined}
-                className={({ isActive }) => `group relative flex min-h-11 items-center rounded-xl text-sm font-semibold transition-all ${collapsed ? 'justify-center px-2' : 'gap-3 px-3'} ${highlight ? 'bg-red-600 text-white hover:bg-red-700' : isActive ? 'bg-teal-600 text-white shadow-md shadow-teal-900/10' : 'text-fg-muted hover:bg-teal-50 hover:text-fg dark:hover:bg-teal-500/10'}`}>
+                className={({ isActive }) => `group relative flex min-h-11 items-center rounded-xl text-sm font-semibold transition-all ${collapsed ? 'justify-center px-2' : 'gap-3 px-3'} ${highlight ? 'bg-coral-600 text-white hover:bg-coral-700' : isActive ? 'bg-teal-600 text-white shadow-md shadow-teal-900/10' : 'text-fg-muted hover:bg-teal-50 hover:text-fg dark:hover:bg-teal-500/10'}`}>
                 {({ isActive }) => <><Icon size={18} className={`shrink-0 ${highlight || isActive ? 'text-white' : 'text-teal-600 group-hover:text-teal-700'}`} />{!collapsed && <><span className="flex-1 truncate">{label}</span>{isActive && !highlight && <ChevronRight size={15} className="text-white" />}</>}</>}
               </NavLink>
             )}</div>
