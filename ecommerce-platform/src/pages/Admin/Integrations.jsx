@@ -3,6 +3,8 @@ import { KeyRound, Plug, Plus, RefreshCw, ScrollText, Trash2, X } from 'lucide-r
 import toast from 'react-hot-toast'
 import { listIntegrations, saveIntegration, listIntegrationLogs } from '../../lib/services/integrations'
 import Spinner from '../../components/ui/Spinner'
+import DataTable from '../../components/ui/DataTable'
+import Badge from '../../components/ui/Badge'
 
 // Settings -> Integrations. Every row here comes from integration_configs
 // (seeded in 20260804000100_integration_scaffolding.sql) — nothing in
@@ -83,43 +85,26 @@ export default function Integrations() {
       <p className="mt-1 text-sm text-ink/55">Enable a provider only once real API keys are entered below. Everything stays on the current manual workflow until then.</p>
     </div>
 
-    <div className="mt-6 overflow-hidden rounded-2xl border border-black/[.06] bg-surface shadow-card">
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-left text-sm">
-          <thead className="bg-teal-50 text-xs uppercase text-teal-900">
-            <tr>
-              <th className="p-4">Integration</th>
-              <th className="p-4">Status</th>
-              <th className="p-4">Mode</th>
-              <th className="p-4">Credentials</th>
-              <th className="p-4">Updated</th>
-              <th className="p-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => <tr key={row.key} className="border-t border-black/5">
-              <td className="p-4 font-semibold">{row.label}<p className="text-xs font-normal text-ink/45">{row.key}</p></td>
-              <td className="p-4">
-                <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${row.enabled ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-600'}`}>
-                  {row.enabled ? 'Enabled' : 'Disabled'}
-                </span>
-              </td>
-              <td className="p-4 capitalize">{row.mode}</td>
-              <td className="p-4 text-xs text-ink/55">
-                {row.credential_names?.length ? `${row.credential_names.length} field(s) set` : 'None yet'}
-                {row.has_webhook_secret && <span className="ml-1">· webhook secret set</span>}
-              </td>
-              <td className="p-4 whitespace-nowrap text-xs text-ink/50">{row.updated_at ? new Date(row.updated_at).toLocaleDateString() : '—'}</td>
-              <td className="p-4">
-                <div className="flex justify-end gap-1">
-                  <button title="Configure" onClick={() => openForm(row)} className="rounded-lg p-2 hover:bg-teal-50"><KeyRound size={16} /></button>
-                  <button title="View logs" onClick={() => openLogs(row)} className="rounded-lg p-2 hover:bg-teal-50"><ScrollText size={16} /></button>
-                </div>
-              </td>
-            </tr>)}
-          </tbody>
-        </table>
-      </div>
+    <div className="mt-6">
+      <DataTable
+        columns={[
+          { header: 'Integration', accessor: 'label', render: (row) => <>{row.label}<p className="text-xs font-normal text-ink/45">{row.key}</p></> },
+          { header: 'Status', accessor: 'enabled', render: (row) => <Badge tone={row.enabled ? 'success' : 'neutral'}>{row.enabled ? 'Enabled' : 'Disabled'}</Badge> },
+          { header: 'Mode', accessor: 'mode', format: 'capitalize' },
+          { header: 'Credentials', accessor: 'credential_names', sortable: false, render: (row) => <span className="text-xs text-ink/55">{row.credential_names?.length ? `${row.credential_names.length} field(s) set` : 'None yet'}{row.has_webhook_secret && <span className="ml-1">· webhook secret set</span>}</span> },
+          { header: 'Updated', accessor: 'updated_at', format: 'date' }
+        ]}
+        data={rows}
+        pageSize={50}
+        searchable
+        searchPlaceholder="Search integrations..."
+        emptyTitle="No integrations"
+        emptyMessage="No integrations match your search."
+        actions={[
+          { label: 'Configure', icon: <KeyRound size={16} />, onClick: openForm },
+          { label: 'View logs', icon: <ScrollText size={16} />, onClick: openLogs }
+        ]}
+      />
     </div>
 
     {form && <div className="fixed inset-0 z-[80] overflow-y-auto bg-scrim/55 p-3 sm:p-6">

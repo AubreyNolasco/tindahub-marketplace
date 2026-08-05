@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { ArrowUpDown, ChevronLeft, ChevronRight, Search, Eye, Edit3, Trash2, MoreHorizontal } from 'lucide-react'
 
-const ITEMS_PER_PAGE = 10
+const DEFAULT_PAGE_SIZE = 10
 
 export default function DataTable({
   columns = [],
@@ -15,7 +15,11 @@ export default function DataTable({
   emptyTitle = 'No data found',
   emptyMessage = 'No records to display.',
   loading = false,
-  loadingRows = 5
+  loadingRows = 5,
+  // Small, stable admin lists (e.g. an integrations config table) read
+  // better as one screen than paginated — override when the default
+  // 10/page would hide rows a caller expects visible at a glance.
+  pageSize = DEFAULT_PAGE_SIZE
 }) {
   const [search, setSearch] = useState('')
   const [sortKey, setSortKey] = useState(null)
@@ -43,8 +47,8 @@ export default function DataTable({
     })
   }, [filtered, sortKey, sortDir])
 
-  const totalPages = Math.max(1, Math.ceil(sorted.length / ITEMS_PER_PAGE))
-  const paged = sorted.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
+  const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize))
+  const paged = sorted.slice((page - 1) * pageSize, page * pageSize)
 
   const toggleSort = (key) => {
     if (sortKey === key) {
@@ -216,7 +220,7 @@ export default function DataTable({
       {totalPages > 1 && (
         <div className="mt-4 flex items-center justify-between text-sm text-fg-muted">
           <p>
-            Showing {(page - 1) * ITEMS_PER_PAGE + 1}–{Math.min(page * ITEMS_PER_PAGE, sorted.length)} of {sorted.length}
+            Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, sorted.length)} of {sorted.length}
           </p>
           <div className="flex items-center gap-2">
             <button
