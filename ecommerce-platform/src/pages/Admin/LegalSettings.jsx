@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import Spinner from '../../components/ui/Spinner'
 import DataTable from '../../components/ui/DataTable'
 import Badge from '../../components/ui/Badge'
+import Modal from '../../components/ui/Modal'
 
 const types = {
   terms: 'Terms of Service',
@@ -151,12 +152,15 @@ export default function LegalSettings() {
         />
       </div>
 
-      {form && (
-        <div className="fixed inset-0 z-[80] overflow-y-auto bg-scrim/55 p-3 sm:p-6">
-          <form onSubmit={save} className="mx-auto max-w-4xl rounded-2xl bg-surface p-5 shadow-2xl sm:p-7">
+      {/* onClose is guarded so Escape while the Preview modal is also open (opened from the
+          form below) only closes Preview, not this form underneath it — otherwise a single
+          Escape press while previewing would silently discard in-progress edits. */}
+      <Modal open={!!form} onClose={() => { if (!preview) setForm(null) }} hideHeader bodyClassName="" size="xl" ariaLabel={form ? (form.id ? 'Edit Policy' : 'New Policy Version') : undefined}>
+        {form && (
+          <form onSubmit={save} className="p-5 sm:p-7">
             <div className="flex justify-between">
               <h2 className="font-display text-xl font-bold">{form.id ? 'Edit Policy' : 'New Policy Version'}</h2>
-              <button type="button" onClick={() => setForm(null)}><X /></button>
+              <button type="button" onClick={() => setForm(null)} aria-label="Close"><X /></button>
             </div>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <label className="text-sm font-semibold">Policy type
@@ -189,23 +193,23 @@ export default function LegalSettings() {
               <button disabled={saving} className="btn-primary">{saving ? 'Saving…' : 'Save Policy'}</button>
             </div>
           </form>
-        </div>
-      )}
+        )}
+      </Modal>
 
-      {preview && (
-        <div className="fixed inset-0 z-[90] overflow-y-auto bg-scrim/55 p-3 sm:p-6">
-          <div className="mx-auto max-w-4xl rounded-2xl bg-surface p-5 shadow-2xl sm:p-8">
+      <Modal open={!!preview} onClose={() => setPreview(null)} hideHeader bodyClassName="p-5 sm:p-8" size="xl" ariaLabel={preview ? preview.title : undefined}>
+        {preview && (
+          <>
             <div className="flex justify-between">
               <div>
                 <h2 className="font-display text-2xl font-bold">{preview.title}</h2>
                 <p className="text-xs text-ink/50">Version {preview.version} · Effective {preview.effective_date}</p>
               </div>
-              <button onClick={() => setPreview(null)}><X /></button>
+              <button onClick={() => setPreview(null)} aria-label="Close"><X /></button>
             </div>
             <article className="legal-content mt-7" dangerouslySetInnerHTML={{ __html: preview.content }} />
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
     </div>
   )
 }
