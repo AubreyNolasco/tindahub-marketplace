@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase'
 import { formatDate } from '../../utils/format'
 import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
+import Tabs from '../../components/ui/Tabs'
 
 const STATUS_COLORS = {
   missing: 'bg-ink/10 text-ink/60',
@@ -77,17 +78,7 @@ export default function ResellerVerifications() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
       <h1 className="font-display font-bold text-2xl text-ink mb-6">Reseller ID Verification</h1>
 
-      <div className="mb-6 flex gap-2 overflow-x-auto pb-2">
-        {['pending', 'approved', 'rejected', 'all'].map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-full text-sm font-semibold capitalize ${filter === f ? 'bg-teal-500 text-white' : 'bg-surface text-ink/60 border border-black/10'}`}
-          >
-            {f}
-          </button>
-        ))}
-      </div>
+      <Tabs options={['pending', 'approved', 'rejected', 'all']} value={filter} onChange={setFilter} />
 
       {filtered.length === 0 ? (
         <EmptyState icon={IdCard} title="No submissions" message="No reseller verifications match this filter." />

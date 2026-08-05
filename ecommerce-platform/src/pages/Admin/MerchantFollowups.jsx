@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase'
 import { formatDate } from '../../utils/format'
 import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
+import Tabs from '../../components/ui/Tabs'
 
 const STATUS_STYLES = {
   pending: 'bg-mango-100 text-mango-600 dark:bg-mango-500/15 dark:text-mango-300',
@@ -96,19 +97,7 @@ export default function MerchantFollowups() {
       <h1 className="font-display font-bold text-2xl text-ink mb-1">Merchant Follow-Up Requests</h1>
       <p className="mb-6 text-sm text-ink/50">Merchants ask here for temporary permission to operate while their business permit is still under review.</p>
 
-      <div className="flex gap-2 mb-6">
-        {['pending', 'approved', 'rejected', 'all'].map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-full text-sm font-semibold capitalize ${
-              filter === f ? 'bg-teal-500 text-white' : 'bg-surface text-ink/60 border border-black/10'
-            }`}
-          >
-            {f}
-          </button>
-        ))}
-      </div>
+      <Tabs options={['pending', 'approved', 'rejected', 'all']} value={filter} onChange={setFilter} />
 
       {filtered.length === 0 ? (
         <EmptyState icon={UserCog} title="No follow-up requests" message="No requests match this filter." />

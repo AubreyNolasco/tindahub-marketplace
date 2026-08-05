@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { peso, formatDate, TOPUP_STATUS_STYLES, TOPUP_STATUS_LABELS } from '../../utils/format'
 import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
+import Tabs from '../../components/ui/Tabs'
 
 export default function TopupRequests() {
   const { user } = useAuth()
@@ -74,19 +75,7 @@ export default function TopupRequests() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
       <h1 className="font-display font-bold text-2xl text-ink mb-6">Top-Up Requests</h1>
 
-      <div className="flex gap-2 mb-6">
-        {['pending', 'approved', 'rejected', 'all'].map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-full text-sm font-semibold capitalize ${
-              filter === f ? 'bg-teal-500 text-white' : 'bg-surface text-ink/60 border border-black/10'
-            }`}
-          >
-            {f}
-          </button>
-        ))}
-      </div>
+      <Tabs options={['pending', 'approved', 'rejected', 'all']} value={filter} onChange={setFilter} />
 
       {filtered.length === 0 ? (
         <EmptyState icon={Banknote} title="No top-up requests" message="No requests match this filter." />
