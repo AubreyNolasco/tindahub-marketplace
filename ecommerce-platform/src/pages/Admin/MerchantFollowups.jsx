@@ -7,6 +7,7 @@ import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
 import Tabs from '../../components/ui/Tabs'
 import Button from '../../components/ui/Button'
+import Modal from '../../components/ui/Modal'
 
 const STATUS_STYLES = {
   pending: 'bg-mango-100 text-mango-600 dark:bg-mango-500/15 dark:text-mango-300',
@@ -138,63 +139,41 @@ export default function MerchantFollowups() {
         </div>
       )}
 
-      {reviewModal && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-scrim/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-3xl bg-surface p-6 shadow-2xl">
-            <div className="flex items-center gap-3">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-teal-100 text-teal-700"><CalendarClock size={20} /></span>
-              <div>
-                <h2 className="font-display font-bold text-lg">Grant temporary access</h2>
-                <p className="text-sm text-ink/50">{reviewModal.business_name}</p>
-              </div>
-            </div>
-            <p className="mt-3 text-sm text-ink/60">Choose how long this merchant may operate before their permit is fully approved.</p>
-            <label className="mt-4 block text-sm font-semibold text-ink/70">
-              Access expires
-              <input
-                type="datetime-local"
-                required
-                className="input-field mt-1.5"
-                value={reviewModal.operate_until}
-                min={minDate}
-                onChange={(e) => setReviewModal({ ...reviewModal, operate_until: e.target.value })}
-              />
-            </label>
-            <div className="mt-5 flex gap-3">
-              <button onClick={confirmApproval} className="btn-primary flex-1">Approve follow-up</button>
-              <button onClick={() => setReviewModal(null)} className="btn-secondary flex-1">Cancel</button>
-            </div>
-          </div>
+      <Modal open={!!reviewModal} onClose={() => setReviewModal(null)} title="Grant temporary access" subtitle={reviewModal?.business_name} icon={CalendarClock} size="sm">
+        <p className="text-sm text-ink/60">Choose how long this merchant may operate before their permit is fully approved.</p>
+        <label className="mt-4 block text-sm font-semibold text-ink/70">
+          Access expires
+          <input
+            type="datetime-local"
+            required
+            className="input-field mt-1.5"
+            value={reviewModal?.operate_until || ''}
+            min={minDate}
+            onChange={(e) => setReviewModal({ ...reviewModal, operate_until: e.target.value })}
+          />
+        </label>
+        <div className="mt-5 flex gap-3">
+          <button onClick={confirmApproval} className="btn-primary flex-1">Approve follow-up</button>
+          <button onClick={() => setReviewModal(null)} className="btn-secondary flex-1">Cancel</button>
         </div>
-      )}
+      </Modal>
 
-      {adjustModal && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-scrim/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-3xl bg-surface p-6 shadow-2xl">
-            <div className="flex items-center gap-3">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-teal-100 text-teal-700"><CalendarClock size={20} /></span>
-              <div>
-                <h2 className="font-display font-bold text-lg">Adjust access duration</h2>
-                <p className="text-sm text-ink/50">{adjustModal.business_name}</p>
-              </div>
-            </div>
-            <label className="mt-4 block text-sm font-semibold text-ink/70">
-              New expiry
-              <input
-                type="datetime-local"
-                required
-                className="input-field mt-1.5"
-                value={adjustModal.operate_until}
-                onChange={(e) => setAdjustModal({ ...adjustModal, operate_until: e.target.value })}
-              />
-            </label>
-            <div className="mt-5 flex gap-3">
-              <button onClick={confirmAdjust} className="btn-primary flex-1">Save duration</button>
-              <button onClick={() => setAdjustModal(null)} className="btn-secondary flex-1">Cancel</button>
-            </div>
-          </div>
+      <Modal open={!!adjustModal} onClose={() => setAdjustModal(null)} title="Adjust access duration" subtitle={adjustModal?.business_name} icon={CalendarClock} size="sm">
+        <label className="block text-sm font-semibold text-ink/70">
+          New expiry
+          <input
+            type="datetime-local"
+            required
+            className="input-field mt-1.5"
+            value={adjustModal?.operate_until || ''}
+            onChange={(e) => setAdjustModal({ ...adjustModal, operate_until: e.target.value })}
+          />
+        </label>
+        <div className="mt-5 flex gap-3">
+          <button onClick={confirmAdjust} className="btn-primary flex-1">Save duration</button>
+          <button onClick={() => setAdjustModal(null)} className="btn-secondary flex-1">Cancel</button>
         </div>
-      )}
+      </Modal>
     </div>
   )
 }
