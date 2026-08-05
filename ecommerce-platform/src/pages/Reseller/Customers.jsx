@@ -8,14 +8,16 @@ import DataTable from '../../components/ui/DataTable'
 import ActionPopup, { DetailRow, DetailSection } from '../../components/ui/ActionPopup'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { cleanText } from '../../utils/security'
-import { COMPLETE_ADDRESS_HELP, isCompleteAddress } from '../../utils/address'
+import { COMPLETE_ADDRESS_HELP, composeAddress, emptyAddressParts, isCompleteAddress } from '../../utils/address'
+import AddressFields from '../../components/address/AddressFields'
 
 export default function Customers() {
   const { user } = useAuth()
   const [customers, setCustomers] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ name: '', phone: '', address: '', notes: '' })
+  const [form, setForm] = useState({ name: '', phone: '', notes: '' })
+  const [addressParts, setAddressParts] = useState(emptyAddressParts())
   const [selectedCustomer, setSelectedCustomer] = useState(null)
   const [showDetail, setShowDetail] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState(null)
@@ -32,12 +34,27 @@ export default function Customers() {
 
   const handleAdd = async (e) => {
     e.preventDefault()
-    if (!isCompleteAddress(form.address)) return toast.error('Please enter the customer’s complete address.')
-    const payload = { reseller_id: user.id, name: cleanText(form.name, 160), phone: cleanText(form.phone, 30), address: cleanText(form.address, 500), notes: cleanText(form.notes, 1000) }
+    const composedAddress = composeAddress(addressParts)
+    if (!isCompleteAddress(composedAddress)) return toast.error('Please enter the customer’s complete address.')
+    const payload = {
+      reseller_id: user.id,
+      name: cleanText(form.name, 160),
+      phone: cleanText(form.phone, 30),
+      notes: cleanText(form.notes, 1000),
+      address: cleanText(composedAddress, 500),
+      street: cleanText(addressParts.street, 200) || null,
+      barangay: cleanText(addressParts.barangay, 120) || null,
+      city: cleanText(addressParts.city, 120) || null,
+      province: cleanText(addressParts.province, 120) || null,
+      postal_code: cleanText(addressParts.postalCode, 10) || null,
+      latitude: addressParts.latitude,
+      longitude: addressParts.longitude,
+    }
     const { error } = await supabase.from('customers').insert(payload)
     if (error) return toast.error(error.message)
     toast.success('Customer added.')
-    setForm({ name: '', phone: '', address: '', notes: '' })
+    setForm({ name: '', phone: '', notes: '' })
+    setAddressParts(emptyAddressParts())
     setShowForm(false)
     load()
   }
@@ -81,11 +98,11 @@ export default function Customers() {
           <input className="input-field" placeholder="Phone number" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
           <div>
             <label className="text-sm font-semibold text-ink/70">Complete Delivery Address</label>
-            <textarea required maxLength="500" rows={3} className="input-field mt-1 resize-none" placeholder="House/Unit No., Street, Barangay, City, Province, Postal Code" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+            <div className="mt-1"><AddressFields value={addressParts} onChange={setAddressParts} required withCoordinates /></div>
             <p className="mt-1 text-[11px] leading-4 text-ink/45">{COMPLETE_ADDRESS_HELP}</p>
           </div>
           <textarea className="input-field" placeholder="Notes (optional)" rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
-          <button type="submit" disabled={!isCompleteAddress(form.address)} className="btn-primary w-full">Save Customer</button>
+          <button type="submit" disabled={!isCompleteAddress(composeAddress(addressParts))} className="btn-primary w-full">Save Customer</button>
         </form>
       )}
 

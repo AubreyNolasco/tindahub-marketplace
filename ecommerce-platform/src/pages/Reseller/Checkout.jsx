@@ -8,7 +8,8 @@ import { useCart } from '../../contexts/CartContext'
 import { peso } from '../../utils/format'
 import { getSuggestedCustomerPrice, getUnitPrice, getResellerUnitPrice } from '../../utils/pricing'
 import EmptyState from '../../components/ui/EmptyState'
-import { isCompleteAddress } from '../../utils/address'
+import { composeAddress, isCompleteAddress, partsFromLegacyAddress } from '../../utils/address'
+import AddressFields from '../../components/address/AddressFields'
 
 const ERROR_MESSAGES = {
   STORE_CLOSED: 'The Merchant store is currently closed. Try again during its published store hours.',
@@ -32,7 +33,8 @@ export default function Checkout() {
 
   const [merchant, setMerchant] = useState(null)
   const [wallet, setWallet] = useState(null)
-  const [address, setAddress] = useState(group?.customerAddress || '')
+  const [addressParts, setAddressParts] = useState(partsFromLegacyAddress(group?.customerAddress || ''))
+  const address = composeAddress(addressParts)
   const [submitting, setSubmitting] = useState(false)
   const [shippingGuideOpen, setShippingGuideOpen] = useState(false)
   const [shippingAccepted, setShippingAccepted] = useState(false)
@@ -43,7 +45,13 @@ export default function Checkout() {
     if (merchantId) loadMerchant()
     loadWallet()
   }, [merchantId, loadMerchant, loadWallet])
-  useEffect(() => { if (!customerId && profile?.address) setAddress(profile.address) }, [customerId, profile?.address])
+  useEffect(() => {
+    if (customerId || !profile?.address) return
+    const hasStructured = profile.street || profile.barangay || profile.city || profile.province || profile.postal_code
+    setAddressParts(hasStructured
+      ? { street: profile.street || '', barangay: profile.barangay || '', city: profile.city || '', province: profile.province || '', postalCode: profile.postal_code || '', latitude: null, longitude: null }
+      : partsFromLegacyAddress(profile.address))
+  }, [customerId, profile])
 
   useEffect(() => {
     if (!merchantId || items.length === 0) return
@@ -163,14 +171,7 @@ export default function Checkout() {
 
         <div className="card p-5">
           <h2 className="font-semibold text-ink mb-3">Shipping Address</h2>
-          <textarea
-            required
-            className="input-field"
-            rows={3}
-            placeholder="Complete delivery address"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-          />
+          <AddressFields value={addressParts} onChange={setAddressParts} required />
         </div>
 
         <div className="card border-mango-300 bg-mango-100/50 p-5"><div className="flex items-start gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-surface text-mango-600"><Truck size={19} /></span><div><h2 className="font-semibold text-ink">Shipping fee is paid upon delivery</h2><p className="mt-1 text-sm leading-6 text-ink/60">The reseller or final recipient will pay the actual delivery fee directly to the rider or delivery provider when the products arrive. This fee is not included in the JOM HUB wallet payment.</p></div></div></div>

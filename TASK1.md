@@ -15,6 +15,7 @@ Pattern proven twice already (PayMongo, Google Vision) — every remaining item 
 ## ✅ Done (continued)
 
 - [x] **Semaphore SMS** — SMS notifications on top-up approved / withdrawal approved-rejected, via a `net.http_post` Postgres trigger (same pattern as `notify_lalamove_dispatch_ready`), fires on BOTH manual admin approval and PayMongo auto-approval without touching either code path. `20260806000300_semaphore_sms_notifications.sql`, `adapters/semaphore.ts`, `send-sms` edge function, `SEMAPHORE_SMS_SETUP.md`. Needs a real Semaphore API key + Vault `sms_dispatch_secret` to test end-to-end.
+- [x] **Google Maps address autocomplete** — every address fill-up in the system (reseller/merchant address, saved customers, checkout shipping) split from one free-text textarea into street/barangay/city/province/postal-code fields, with an optional Places search box that auto-fills them + GPS coordinates. Confirmed while building this: `merchant_profiles.pickup_latitude/pickup_longitude` and `customers.latitude/longitude` already existed and were already required by the delivery/Lalamove quote pipeline, but nothing in the UI ever wrote to them — this closes that gap (Add Customer and both address pages now populate them). Public `VITE_GOOGLE_MAPS_API_KEY` (not a Vault secret — Maps JS keys are browser-side by nature) + `maps.google` on/off row, same pattern as everything else. `20260806000400_structured_addresses.sql`, `AddressFields.jsx`, `GOOGLE_MAPS_SETUP.md`. Needs a real Maps API key to test the autofill; manual structured fields already work today regardless.
 
 ## ⬜ Not started — remaining from the original request
 
@@ -41,15 +42,11 @@ Pattern proven twice already (PayMongo, Google Vision) — every remaining item 
 - [ ] SendGrid — only worth building if SMTP (current, working) has a real problem (deliverability, volume). Low priority — don't build without a stated reason.
 
 ### SMS
-- [ ] Semaphore — in progress, see above.
 - [ ] Twilio — international SMS; lower priority than Semaphore for a PH-based marketplace.
 
 ### Storage (Supabase Storage already live for business-permits/payment-proofs buckets)
 - [ ] AWS S3 — only worth it if Supabase Storage hits a real limit. Don't build speculatively.
 - [ ] Cloudinary — same caveat, plus it's more of an image-transform service than a storage replacement; clarify actual need first.
-
-### Maps
-- [ ] Google Maps — check first whether merchant pickup / customer address lat-lng picking already uses this (likely yes, given `pickup_latitude`/`pickup_longitude` columns already exist) before treating it as "not started."
 
 ### AI
 - [ ] OpenAI — `ai.openai` row already seeded, `_shared/ai/types.ts` contract already exists (built for this specifically, JomBits enhancement). Needs `adapters/openai.ts` + wiring into `JomBits.jsx`. Note already on file (from the integration-scaffolding session): update the "does not send your data to a third party" text in `JomBits.jsx` if/when this goes live — that claim becomes false.

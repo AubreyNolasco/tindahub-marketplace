@@ -5,7 +5,8 @@ import toast from "react-hot-toast";
 import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../lib/supabase";
 import { cleanText } from "../../utils/security";
-import { COMPLETE_ADDRESS_HELP, isCompleteAddress } from "../../utils/address";
+import { COMPLETE_ADDRESS_HELP, composeAddress, emptyAddressParts, isCompleteAddress } from "../../utils/address";
+import AddressFields from "../../components/address/AddressFields";
 import Spinner from "../../components/ui/Spinner";
 import ProfileLoadError from "../../components/auth/ProfileLoadError";
 
@@ -15,9 +16,10 @@ export default function Onboarding() {
   const navigate = useNavigate();
   const [role, setRole] = useState("reseller");
   const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
+  const [addressParts, setAddressParts] = useState(emptyAddressParts());
   const [businessName, setBusinessName] = useState("");
   const [saving, setSaving] = useState(false);
+  const address = composeAddress(addressParts);
 
   if (loading)
     return (
@@ -52,6 +54,25 @@ export default function Onboarding() {
           role === "merchant" ? cleanText(businessName, 160) : null,
       });
       if (error) throw error;
+
+      // complete_account_onboarding only ever took a single composed
+      // address string (unchanged above) — the structured parts are
+      // saved with one follow-up owner-update, same direct-update
+      // permission ProfileAddress.jsx already relies on, so onboarding
+      // doesn't need its own RPC signature change.
+      const structuredPayload = {
+        street: cleanText(addressParts.street, 200) || null,
+        barangay: cleanText(addressParts.barangay, 120) || null,
+        city: cleanText(addressParts.city, 120) || null,
+        province: cleanText(addressParts.province, 120) || null,
+        postal_code: cleanText(addressParts.postalCode, 10) || null,
+      };
+      if (role === "merchant") {
+        await supabase.from("merchant_profiles").update({ ...structuredPayload, pickup_latitude: addressParts.latitude, pickup_longitude: addressParts.longitude }).eq("id", user.id);
+      } else {
+        await supabase.from("profiles").update({ ...structuredPayload, latitude: addressParts.latitude, longitude: addressParts.longitude }).eq("id", user.id);
+      }
+
       await refreshProfile();
       toast.success("Email verified. Complete the remaining approval steps.");
       navigate(role === "merchant" ? "/merchant-permit" : "/reseller", {
@@ -136,22 +157,19 @@ export default function Onboarding() {
               inputMode="tel"
             />
           </label>
-          <label className="block text-sm font-semibold text-ink/70">
-            {role === "merchant"
-              ? "Complete pickup address"
-              : "Complete reseller address"}
-            <textarea
-              required
-              rows="4"
-              value={address}
-              onChange={(event) => setAddress(event.target.value)}
-              className="input-field mt-1.5 resize-none"
-              maxLength="500"
-            />
+          <div>
+            <label className="block text-sm font-semibold text-ink/70">
+              {role === "merchant"
+                ? "Complete pickup address"
+                : "Complete reseller address"}
+            </label>
+            <div className="mt-1.5">
+              <AddressFields value={addressParts} onChange={setAddressParts} required withCoordinates />
+            </div>
             <span className="mt-1 block text-[11px] font-normal leading-4 text-ink/45">
               {COMPLETE_ADDRESS_HELP}
             </span>
-          </label>
+          </div>
           {role === "reseller" && (
             <p className="rounded-xl bg-mango-100/60 p-3 text-xs leading-5 text-ink/60 dark:bg-mango-500/10">
               You can top up your wallet anytime from the Wallet page once you're in your
