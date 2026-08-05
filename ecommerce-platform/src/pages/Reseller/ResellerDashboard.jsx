@@ -76,10 +76,10 @@ export default function ResellerDashboard() {
   const recentOrders = orders.slice(0, 6)
 
   const cards = [
-    { label: 'Wallet balance', value: loading ? '—' : peso(stats.wallet), detail: 'Available purchasing funds', icon: Wallet, to: '/reseller/wallet', tone: 'mango' },
-    { label: 'Total purchases', value: loading ? '—' : peso(stats.spent), detail: `${stats.orders} lifetime orders`, icon: BarChart3, to: '/reseller/reports/sales', tone: 'teal' },
-    { label: 'Active orders', value: loading ? '—' : stats.active, detail: 'Currently being fulfilled', icon: ClipboardList, to: '/reseller/orders', tone: 'coral' },
-    { label: 'Customers', value: loading ? '—' : stats.customers, detail: 'Saved customer records', icon: Users, to: '/reseller/customers', tone: 'teal' }
+    { label: 'Wallet balance', value: peso(stats.wallet), detail: 'Available purchasing funds', icon: Wallet, to: '/reseller/wallet', tone: 'mango', loading },
+    { label: 'Total purchases', value: peso(stats.spent), detail: `${stats.orders} lifetime orders`, icon: BarChart3, to: '/reseller/reports/sales', tone: 'teal', loading },
+    { label: 'Active orders', value: stats.active, detail: 'Currently being fulfilled', icon: ClipboardList, to: '/reseller/orders', tone: 'coral', loading },
+    { label: 'Customers', value: stats.customers, detail: 'Saved customer records', icon: Users, to: '/reseller/customers', tone: 'teal', loading }
   ]
   const nextAction = profile?.account_status !== 'approved'
     ? { title:'Complete account approval', description:'Finish the required profile and payment verification before placing protected orders.', to:'/pending-approval', action:'View approval' }

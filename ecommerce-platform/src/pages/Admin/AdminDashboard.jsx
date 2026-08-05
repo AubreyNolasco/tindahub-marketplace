@@ -121,10 +121,10 @@ export default function AdminDashboard() {
 
   const actionCount = stats.pendingMerchants + stats.pendingTopups + stats.pendingWithdrawals + stats.pendingSubscriptions + stats.pendingRegistrations
   const metrics = [
-    { label: 'Gross marketplace value', value: loading ? '—' : peso(stats.gmv), detail: `${stats.orders} non-cancelled orders`, icon: TrendingUp, tone: 'teal', to: '/admin/reports/sales' },
-    { label: 'Platform wallet', value: loading ? '—' : peso(stats.platformWallet), detail: 'Recorded platform revenue', icon: Wallet, tone: 'mango', to: '/admin/wallet' },
-    { label: 'Active merchants', value: loading ? '—' : stats.approvedMerchants, detail: `${stats.merchants} total merchant accounts`, icon: Building2, tone: 'teal', to: '/admin/merchants' },
-    { label: 'Registered resellers', value: loading ? '—' : stats.resellers, detail: 'Marketplace buyer network', icon: Users, tone: 'coral', to: '/admin' }
+    { label: 'Gross marketplace value', value: peso(stats.gmv), detail: `${stats.orders} non-cancelled orders`, icon: TrendingUp, tone: 'teal', to: '/admin/reports/sales', loading },
+    { label: 'Platform wallet', value: peso(stats.platformWallet), detail: 'Recorded platform revenue', icon: Wallet, tone: 'mango', to: '/admin/wallet', loading },
+    { label: 'Active merchants', value: stats.approvedMerchants, detail: `${stats.merchants} total merchant accounts`, icon: Building2, tone: 'teal', to: '/admin/merchants', loading },
+    { label: 'Registered resellers', value: stats.resellers, detail: 'Marketplace buyer network', icon: Users, tone: 'coral', to: '/admin', loading }
   ]
   const queues = [
     { label: 'Merchant applications', value: stats.pendingMerchants, icon: ShieldAlert, link: '/admin/merchants', color: 'text-coral-600 bg-coral-100 dark:bg-coral-500/15 dark:text-coral-300' },

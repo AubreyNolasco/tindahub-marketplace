@@ -61,10 +61,10 @@ export default function MerchantDashboard() {
 
   useEffect(() => { load() }, [load])
   const cards = [
-    { label: 'Gross sales', value: loading ? '—' : peso(stats.sales), detail: `${stats.orders} total orders`, icon: BarChart3, to: '/merchant/reports/sales', tone: 'teal' },
-    { label: 'Wallet balance', value: loading ? '—' : peso(stats.wallet), detail: 'Available merchant funds', icon: Wallet, to: '/merchant/wallet', tone: 'mango' },
-    { label: 'Products', value: loading ? '—' : stats.products, detail: `${stats.lowStock} low or out of stock`, icon: Package, to: '/merchant/products', tone: 'coral' },
-    { label: 'Orders to review', value: loading ? '—' : stats.pending, detail: 'Payment and pending orders', icon: ClipboardList, to: '/merchant/orders', tone: 'teal' }
+    { label: 'Gross sales', value: peso(stats.sales), detail: `${stats.orders} total orders`, icon: BarChart3, to: '/merchant/reports/sales', tone: 'teal', loading },
+    { label: 'Wallet balance', value: peso(stats.wallet), detail: 'Available merchant funds', icon: Wallet, to: '/merchant/wallet', tone: 'mango', loading },
+    { label: 'Products', value: stats.products, detail: `${stats.lowStock} low or out of stock`, icon: Package, to: '/merchant/products', tone: 'coral', loading },
+    { label: 'Orders to review', value: stats.pending, detail: 'Payment and pending orders', icon: ClipboardList, to: '/merchant/orders', tone: 'teal', loading }
   ]
   const nextAction = merchant?.status !== 'approved'
     ? { title:'Complete Merchant approval', description:'Finish the permit and subscription payment review before publishing products.', to:'/pending-approval', action:'View approval' }

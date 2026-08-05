@@ -12,7 +12,7 @@ const TONES = {
 // KPI tile used by all three role dashboards. `trend` is an optional array
 // of { value } points rendered as a faint sparkline; `delta` is an optional
 // percentage change shown as an up/down chip.
-export default function StatCard({ icon: Icon, label, value, detail, delta, trend, tone = 'teal', to }) {
+export default function StatCard({ icon: Icon, label, value, detail, delta, trend, tone = 'teal', to, loading = false }) {
   const gradientId = useId()
   const Wrapper = to ? Link : 'div'
   const wrapperProps = to ? { to } : {}
@@ -34,7 +34,7 @@ export default function StatCard({ icon: Icon, label, value, detail, delta, tren
         )}
       </div>
       <div className="relative z-10">
-        <p className="font-mono text-2xl font-bold tabular-nums text-fg sm:text-3xl">{value}</p>
+        {loading ? <div className="skeleton h-7 w-20 sm:h-8" /> : <p className="font-mono text-2xl font-bold tabular-nums text-fg sm:text-3xl">{value}</p>}
         <p className="mt-0.5 text-sm font-semibold text-fg-muted">{label}</p>
         {detail && <p className="mt-1 text-xs text-fg-muted/80">{detail}</p>}
       </div>
