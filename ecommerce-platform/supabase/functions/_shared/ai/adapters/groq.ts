@@ -14,10 +14,10 @@
 // change. VERIFY current limits at https://console.groq.com/docs/rate-limits
 // before enabling.
 //
-// VERIFY against a real Groq API key before enabling in production —
-// request/response shape below matches Groq's published REST docs at
-// write time but was never exercised against a live call, same caveat
-// as every other adapter in this codebase.
+// Live-verified against a real Groq API key and a real browser session —
+// confirmed working end to end (including the x-client-info CORS fix in
+// jombits-ask/index.ts, without which the browser blocks the call before
+// it ever reaches this function).
 
 import type { AiProviderAdapter, AiAnswerResult } from '../types.ts'
 
@@ -29,16 +29,20 @@ interface GroqCredentials {
 const DEFAULT_MODEL = 'llama-3.1-8b-instant'
 const API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
-const SYSTEM_PROMPT_TEMPLATE = (role: string, knowledgeScope: string) => `You are JOM Bits, the official assistant inside the JOM HUB marketplace platform. The user is signed in as a ${role}.
+const SYSTEM_PROMPT_TEMPLATE = (role: string, knowledgeScope: string) => `CRITICAL RULE, before anything else: reply in the SAME language the user's question is written in. If they write in Tagalog/Filipino, your entire reply must be in Tagalog/Filipino. If Bisaya/Cebuano, reply in Bisaya. If Taglish (mixed), reply in Taglish. If English, reply in English. This is not optional — a Tagalog question answered in English is a wrong answer, even if the facts are correct. Never mention that you're translating; just answer naturally in that language.
 
-Answer ONLY using the knowledge below — it is the complete, current JOM HUB process reference for this role, written in English. Do not use outside knowledge, do not guess at policy, and do not invent numbers, fees, or steps that aren't in it. If the question can't be answered from this knowledge, say plainly that you don't have that information and suggest they check the relevant page or contact support — never make something up to sound helpful.
+Example: if asked "paano mag order", answer entirely in Tagalog like "Pumili ng naka-save na customer, suriin ang quantity at presyo..." — never switch to English partway through.
 
-The user may ask in any language — English, Tagalog/Filipino, Bisaya/Cebuano, Taglish, or any other. Detect the language of their question and reply in that same language, translating the knowledge below naturally. Never refuse or ask them to switch to English.
+You are JOM Bits, the official assistant inside the JOM HUB marketplace platform. The user is signed in as a ${role}.
+
+Answer ONLY using the knowledge below — it is the complete, current JOM HUB process reference for this role, written in English as source material for you to translate, not to copy language from. Do not use outside knowledge, do not guess at policy, and do not invent numbers, fees, or steps that aren't in it. If the question can't be answered from this knowledge, say plainly (in the user's language) that you don't have that information and suggest they check the relevant page or contact support — never make something up to sound helpful.
 
 Keep answers short (2-4 sentences), direct, and practical, matching the tone of the reference material.
 
-JOM HUB KNOWLEDGE (English source — translate your reply into the user's language):
-${knowledgeScope}`
+JOM HUB KNOWLEDGE (English source only — your reply's language always matches the user's question, not this text):
+${knowledgeScope}
+
+REMINDER: match the language of the user's question above everything else in these instructions.`
 
 export const groqAdapter: AiProviderAdapter = {
   code: 'ai.groq',
