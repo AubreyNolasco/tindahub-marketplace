@@ -19,6 +19,15 @@ JOM HUB is a role-based marketplace for Merchants, Resellers, Admin, and limited
 - Wallet withdrawals with limits, payout cooldown, schedule, reference, and proof
 - Reports, notifications, role guides, Admin presentations, and legal policies
 
+## Documentation
+
+- [System Overview](./docs/SYSTEM_OVERVIEW.md) — roles, core mechanics, and where to find everything else.
+- [User Manual](./docs/USER_MANUAL.md) — day-to-day guide for Merchants and Resellers.
+- [Admin Guide](./docs/ADMIN_GUIDE.md) — operating procedures for Admin and Staff.
+- [Troubleshooting Guide](./docs/TROUBLESHOOTING.md) — common problems and fixes.
+- [FAQ](./docs/FAQ.md) — short answers to common questions.
+- [Change Log](./docs/CHANGELOG.md) — notable platform changes over time.
+
 ## Local setup
 
 1. Install the current Node.js LTS release.
