@@ -1,14 +1,12 @@
 // Adding a carrier means writing one adapters/<code>.ts file and
 // registering it here — nothing else in the engine changes. Same
 // convention as _shared/delivery/registry.ts.
-//
-// Empty until sms.semaphore (or sms.twilio) has real credentials in
-// integration_configs.
 
 import type { SmsProviderAdapter } from './types.ts'
+import { semaphoreAdapter } from './adapters/semaphore.ts'
 
 const registry = new Map<string, SmsProviderAdapter>([
-  // [semaphoreAdapter.code, semaphoreAdapter],
+  [semaphoreAdapter.code, semaphoreAdapter],
 ])
 
 export function getAdapter(code: string): SmsProviderAdapter {
