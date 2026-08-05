@@ -6,6 +6,7 @@ import { formatDate } from '../../utils/format'
 import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
 import Tabs from '../../components/ui/Tabs'
+import Button from '../../components/ui/Button'
 
 const STATUS_STYLES = {
   pending: 'bg-mango-100 text-mango-600 dark:bg-mango-500/15 dark:text-mango-300',
@@ -123,9 +124,7 @@ export default function MerchantFollowups() {
                     <button onClick={() => openReview(r)} className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1">
                       <Check size={13} /> Approve
                     </button>
-                    <button onClick={() => reject(r)} className="text-xs px-3 py-1.5 rounded-xl bg-coral-100 text-coral-600 font-semibold flex items-center gap-1">
-                      <X size={13} /> Reject
-                    </button>
+                    <Button onClick={() => reject(r)} variant="danger-chip" size="sm" icon={X}>Reject</Button>
                   </>
                 )}
                 {r.status === 'approved' && (

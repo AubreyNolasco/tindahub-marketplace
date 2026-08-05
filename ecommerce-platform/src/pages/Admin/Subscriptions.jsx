@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabase'
 import { formatDate } from '../../utils/format'
 import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
+import Button from '../../components/ui/Button'
 
 const STATUS_COLORS = {
   active: 'bg-teal-100 text-teal-700',
@@ -194,7 +195,7 @@ export default function Subscriptions() {
                 <span className={`badge ${request.status === 'approved' ? 'bg-teal-100 text-teal-700' : request.status === 'rejected' ? 'bg-coral-100 text-coral-600' : 'bg-mango-100 text-mango-600'}`}>{request.status}</span>
                 {request.status === 'pending' && <>
                   <button onClick={() => review(request, true)} className="btn-primary text-xs px-3 py-1.5 flex gap-1"><Check size={13} /> Approve</button>
-                  <button onClick={() => review(request, false)} className="bg-coral-100 text-coral-600 rounded-xl text-xs font-semibold px-3 py-1.5"><X size={13} /></button>
+                  <Button onClick={() => review(request, false)} variant="danger-chip" size="sm" icon={X} aria-label="Reject" />
                 </>}
               </div>
             </div>

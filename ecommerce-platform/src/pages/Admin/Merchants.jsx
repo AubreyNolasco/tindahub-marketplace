@@ -7,6 +7,7 @@ import { isOcrEnabled, readBusinessPermit } from '../../lib/services/ocr'
 import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
 import Tabs from '../../components/ui/Tabs'
+import Button from '../../components/ui/Button'
 
 const STATUS_COLORS = {
   pending: 'bg-mango-100 text-mango-600',
@@ -194,9 +195,7 @@ export default function Merchants() {
                       <button onClick={() => reviewPermit(m, true)} className="btn-primary flex items-center gap-1 px-3 py-1.5 text-xs">
                         <Check size={13} /> Permit valid
                       </button>
-                      <button onClick={() => reviewPermit(m, false)} className="flex items-center gap-1 rounded-xl bg-coral-100 px-3 py-1.5 text-xs font-semibold text-coral-600">
-                        <X size={13} /> Reject permit
-                      </button>
+                      <Button onClick={() => reviewPermit(m, false)} variant="danger-chip" size="sm" icon={X}>Reject permit</Button>
                     </>
                   )}
                   {m.status === 'pending' && m.business_permit_status === 'approved' && (
@@ -204,9 +203,7 @@ export default function Merchants() {
                       <a href="/admin/approval-center" className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1">
                         <Check size={13} /> Complete activation
                       </a>
-                      <button onClick={() => updateStatus(m.id, 'rejected')} className="text-xs px-3 py-1.5 rounded-xl bg-coral-100 text-coral-600 font-semibold flex items-center gap-1">
-                        <X size={13} /> Reject
-                      </button>
+                      <Button onClick={() => updateStatus(m.id, 'rejected')} variant="danger-chip" size="sm" icon={X}>Reject</Button>
                     </>
                   )}
                   {m.status === 'approved' && (

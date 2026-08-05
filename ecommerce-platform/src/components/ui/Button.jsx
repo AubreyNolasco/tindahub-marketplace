@@ -9,7 +9,10 @@ const VARIANTS = {
   secondary: 'btn-secondary',
   accent: 'btn-accent',
   ghost: 'font-semibold rounded-xl text-fg/70 transition-colors hover:bg-surface-inset hover:text-fg disabled:opacity-50 disabled:cursor-not-allowed',
-  danger: 'font-semibold rounded-xl bg-coral-600 text-white shadow-sm shadow-coral-900/10 transition-all duration-200 hover:-translate-y-0.5 hover:bg-coral-700 hover:shadow-lg active:translate-y-0 disabled:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed'
+  danger: 'font-semibold rounded-xl bg-coral-600 text-white shadow-sm shadow-coral-900/10 transition-all duration-200 hover:-translate-y-0.5 hover:bg-coral-700 hover:shadow-lg active:translate-y-0 disabled:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed',
+  // Lighter row-level reject/decline chip — distinct from `danger` (a bold
+  // solid CTA). Was hand-duplicated across 8 buttons in 6 Admin pages.
+  'danger-chip': 'rounded-xl bg-coral-100 text-coral-600 font-semibold transition-colors hover:bg-coral-200 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-coral-500/15 dark:text-coral-300'
 }
 
 // Tailwind's utilities layer is emitted after @layer components, so these

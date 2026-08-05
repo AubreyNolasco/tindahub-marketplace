@@ -8,6 +8,7 @@ import { compressImage } from '../../utils/security'
 import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
 import Tabs from '../../components/ui/Tabs'
+import Button from '../../components/ui/Button'
 
 export default function WithdrawalRequests() {
   const { user } = useAuth()
@@ -111,9 +112,7 @@ export default function WithdrawalRequests() {
                     <button onClick={() => review(r, true)} className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1">
                       <Check size={13} /> Approve
                     </button>
-                    <button onClick={() => review(r, false)} className="text-xs px-3 py-1.5 rounded-xl bg-coral-100 text-coral-600 font-semibold flex items-center gap-1">
-                      <X size={13} /> Reject
-                    </button>
+                    <Button onClick={() => review(r, false)} variant="danger-chip" size="sm" icon={X}>Reject</Button>
                   </>
                 )}
                 {r.status === 'approved' && !r.sent_at && <div className="flex flex-col gap-2"><input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={e=>setProofFiles(current=>({...current,[r.id]:e.target.files?.[0]||null}))} className="max-w-52 text-[10px]"/><button onClick={() => markSent(r)} className="btn-primary flex items-center gap-1 px-3 py-1.5 text-xs"><Send size={13} /> Mark Sent</button></div>}

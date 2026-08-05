@@ -7,6 +7,7 @@ import { peso, formatDate, TOPUP_STATUS_STYLES, TOPUP_STATUS_LABELS } from '../.
 import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
 import Tabs from '../../components/ui/Tabs'
+import Button from '../../components/ui/Button'
 
 export default function TopupRequests() {
   const { user } = useAuth()
@@ -109,9 +110,7 @@ export default function TopupRequests() {
                     <button onClick={() => review(r, true)} className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1">
                       <Check size={13} /> Approve
                     </button>
-                    <button onClick={() => review(r, false)} className="text-xs px-3 py-1.5 rounded-xl bg-coral-100 text-coral-600 font-semibold flex items-center gap-1">
-                      <X size={13} /> Reject
-                    </button>
+                    <Button onClick={() => review(r, false)} variant="danger-chip" size="sm" icon={X}>Reject</Button>
                   </>
                 )}
               </div>

@@ -6,6 +6,7 @@ import { formatDate } from '../../utils/format'
 import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
 import Tabs from '../../components/ui/Tabs'
+import Button from '../../components/ui/Button'
 
 const STATUS_COLORS = {
   missing: 'bg-ink/10 text-ink/60',
@@ -119,9 +120,7 @@ export default function ResellerVerifications() {
                       <button onClick={() => review(r, true)} className="btn-primary flex items-center gap-1 px-3 py-1.5 text-xs">
                         <Check size={13} /> Approve
                       </button>
-                      <button onClick={() => review(r, false)} className="flex items-center gap-1 rounded-xl bg-coral-100 px-3 py-1.5 text-xs font-semibold text-coral-600">
-                        <X size={13} /> Reject
-                      </button>
+                      <Button onClick={() => review(r, false)} variant="danger-chip" size="sm" icon={X}>Reject</Button>
                     </>
                   )}
                   {r.account_status === 'approved' && (
