@@ -174,6 +174,7 @@ export default function DataTable({
                             onClick={() => onView(row)}
                             className="grid h-8 w-8 place-items-center rounded-lg text-teal-600 hover:bg-teal-100"
                             title="View details"
+                            aria-label="View details"
                           >
                             <Eye size={16} />
                           </button>
@@ -183,6 +184,7 @@ export default function DataTable({
                             onClick={() => onEdit(row)}
                             className="grid h-8 w-8 place-items-center rounded-lg text-ink/50 hover:bg-teal-100 hover:text-teal-600"
                             title="Edit"
+                            aria-label="Edit"
                           >
                             <Edit3 size={15} />
                           </button>
@@ -192,16 +194,18 @@ export default function DataTable({
                             onClick={() => onDelete(row)}
                             className="grid h-8 w-8 place-items-center rounded-lg text-ink/50 hover:bg-coral-100 hover:text-coral-600"
                             title="Delete"
+                            aria-label="Delete"
                           >
                             <Trash2 size={15} />
                           </button>
                         )}
-                        {actions.map((action, i) => (
+                        {actions.filter((action) => !action.hidden || !action.hidden(row)).map((action, i) => (
                           <button
                             key={i}
                             onClick={() => action.onClick(row)}
                             className={`grid h-8 w-8 place-items-center rounded-lg ${action.className || 'text-ink/50 hover:bg-teal-100'}`}
                             title={action.label}
+                            aria-label={action.label}
                           >
                             {action.icon || <MoreHorizontal size={15} />}
                           </button>

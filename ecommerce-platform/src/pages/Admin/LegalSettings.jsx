@@ -4,6 +4,8 @@ import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import Spinner from '../../components/ui/Spinner'
+import DataTable from '../../components/ui/DataTable'
+import Badge from '../../components/ui/Badge'
 
 const types = {
   terms: 'Terms of Service',
@@ -125,43 +127,28 @@ export default function LegalSettings() {
         <button className="btn-primary inline-flex items-center justify-center gap-2" onClick={() => setForm({ ...blank })}><Plus size={17} /> Add Policy</button>
       </div>
 
-      <div className="mt-6 overflow-hidden rounded-2xl border border-black/[.06] bg-surface shadow-card">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-left text-sm">
-            <thead className="bg-teal-50 text-xs uppercase text-teal-900">
-              <tr>
-                <th className="p-4">Policy</th>
-                <th className="p-4">Version</th>
-                <th className="p-4">Effective</th>
-                <th className="p-4">Status</th>
-                <th className="p-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => (
-                <tr key={row.id} className="border-t border-black/5">
-                  <td className="p-4 font-semibold">{row.title}<p className="text-xs font-normal text-ink/45">{types[row.policy_type]}</p></td>
-                  <td className="p-4">{row.version}</td>
-                  <td className="p-4 whitespace-nowrap">{row.effective_date}</td>
-                  <td className="p-4">
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${row.status === 'published' ? 'bg-green-100 text-green-800' : row.status === 'archived' ? 'bg-slate-100 text-slate-600' : 'bg-mango-100 text-mango-700'}`}>{row.status}</span>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex justify-end gap-1">
-                      <button title="Edit" onClick={() => setForm(row)} className="rounded-lg p-2 hover:bg-teal-50"><Save size={16} /></button>
-                      <button title="Preview" onClick={() => setPreview(row)} className="rounded-lg p-2 hover:bg-teal-50"><Eye size={16} /></button>
-                      {row.status !== 'published' && <button title="Publish" onClick={() => publish(row)} className="rounded-lg p-2 text-teal-700 hover:bg-teal-50"><Send size={16} /></button>}
-                      {row.status !== 'archived' && <button title="Archive" onClick={() => archive(row)} className="rounded-lg p-2"><Archive size={16} /></button>}
-                      <button title="Restore as draft" onClick={() => restore(row)} className="rounded-lg p-2"><RotateCcw size={16} /></button>
-                      <button title="Export HTML" onClick={() => exportHtml(row)} className="rounded-lg p-2"><FileCode2 size={16} /></button>
-                      <button title="Print / Save PDF" onClick={() => exportPdf(row)} className="rounded-lg p-2"><Download size={16} /></button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      <div className="mt-6">
+        <DataTable
+          columns={[
+            { header: 'Policy', accessor: 'title', render: (row) => <>{row.title}<p className="text-xs font-normal text-ink/45">{types[row.policy_type]}</p></> },
+            { header: 'Version', accessor: 'version' },
+            { header: 'Effective', accessor: 'effective_date', render: (row) => <span className="whitespace-nowrap">{row.effective_date}</span> },
+            { header: 'Status', accessor: 'status', render: (row) => <Badge tone={row.status === 'published' ? 'success' : row.status === 'archived' ? 'neutral' : 'warning'}>{row.status}</Badge> }
+          ]}
+          data={rows}
+          searchable={false}
+          emptyTitle="No policies yet"
+          emptyMessage="Add a policy to get started."
+          actions={[
+            { label: 'Edit', icon: <Save size={16} />, onClick: setForm },
+            { label: 'Preview', icon: <Eye size={16} />, onClick: setPreview },
+            { label: 'Publish', icon: <Send size={16} />, onClick: publish, className: 'text-teal-700 hover:bg-teal-50', hidden: (row) => row.status === 'published' },
+            { label: 'Archive', icon: <Archive size={16} />, onClick: archive, hidden: (row) => row.status === 'archived' },
+            { label: 'Restore as draft', icon: <RotateCcw size={16} />, onClick: restore },
+            { label: 'Export HTML', icon: <FileCode2 size={16} />, onClick: exportHtml },
+            { label: 'Print / Save PDF', icon: <Download size={16} />, onClick: exportPdf }
+          ]}
+        />
       </div>
 
       {form && (
