@@ -1,25 +1,33 @@
 # Cloudinary (Product Images) + Google Drive (Payment Proofs) — Progress & Handoff
 
-Tracker for this request: product images should upload to **Cloudinary**; payment-proof screenshots (wallet top-up proof, withdrawal transfer proof) should upload to the **user's own personal Google Drive** — private, no one else has access to it.
+**Status: all code written, migrated, and deployed live. Blocked only on the user providing real credentials — see "Manual steps remaining" below.**
 
-**Non-negotiable constraint (user's own words, autonomous-mode instructions)**: install dependencies, write code, run migrations, run tests, and commit autonomously without stopping — but pause and ask when a manual login, a real secret/API key, or browser-based OAuth consent is strictly required. Both integrations below hit that wall at least once:
-- **Cloudinary** needs a real Cloud Name + API Key + API Secret from the user's own Cloudinary account — cannot be fabricated.
-- **Google Drive** needs a real Google Cloud OAuth Client ID (tied to a Google account, can't be created by the agent) **and** the user completing a one-time browser consent screen so the app can get a refresh token scoped to *their* Drive specifically — this is what makes it "only I can see it" rather than a shared/service-account Drive.
+Product images now upload to **Cloudinary** (once configured); payment-proof screenshots (wallet top-up proof, withdrawal transfer proof) now upload to the **user's own private Google Drive** (`drive.file` scope — the app can only ever see files it itself creates, nobody else has access) instead of Supabase Storage — once configured. Built following the exact `_shared/<category>/adapters/` + `integration_configs` + Admin → Integrations pattern already proven in this codebase for PayMongo/Vision/SMS/Groq (see `TASK1.md`), so **zero new admin UI code was needed** — that page already renders any `integration_configs` row generically.
 
-## 🔧 Batches — in order
+**Non-negotiable rule, same as every other integration in this app**: additive only. Until an admin enables each one with real credentials, `ProductForm.jsx` / `TopupModal.jsx` / `WithdrawalRequests.jsx` upload exactly where they always did (Supabase Storage buckets `product-images`, `payment-proofs`, `withdrawal-proofs`) — nothing existing was removed, and any failure at upload time falls back silently to that same existing path.
 
-- [ ] **Batch 0 — Investigate current architecture.** Confirm today's product-image upload path (Merchant/ProductForm.jsx → Supabase Storage, which bucket, which helpers in `utils/security.js`), today's payment-proof upload path (Wallet top-up / withdrawal-proof forms), and whether the existing `_shared/<category>/adapters/` + `integration_configs` + Admin → Integrations pattern (used for PayMongo/Vision/SMS/Groq per `TASK1.md`) already has a "storage/media" category to extend, or whether one needs to be added.
-- [ ] **Batch 1 — Cloudinary adapter for product images.** New `_shared/storage/adapters/cloudinary.ts` (or equivalent, matching whatever the existing adapter contract shape is), swap `ProductForm.jsx`'s image upload from direct Supabase Storage to Cloudinary (unsigned upload preset or signed upload via edge function — decide based on what keeps the API secret server-side only). Needs: Cloud Name, API Key, API Secret from the user.
-- [ ] **Batch 2 — Google Drive adapter for payment proofs.** Google Cloud OAuth Client ID/Secret (user-provided), one-time browser consent flow to obtain a refresh token for the user's own Drive account, refresh token stored in Supabase Vault (same pattern as other provider secrets), server-side (edge function) upload so the token is never exposed client-side, scoped with the minimal `drive.file` scope (app-created files only — not full Drive access). Swap the wallet top-up proof upload and the withdrawal transfer-proof upload to this path.
-- [ ] **Batch 3 — Migrations, tests, build, live verification.** Any new `integration_configs` rows/categories via migration, `npm run build && npx eslint . && npm test`, then a live Chrome check of both upload flows (submit a top-up with a proof image, confirm it lands in the connected Google Drive; add a product image, confirm it serves from Cloudinary).
+## What was built
 
-## Blocked on (from the user)
+- **Migration** `20260806001100_storage_integrations.sql` — seeds `storage.cloudinary` and `storage.google_drive` rows in `integration_configs`, both disabled by default. Deployed.
+- **`_shared/storage/`** — `types.ts` (`StorageProviderAdapter` contract), `registry.ts`, `adapters/cloudinary.ts` (HMAC-SHA1 signed-upload params), `adapters/google_drive.ts` (OAuth refresh-token exchange + Drive v3 multipart upload).
+- **Edge functions**, both deployed and live-smoke-tested (correctly reject unauthenticated calls, no crashes):
+  - `cloudinary-sign-upload` — signs a request; the browser then POSTs the file straight to Cloudinary, never through our own server.
+  - `google-drive-upload` — proxies the file (Drive uploads need an OAuth access token server-side only, unlike Cloudinary).
+- **Frontend**: `src/lib/services/cloudinaryUpload.js`, `src/lib/services/googleDriveUpload.js` — same `isXEnabled()` + action-function shape as the existing `lib/services/paymongo.js`.
+- **Rewired, all additive with silent fallback**: `ProductForm.jsx` (product image), `TopupModal.jsx` (top-up proof), `WithdrawalRequests.jsx` (transfer proof).
+- **`Admin/TopupRequests.jsx`** proof viewer now detects a Drive-stored proof (`proof_url` starts with `http`) and shows "Open in Drive" instead of trying to sign it as a Supabase Storage path.
+- **Setup docs**: `CLOUDINARY_SETUP.md`, `GOOGLE_DRIVE_SETUP.md` (full walkthrough including the one-time Google OAuth Playground consent flow — no custom connect-button UI was built; the existing generic credential-entry form in Settings → Integrations is enough once the user has the three Google values in hand).
+- `TASK1.md`'s Storage section updated to reflect both as done.
 
-1. Cloudinary account — Cloud Name, API Key, API Secret.
-2. A Google Cloud project + OAuth Client ID/Secret for Drive access, and the user completing the one-time browser OAuth consent so the app gets a refresh token for their own Drive.
+## Manual steps remaining (nothing further can be automated — both need the account owner)
+
+1. **Cloudinary**: sign up at cloudinary.com, copy Cloud Name / API Key / API Secret from the dashboard, paste into Admin → Settings → Integrations → Cloudinary, toggle Enabled. Full steps in `CLOUDINARY_SETUP.md`.
+2. **Google Drive**: create a Google Cloud OAuth Client (Google Cloud Console, ~5 steps), then use Google's own OAuth Playground to complete a one-time browser consent and get a refresh token — full walkthrough in `GOOGLE_DRIVE_SETUP.md`. Paste `client_id` / `client_secret` / `refresh_token` (and optionally `folder_id`) into Admin → Settings → Integrations → Google Drive, toggle Enabled.
+
+Both are pure data entry through the already-deployed Admin UI once the user has those values — no further code or deploy needed on either.
 
 ## Notes for whoever picks this up next
 
-- Follow the existing `_shared/<category>/adapters/<code>.ts` + `registry.ts` + `is_integration_enabled()`/`get_integration_credentials()` + Admin → Integrations page pattern already proven for PayMongo/Vision/SMS/Groq (see `TASK1.md`) instead of inventing a new integration mechanism.
-- Google Drive scope should be `drive.file` (least-privilege — only files the app itself creates), not broad `drive` access, since this is explicitly meant to be private and minimal.
-- Never let the Cloudinary API Secret or the Google refresh token reach the client bundle — both must be read server-side (edge function / Vault) only, consistent with how this codebase already handles Lalamove/PayMongo secrets.
+- No Docker locally in this environment, so the two edge functions couldn't be `supabase functions serve`'d locally before deploy — verified instead by a clean remote deploy (Supabase's bundler would reject a TypeScript syntax error) and a live unauthenticated smoke-test call to each (both correctly return `UNAUTHORIZED_NO_AUTH_HEADER` from the platform gateway, not a crash). Like every other adapter in this codebase, both carry a `VERIFY against a real account` comment — they were never exercised against a live Cloudinary/Google API call, since no real credentials exist yet.
+- Google Drive scope is deliberately `drive.file`, not full `drive` access — the app can only ever see files it created itself. This is what actually makes "only I can see it" true, not just a naming choice.
+- `topup_requests.proof_url` / withdrawal proof column stay free text either way — a Supabase Storage path (existing) or a full Drive `webViewLink` URL (new) both fit without a schema change. Detection elsewhere in the codebase, if ever needed again, should reuse the same `/^https?:\/\//` check already used in `TopupRequests.jsx`, not a new column.

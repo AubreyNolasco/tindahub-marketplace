@@ -49,8 +49,9 @@ Pattern proven twice already (PayMongo, Google Vision) — every remaining item 
 - [ ] Twilio — international SMS; lower priority than Semaphore for a PH-based marketplace.
 
 ### Storage (Supabase Storage already live for business-permits/payment-proofs buckets)
+- [x] **Cloudinary** (product images only) — `ProductForm.jsx` uploads there instead of Supabase Storage once configured; falls back silently otherwise. `storage.cloudinary` in `integration_configs`, `_shared/storage/adapters/cloudinary.ts`, `CLOUDINARY_SETUP.md`. Needs real Cloudinary account keys to test.
+- [x] **Google Drive** (payment-proof archive, not general storage) — wallet top-up proof and withdrawal transfer proof upload to one connected admin's own private Drive (`drive.file` scope — only files this app creates, nobody else has access) instead of the private Supabase Storage buckets, once configured; falls back silently otherwise. `storage.google_drive` in `integration_configs`, `_shared/storage/adapters/google_drive.ts`, `GOOGLE_DRIVE_SETUP.md`. Needs a one-time OAuth consent (via Google's own OAuth Playground, no custom connect-flow UI built) to get a refresh token.
 - [ ] AWS S3 — only worth it if Supabase Storage hits a real limit. Don't build speculatively.
-- [ ] Cloudinary — same caveat, plus it's more of an image-transform service than a storage replacement; clarify actual need first.
 
 ### AI
 - [ ] OpenAI — `ai.openai` row already seeded, unused. Gemini (see Done above) covers the JomBits AI use case for free; only worth building if there's a specific reason to prefer OpenAI over Gemini for a given task. `_shared/ai/registry.ts` already supports both adapters side by side.

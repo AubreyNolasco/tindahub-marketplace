@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { peso, formatDate, TOPUP_STATUS_STYLES, TOPUP_STATUS_LABELS } from '../../utils/format'
 import { compressImage } from '../../utils/security'
+import { isGoogleDriveEnabled, uploadPaymentProofToGoogleDrive } from '../../lib/services/googleDriveUpload'
 import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
 import Tabs from '../../components/ui/Tabs'
@@ -66,10 +67,20 @@ export default function WithdrawalRequests() {
     const reference = window.prompt('Enter the bank or e-wallet transfer reference:')
     if (!reference?.trim()) return
     const compressed=await compressImage(proof)
-    const ext=compressed.name.split('.').pop()?.toLowerCase()||'jpg',path=`${user.id}/${request.id}/${Date.now()}.${ext}`
-    const upload=await supabase.storage.from('withdrawal-proofs').upload(path,compressed,{contentType:compressed.type,upsert:false})
-    if(upload.error)return toast.error(upload.error.message)
-    const { error } = await supabase.rpc('mark_withdrawal_sent_with_proof', { p_request_id: request.id, p_transfer_reference: reference.trim(),p_proof_url:path })
+
+    let proofUrl = null
+    try {
+      if (await isGoogleDriveEnabled()) proofUrl = await uploadPaymentProofToGoogleDrive(compressed)
+    } catch {
+      proofUrl = null // Google Drive unavailable or misconfigured -- fall through to the existing private Supabase Storage bucket below.
+    }
+    if (!proofUrl) {
+      const ext=compressed.name.split('.').pop()?.toLowerCase()||'jpg',path=`${user.id}/${request.id}/${Date.now()}.${ext}`
+      const upload=await supabase.storage.from('withdrawal-proofs').upload(path,compressed,{contentType:compressed.type,upsert:false})
+      if(upload.error)return toast.error(upload.error.message)
+      proofUrl = path
+    }
+    const { error } = await supabase.rpc('mark_withdrawal_sent_with_proof', { p_request_id: request.id, p_transfer_reference: reference.trim(),p_proof_url:proofUrl })
     if (error) return toast.error(error.message)
     toast.success('Withdrawal marked as Sent.')
     load()

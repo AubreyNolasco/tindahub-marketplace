@@ -7,6 +7,7 @@ import { cleanText, compressImage, safeUploadPath, validateImage, validatePaymen
 import BankTransferQr from '../payment/BankTransferQr'
 import { ensurePaymentReferenceAvailable, paymentReferenceErrorMessage } from '../../lib/paymentReference'
 import { createPaymongoCheckout, isPaymongoEnabled } from '../../lib/services/paymongo'
+import { isGoogleDriveEnabled, uploadPaymentProofToGoogleDrive } from '../../lib/services/googleDriveUpload'
 
 export default function TopupModal({ open, onClose, onSubmitted }) {
   const { user } = useAuth()
@@ -72,18 +73,28 @@ export default function TopupModal({ open, onClose, onSubmitted }) {
     try {
       await ensurePaymentReferenceAvailable(refNumber)
       const compressedProof = await compressImage(proofFile)
-      const path = safeUploadPath(user.id, 'topup', compressedProof)
-      const { error: uploadErr } = await supabase.storage
-        .from('payment-proofs')
-        .upload(path, compressedProof, { upsert: true })
-      if (uploadErr) throw uploadErr
+
+      let proofUrl = null
+      try {
+        if (await isGoogleDriveEnabled()) proofUrl = await uploadPaymentProofToGoogleDrive(compressedProof)
+      } catch {
+        proofUrl = null // Google Drive unavailable or misconfigured -- fall through to the existing private Supabase Storage bucket below.
+      }
+      if (!proofUrl) {
+        const path = safeUploadPath(user.id, 'topup', compressedProof)
+        const { error: uploadErr } = await supabase.storage
+          .from('payment-proofs')
+          .upload(path, compressedProof, { upsert: true })
+        if (uploadErr) throw uploadErr
+        proofUrl = path
+      }
 
       const { error: insertErr } = await supabase.from('topup_requests').insert({
         owner_id: user.id,
         amount: numericAmount,
         method,
         reference_number: cleanText(refNumber, 120),
-        proof_url: path,
+        proof_url: proofUrl,
         status: 'pending'
       })
       if (insertErr) throw insertErr

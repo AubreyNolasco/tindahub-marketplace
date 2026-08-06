@@ -7,6 +7,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { cleanText, compressImage, safeUploadPath, validateImage } from '../../utils/security'
 import { isCompleteAddress } from '../../utils/address'
 import { findProductSafetyViolation, PROHIBITED_PRODUCT_RULES } from '../../config/productSafety'
+import { isCloudinaryEnabled, uploadProductImageToCloudinary } from '../../lib/services/cloudinaryUpload'
 
 const emptyForm = {
   name: '',
@@ -116,13 +117,23 @@ export default function ProductForm({ admin = false }) {
 
       if (imageFile) {
         const compressed = await compressImage(imageFile)
-        const path = safeUploadPath(user.id, 'product', compressed)
-        const { error: uploadErr } = await supabase.storage
-          .from('product-images')
-          .upload(path, compressed, { upsert: true })
-        if (uploadErr) throw uploadErr
-        const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(path)
-        images = [urlData.publicUrl]
+        let cloudinaryUrl = null
+        try {
+          if (await isCloudinaryEnabled()) cloudinaryUrl = await uploadProductImageToCloudinary(compressed)
+        } catch {
+          cloudinaryUrl = null // Cloudinary unavailable or misconfigured -- fall through to Supabase Storage below, same as every other optional integration in this app.
+        }
+        if (cloudinaryUrl) {
+          images = [cloudinaryUrl]
+        } else {
+          const path = safeUploadPath(user.id, 'product', compressed)
+          const { error: uploadErr } = await supabase.storage
+            .from('product-images')
+            .upload(path, compressed, { upsert: true })
+          if (uploadErr) throw uploadErr
+          const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(path)
+          images = [urlData.publicUrl]
+        }
       }
 
       const resellerBasePrice = Number(form.wholesale_price || form.price)

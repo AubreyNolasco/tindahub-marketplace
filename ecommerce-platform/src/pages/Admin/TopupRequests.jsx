@@ -35,6 +35,13 @@ export default function TopupRequests() {
 
   const viewProof = async (request) => {
     if (!request.proof_url) return
+    if (/^https?:\/\//i.test(request.proof_url)) {
+      // Stored in the connected Google Drive, not Supabase Storage --
+      // open it there directly rather than trying to sign it. Private to
+      // whichever Google account is connected, same as intended.
+      window.open(request.proof_url, '_blank', 'noopener')
+      return
+    }
     const { data, error } = await supabase.storage
       .from('payment-proofs')
       .createSignedUrl(request.proof_url, 300)
@@ -101,7 +108,7 @@ export default function TopupRequests() {
               <div className="flex items-center gap-2">
                 {r.proof_url && !proofUrls[r.id] && (
                   <button onClick={() => viewProof(r)} className="btn-secondary text-xs px-3 py-1.5 flex items-center gap-1">
-                    <Eye size={13} /> Proof
+                    <Eye size={13} /> {/^https?:\/\//i.test(r.proof_url) ? 'Open in Drive' : 'Proof'}
                   </button>
                 )}
                 <span className={`badge capitalize ${TOPUP_STATUS_STYLES[r.status]}`}>{TOPUP_STATUS_LABELS[r.status]}</span>
