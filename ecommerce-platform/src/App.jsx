@@ -55,6 +55,7 @@ const StorefrontProducts = lazy(() => import('./pages/Reseller/StorefrontProduct
 const ResellerStorefront = lazy(() => import('./pages/ResellerStorefront'))
 const ClinicDiscovery = lazy(() => import('./pages/Reseller/ClinicDiscovery'))
 const MyReferrals = lazy(() => import('./pages/Reseller/MyReferrals'))
+const StorefrontOrderRequests = lazy(() => import('./pages/Reseller/StorefrontOrderRequests'))
 const DeliverySettings = lazy(() => import('./pages/Reseller/DeliverySettings'))
 const IdVerification = lazy(() => import('./pages/Reseller/IdVerification'))
 
@@ -181,6 +182,7 @@ export default function App() {
                   <Route index element={<ResellerDashboard />} />
                   <Route path="orders" element={<OrderHistory />} />
                   <Route path="products" element={<StorefrontProducts />} />
+                  <Route path="order-requests" element={<StorefrontOrderRequests />} />
                   <Route path="customers" element={<Customers />} />
                   <Route path="chats" element={<ResellerChats />} />
                   <Route path="chats/:merchantId" element={<ResellerChatDetail />} />

@@ -1,12 +1,16 @@
-import { BarChart3, Boxes, ClipboardList, FileDown, FileUp, LayoutDashboard, LifeBuoy, MapPin, MessageSquare, Store, Handshake, Send, UserRound, Users, WalletCards, Truck } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { BarChart3, Boxes, ClipboardList, FileDown, FileUp, Inbox, LayoutDashboard, LifeBuoy, MapPin, MessageSquare, Store, Handshake, Send, UserRound, Users, WalletCards, Truck } from 'lucide-react'
 import WorkspaceLayout from '../../components/layout/WorkspaceLayout'
 import RestrictedAccountBanner from '../../components/dashboard/RestrictedAccountBanner'
+import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../contexts/AuthContext'
 
-const sections = [
+const buildSections = (pendingRequestCount) => [
   { label: 'Workspace', items: [
     { to: '/reseller', label: 'Overview', icon: LayoutDashboard, end: true },
     { to: '/reseller/orders', label: 'Orders', icon: ClipboardList },
     { to: '/reseller/products', label: 'My Product List', icon: Store },
+    { to: '/reseller/order-requests', label: 'Customer Orders', icon: Inbox, badge: pendingRequestCount },
     { to: '/reseller/customers', label: 'Customers', icon: Users },
     { to: '/reseller/chats', label: 'Messages', icon: MessageSquare },
     { to: '/reseller/support', label: 'Chat Support', icon: LifeBuoy },
@@ -27,4 +31,20 @@ const sections = [
     { to: '/reseller/reports/ordered', label: 'Ordered Report', icon: ClipboardList }
   ]}
 ]
-export default function ResellerLayout() { return <WorkspaceLayout title="Reseller Hub" subtitle="Sales workspace" sections={sections}><RestrictedAccountBanner /></WorkspaceLayout> }
+
+export default function ResellerLayout() {
+  const { user } = useAuth()
+  const [pendingRequestCount, setPendingRequestCount] = useState(0)
+
+  useEffect(() => {
+    if (!user) return
+    supabase
+      .from('storefront_order_requests')
+      .select('id', { count: 'exact', head: true })
+      .eq('reseller_id', user.id)
+      .eq('status', 'pending')
+      .then(({ count }) => setPendingRequestCount(count || 0))
+  }, [user])
+
+  return <WorkspaceLayout title="Reseller Hub" subtitle="Sales workspace" sections={buildSections(pendingRequestCount)}><RestrictedAccountBanner /></WorkspaceLayout>
+}

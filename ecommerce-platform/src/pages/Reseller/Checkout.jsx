@@ -12,6 +12,7 @@ import { composeAddress, isCompleteAddress, partsFromLegacyAddress } from '../..
 import AddressFields from '../../components/address/AddressFields'
 import { resolvePsgcCodes } from '../../lib/services/psgc'
 import Modal from '../../components/ui/Modal'
+import { takePendingConversions } from '../../utils/storefrontRequestConversion'
 
 const ERROR_MESSAGES = {
   STORE_CLOSED: 'The Merchant store is currently closed. Try again during its published store hours.',
@@ -134,9 +135,26 @@ export default function Checkout() {
         p_merchant_id: merchantId, p_shipping_address: address,
         p_items: items.map((i) => ({ product_id: i.product_id, quantity: i.quantity }))
       }
-      const { error } = await supabase.rpc(rpc, params)
+      const { data: order, error } = await supabase.rpc(rpc, params)
 
       if (error) throw error
+
+      // Best-effort traceability: if any of these items came from a
+      // storefront_order_requests "Convert to order", close the request
+      // out now that a real order exists. Never blocks the order itself —
+      // the order is already placed and paid for by this point.
+      try {
+        const pending = takePendingConversions(items.map((item) => item.cart_key))
+        const requestIds = Object.values(pending)
+        if (requestIds.length) {
+          await supabase.from('storefront_order_requests')
+            .update({ status: 'converted', converted_customer_id: customerId || null, converted_order_id: order?.id || null })
+            .in('id', requestIds)
+        }
+      } catch {
+        // Order already succeeded; a failure here only affects the
+        // request's status label, not money or stock.
+      }
 
       clearOrderItems(merchantId, customerId)
       toast.success('Order placed! Product and system fees were charged to your wallet. Shipping will be paid upon delivery.')
