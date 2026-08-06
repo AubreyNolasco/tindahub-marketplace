@@ -36,8 +36,14 @@ export default function Checkout() {
 
   const [merchant, setMerchant] = useState(null)
   const [wallet, setWallet] = useState(null)
+  const [customerAddress, setCustomerAddress] = useState(null)
   const [addressParts, setAddressParts] = useState(partsFromLegacyAddress(group?.customerAddress || ''))
-  const address = composeAddress(addressParts)
+  // place_customer_receiver_shipping_order requires the shipping address to
+  // match the saved customer's address exactly (case-insensitive) -- it's
+  // not a freeform field for that path, so skip the editable form entirely
+  // and always submit the customer's own address, re-fetched live so it
+  // can't drift from what the RPC will compare against.
+  const address = customerId ? (customerAddress ?? '') : composeAddress(addressParts)
   const [submitting, setSubmitting] = useState(false)
   const [shippingGuideOpen, setShippingGuideOpen] = useState(false)
   const [shippingAccepted, setShippingAccepted] = useState(false)
@@ -60,10 +66,18 @@ export default function Checkout() {
     setWallet(data)
   }, [user])
 
+  const loadCustomerAddress = useCallback(async () => {
+    if (!customerId) return
+    const { data, error } = await supabase.from('customers').select('address').eq('id', customerId).maybeSingle()
+    if (error) toast.error(error.message)
+    setCustomerAddress(data?.address || '')
+  }, [customerId])
+
   useEffect(() => {
     if (merchantId) loadMerchant()
     loadWallet()
-  }, [merchantId, loadMerchant, loadWallet])
+    loadCustomerAddress()
+  }, [merchantId, loadMerchant, loadWallet, loadCustomerAddress])
   useEffect(() => {
     if (customerId || !profile?.address) return
     const hasStructured = profile.street || profile.barangay || profile.city || profile.province || profile.postal_code
@@ -194,7 +208,14 @@ export default function Checkout() {
 
         <div className="card p-5">
           <h2 className="font-semibold text-ink mb-3">Shipping Address</h2>
-          <AddressFields value={addressParts} onChange={setAddressParts} required />
+          {customerId ? (
+            <>
+              <p className="rounded-xl bg-surface-inset px-4 py-3 text-sm text-ink/80">{address || 'Loading…'}</p>
+              <p className="mt-2 text-xs text-ink/45">This order ships to {group?.customerName}'s saved address. To change it, update the customer's address from <Link to="/reseller/customers" className="font-semibold text-teal-700 underline">Customers</Link> first.</p>
+            </>
+          ) : (
+            <AddressFields value={addressParts} onChange={setAddressParts} required />
+          )}
         </div>
 
         <div className="card border-mango-300 bg-mango-100/50 p-5"><div className="flex items-start gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-surface text-mango-600"><Truck size={19} /></span><div><h2 className="font-semibold text-ink">Shipping fee is paid upon delivery</h2><p className="mt-1 text-sm leading-6 text-ink/60">The reseller or final recipient will pay the actual delivery fee directly to the rider or delivery provider when the products arrive. This fee is not included in the JOM HUB wallet payment.</p></div></div></div>
