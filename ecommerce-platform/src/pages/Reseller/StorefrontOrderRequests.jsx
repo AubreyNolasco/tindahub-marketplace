@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Ban, Check, Package, RefreshCw, Send, ShoppingBag, UserRound } from 'lucide-react'
+import { Ban, Check, MapPin, Package, RefreshCw, Send, ShoppingBag, UserRound } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
@@ -11,6 +11,8 @@ import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
 import Tabs from '../../components/ui/Tabs'
 import Modal from '../../components/ui/Modal'
+import AddressFields from '../../components/address/AddressFields'
+import { composeAddress, emptyAddressParts, isCompleteAddress, partsFromLegacyAddress } from '../../utils/address'
 import { markPendingConversion } from '../../utils/storefrontRequestConversion'
 
 const STATUS_STYLES = {
@@ -18,14 +20,6 @@ const STATUS_STYLES = {
   accepted: 'bg-teal-100 text-teal-700 dark:bg-teal-500/15 dark:text-teal-300',
   declined: 'bg-coral-100 text-coral-600 dark:bg-coral-500/15 dark:text-coral-300',
   converted: 'bg-teal-500/15 text-teal-700 dark:bg-teal-500/20 dark:text-teal-200'
-}
-
-// Mirrors trg_require_complete_customer_address (shipping_engine_migration.sql):
-// >=25 chars, contains a digit, and at least 4 comma-separated parts.
-const CUSTOMERS_ADDRESS_FORMAT = /^[^,]+,[^,]+,[^,]+,[^,]+/
-const isAddressDbCompatible = (address) => {
-  const trimmed = (address || '').trim()
-  return trimmed.length >= 25 && /\d/.test(trimmed) && CUSTOMERS_ADDRESS_FORMAT.test(trimmed)
 }
 
 export default function StorefrontOrderRequests() {
@@ -37,6 +31,9 @@ export default function StorefrontOrderRequests() {
   const [filter, setFilter] = useState('pending')
   const [detail, setDetail] = useState(null)
   const [convertingId, setConvertingId] = useState(null)
+  const [addressPrompt, setAddressPrompt] = useState(null) // { request, product }
+  const [addressParts, setAddressParts] = useState(emptyAddressParts())
+  const [savingAddress, setSavingAddress] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -64,6 +61,15 @@ export default function StorefrontOrderRequests() {
     load()
   }
 
+  const finishConvert = (request, product, customer) => {
+    addItem(product, request.quantity, customer, getSuggestedCustomerPrice(product))
+    markPendingConversion(`${product.id}:${customer.id}`, request.id)
+    toast.success('Added to your cart — finish checkout to convert this request into an order.')
+    setDetail(null)
+    setAddressPrompt(null)
+    navigate('/reseller/cart')
+  }
+
   const handleConvert = async (request) => {
     setConvertingId(request.id)
     try {
@@ -75,47 +81,56 @@ export default function StorefrontOrderRequests() {
       if (productError) throw productError
       if (!product) return toast.error('This product is no longer available.')
 
-      let customer = null
       if (request.customer_phone) {
-        const { data } = await supabase.from('customers').select('*').eq('reseller_id', user.id).eq('phone', request.customer_phone).maybeSingle()
-        customer = data || null
+        const { data: existing } = await supabase.from('customers').select('*').eq('reseller_id', user.id).eq('phone', request.customer_phone).maybeSingle()
+        if (existing) return finishConvert(request, product, existing)
       }
-      if (!customer) {
-        // customers.address is DB-validated (trg_require_complete_customer_address:
-        // >=25 chars, a digit, and 4 comma-separated parts) to match the structured
-        // AddressFields format used everywhere else a customer is saved. A
-        // storefront request's address is a single free-text field a customer
-        // typed themselves and will rarely match that shape, so only carry it
-        // over when it already qualifies -- otherwise keep it in notes (it's
-        // still visible on the original request either way) and let the
-        // Reseller fill in a proper address at checkout, same as today.
-        const addressQualifies = isAddressDbCompatible(request.customer_address)
-        const notesWithFallbackAddress = addressQualifies || !request.customer_address
-          ? request.customer_notes
-          : [request.customer_notes, `Address from storefront request: ${request.customer_address}`].filter(Boolean).join('\n')
+
+      // customers.address is DB-validated (trg_require_complete_customer_address:
+      // >=25 chars, a digit, and 4 comma-separated parts) on every insert, same
+      // shape the AddressFields form everywhere else in the app produces. A
+      // storefront request's address is free text a customer typed in one box
+      // and essentially never matches that shape, so a matching new customer
+      // can't be silently auto-created here — ask the Reseller to complete it
+      // once, prefilled from whatever the customer already typed.
+      if (isCompleteAddress(request.customer_address)) {
         const { data: created, error: createError } = await supabase
           .from('customers')
-          .insert({
-            reseller_id: user.id,
-            name: request.customer_name,
-            phone: request.customer_phone,
-            address: addressQualifies ? request.customer_address : null,
-            notes: notesWithFallbackAddress
-          })
+          .insert({ reseller_id: user.id, name: request.customer_name, phone: request.customer_phone, address: request.customer_address, notes: request.customer_notes })
           .select()
           .single()
         if (createError) throw createError
-        customer = created
+        return finishConvert(request, product, created)
       }
-      addItem(product, request.quantity, customer, getSuggestedCustomerPrice(product))
-      markPendingConversion(`${product.id}:${customer.id}`, request.id)
-      toast.success('Added to your cart — finish checkout to convert this request into an order.')
-      setDetail(null)
-      navigate('/reseller/cart')
+
+      setAddressParts(partsFromLegacyAddress(request.customer_address))
+      setAddressPrompt({ request, product })
     } catch (err) {
       toast.error(err.message || 'Unable to convert this request.')
     } finally {
       setConvertingId(null)
+    }
+  }
+
+  const confirmAddressAndConvert = async (event) => {
+    event.preventDefault()
+    if (!addressPrompt) return
+    const composedAddress = composeAddress(addressParts)
+    if (!isCompleteAddress(composedAddress)) return toast.error('Please complete the customer’s address.')
+    setSavingAddress(true)
+    try {
+      const { request } = addressPrompt
+      const { data: created, error: createError } = await supabase
+        .from('customers')
+        .insert({ reseller_id: user.id, name: request.customer_name, phone: request.customer_phone, address: composedAddress, notes: request.customer_notes })
+        .select()
+        .single()
+      if (createError) throw createError
+      finishConvert(request, addressPrompt.product, created)
+    } catch (err) {
+      toast.error(err.message || 'Unable to save this customer.')
+    } finally {
+      setSavingAddress(false)
     }
   }
 
@@ -212,6 +227,20 @@ export default function StorefrontOrderRequests() {
             </div>
           </>
         )}
+      </Modal>
+
+      <Modal open={!!addressPrompt} onClose={() => setAddressPrompt(null)} title="Complete customer address" subtitle={addressPrompt?.request?.customer_name} icon={MapPin} size="sm">
+        <p className="text-sm text-ink/60">
+          {addressPrompt?.request?.customer_address
+            ? 'The address this customer typed needs a few more details before it can be saved to your customer list.'
+            : 'This customer didn’t include a delivery address. Add one to save them to your customer list.'}
+        </p>
+        <form onSubmit={confirmAddressAndConvert} className="mt-4 space-y-4">
+          <AddressFields value={addressParts} onChange={setAddressParts} required />
+          <button type="submit" disabled={savingAddress || !isCompleteAddress(composeAddress(addressParts))} className="btn-primary w-full">
+            {savingAddress ? 'Saving…' : 'Save customer & add to cart'}
+          </button>
+        </form>
       </Modal>
     </div>
   )
