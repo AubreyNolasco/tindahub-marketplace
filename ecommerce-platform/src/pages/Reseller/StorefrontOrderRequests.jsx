@@ -67,7 +67,7 @@ export default function StorefrontOrderRequests() {
     toast.success('Added to your cart — finish checkout to convert this request into an order.')
     setDetail(null)
     setAddressPrompt(null)
-    navigate('/reseller/cart')
+    navigate('/cart')
   }
 
   const handleConvert = async (request) => {

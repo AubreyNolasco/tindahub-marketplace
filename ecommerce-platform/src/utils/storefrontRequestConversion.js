@@ -1,6 +1,6 @@
 // Bridges "Convert to order" on a storefront_order_request to the
 // unmodified Cart -> Checkout flow. Convert just adds the item to cart
-// and navigates to /reseller/cart; the request itself isn't marked
+// and navigates to /cart; the request itself isn't marked
 // 'converted' until an order actually clears place_customer_receiver_shipping_order
 // in Checkout.jsx, which reads this map by cart_key after a successful
 // order to know which request(s) to close out. sessionStorage (not
