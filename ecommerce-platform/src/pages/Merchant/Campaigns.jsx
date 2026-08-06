@@ -52,6 +52,30 @@ export default function MerchantCampaigns() {
     load()
   }
 
+  // Phase 4: live pricing-rule preview so a merchant sees the same floor/
+  // ceiling the server will enforce (submit_campaign_product) before they
+  // click Submit, instead of finding out only from a rejected validation.
+  const pricingInfo = (campaignId) => {
+    const product = products.find((p) => p.id === pickerProduct)
+    if (!product) return null
+    const campaign = campaigns.find((c) => c.id === campaignId)
+    const original = Number(product.price)
+    const maxDiscount = campaign?.max_discount_percent != null ? Number(campaign.max_discount_percent) : null
+    const minDiscount = campaign?.min_discount_percent != null ? Number(campaign.min_discount_percent) : null
+    const minAllowedPrice = maxDiscount != null ? Number((original * (1 - maxDiscount / 100)).toFixed(2)) : null
+    const maxAllowedPrice = minDiscount != null ? Number((original * (1 - minDiscount / 100)).toFixed(2)) : null
+    const suggested = Number((original * (1 - (maxDiscount ?? minDiscount ?? 10) / 100)).toFixed(2))
+    const price = Number(pickerPrice)
+    let status = 'Enter a campaign price', statusTone = 'neutral'
+    if (pickerPrice) {
+      if (!price || price <= 0 || price >= original) { status = 'Must be lower than the original price'; statusTone = 'danger' }
+      else if (minAllowedPrice != null && price < minAllowedPrice) { status = `Below the minimum allowed price (${peso(minAllowedPrice)})`; statusTone = 'danger' }
+      else if (maxAllowedPrice != null && price > maxAllowedPrice) { status = `Above the maximum allowed price (${peso(maxAllowedPrice)})`; statusTone = 'danger' }
+      else { status = 'Valid'; statusTone = 'success' }
+    }
+    return { original, suggested, minAllowedPrice, status, statusTone }
+  }
+
   const submissionsFor = (campaignId) => submissions.filter((s) => s.campaign_id === campaignId && s.status !== 'archived')
   const availableProducts = (campaignId) => {
     const submittedIds = new Set(submissionsFor(campaignId).map((s) => s.product_id))
@@ -147,6 +171,19 @@ export default function MerchantCampaigns() {
                         <input type="number" min="0.01" step="0.01" placeholder="Campaign price" className="input-field w-full text-sm sm:w-36" value={pickerPrice} onChange={(e) => setPickerPrice(e.target.value)} />
                         <Button size="sm" icon={Send} disabled={submitting} onClick={() => submitProduct(campaign.id)}>Submit</Button>
                       </div>
+
+                      {pickerProduct && (() => {
+                        const info = pricingInfo(campaign.id)
+                        if (!info) return null
+                        return (
+                          <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 rounded-lg bg-surface-inset p-2.5 text-xs sm:grid-cols-4">
+                            <div><p className="text-ink/45">Original price</p><p className="font-semibold text-ink">{peso(info.original)}</p></div>
+                            <div><p className="text-ink/45">Suggested price</p><p className="font-semibold text-teal-700">{peso(info.suggested)}</p></div>
+                            <div><p className="text-ink/45">Min. allowed price</p><p className="font-semibold text-ink">{info.minAllowedPrice != null ? peso(info.minAllowedPrice) : 'No floor'}</p></div>
+                            <div><p className="text-ink/45">Validation</p><Badge tone={info.statusTone} className="mt-0.5">{info.status}</Badge></div>
+                          </div>
+                        )
+                      })()}
 
                       {mySubmissions.length === 0 ? (
                         <p className="py-2 text-center text-xs text-ink/45">No products submitted to this campaign yet.</p>
