@@ -20,6 +20,14 @@ const STATUS_STYLES = {
   converted: 'bg-teal-500/15 text-teal-700 dark:bg-teal-500/20 dark:text-teal-200'
 }
 
+// Mirrors trg_require_complete_customer_address (shipping_engine_migration.sql):
+// >=25 chars, contains a digit, and at least 4 comma-separated parts.
+const CUSTOMERS_ADDRESS_FORMAT = /^[^,]+,[^,]+,[^,]+,[^,]+/
+const isAddressDbCompatible = (address) => {
+  const trimmed = (address || '').trim()
+  return trimmed.length >= 25 && /\d/.test(trimmed) && CUSTOMERS_ADDRESS_FORMAT.test(trimmed)
+}
+
 export default function StorefrontOrderRequests() {
   const { user } = useAuth()
   const { addItem } = useCart()
@@ -73,9 +81,27 @@ export default function StorefrontOrderRequests() {
         customer = data || null
       }
       if (!customer) {
+        // customers.address is DB-validated (trg_require_complete_customer_address:
+        // >=25 chars, a digit, and 4 comma-separated parts) to match the structured
+        // AddressFields format used everywhere else a customer is saved. A
+        // storefront request's address is a single free-text field a customer
+        // typed themselves and will rarely match that shape, so only carry it
+        // over when it already qualifies -- otherwise keep it in notes (it's
+        // still visible on the original request either way) and let the
+        // Reseller fill in a proper address at checkout, same as today.
+        const addressQualifies = isAddressDbCompatible(request.customer_address)
+        const notesWithFallbackAddress = addressQualifies || !request.customer_address
+          ? request.customer_notes
+          : [request.customer_notes, `Address from storefront request: ${request.customer_address}`].filter(Boolean).join('\n')
         const { data: created, error: createError } = await supabase
           .from('customers')
-          .insert({ reseller_id: user.id, name: request.customer_name, phone: request.customer_phone, address: request.customer_address, notes: request.customer_notes })
+          .insert({
+            reseller_id: user.id,
+            name: request.customer_name,
+            phone: request.customer_phone,
+            address: addressQualifies ? request.customer_address : null,
+            notes: notesWithFallbackAddress
+          })
           .select()
           .single()
         if (createError) throw createError
