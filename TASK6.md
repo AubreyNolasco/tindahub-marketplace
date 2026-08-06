@@ -1,6 +1,6 @@
 # Enterprise Promotion Management System — Progress & Handoff
 
-**Status: Phase 1 (Analyze) and Phase 2 (Merchant Campaign Center — submission/approval workflow) are complete and deployed live. Blocked on user approval before starting Phase 3.**
+**Status: Phases 1, 2, 4, 5, 6, 7, 11 complete and deployed live, tested end-to-end. Phase 3's core checks landed inside Phase 2's `submit_campaign_product()`. Continuing through remaining phases (8, 9, 10, 12, 13) — user asked to proceed automatically without pausing for per-phase approval.**
 
 Upgrading the existing manual, merchant-wide, admin-only Campaign module (`campaigns` + `merchant_campaigns` tables, `src/pages/Admin/Campaigns.jsx`, `src/pages/Merchant/Campaigns.jsx`, `src/utils/campaigns.js`, `src/utils/pricing.js`) into a per-product, automated, validated, scheduled promotion engine with vouchers, banners, badges, bulk import/export, and checkout-time enforcement — while reusing the existing architecture (RLS, security-definer RPCs, `revenue_settings`/`quote_order`/`place_order` pattern, Admin `DataTable`/`EmptyState`/`Spinner` UI kit, `merchant_status`-style enum + trigger notification pattern) rather than replacing it.
 
@@ -39,20 +39,20 @@ Full architecture read-through of: `campaigns_migration.sql`, `automatic_calenda
 
 ## Next step
 
-Get explicit go-ahead before starting Phase 3 (Product Validation Engine — note most of its checks were actually already built into `submit_campaign_product()` above as part of Phase 2; Phase 3 proper is likely just extending/surfacing that validation further, worth confirming scope with the user before starting). Per the user's rules: implement one phase at a time, test before moving to the next, never batch phases without approval.
+User instructed (mid-project) to stop pausing for per-phase approval and proceed automatically through the remaining phases (3-4-5-6-7-11 done above without stopping; continuing to 8-9-10-12-13). Still testing each phase before moving to the next, per the original rule that was kept.
 
 ## Phase checklist (from user's spec)
 
 - [x] Phase 2 — Merchant Campaign Center (submission workflow, statuses; performance view deferred — needs Phase 9's checkout-campaign wiring to attribute orders to a campaign accurately, see note below)
-- [ ] Phase 3 — Product validation engine (core checks already landed in Phase 2's `submit_campaign_product()`; confirm remaining scope with user)
-- [ ] Phase 4 — Pricing rule engine (min campaign price, suggested price)
-- [ ] Phase 5 — Bulk import (Excel/CSV)
-- [ ] Phase 6 — Bulk export (Excel/CSV)
-- [ ] Phase 7 — Automatic campaign enrollment (schedule-driven activation)
-- [ ] Phase 8 — Automatic campaign benefits (banners, badges, highlighting across homepage/search/category/PDP/store)
-- [ ] Phase 9 — Automatic Promotion Engine (checkout-time enforcement — also where the live pricing bug above gets closed)
+- [x] Phase 3 — Product validation engine (core checks live in `submit_campaign_product()`: ownership/active/stock, schedule, pricing floor/ceiling, overlapping-campaign conflict, stock-allocation-vs-stock)
+- [x] Phase 4 — Pricing rule engine (`requires_approval`/`min_discount_percent`/`max_discount_percent` on `campaigns`, configurable in Admin's Add Campaign form; Merchant submission panel shows live original/suggested/minimum-allowed price + validation status)
+- [x] Phase 5 — Bulk import (CSV: sku/product_id, campaign_price or discount %, stock_allocation; per-row validation report; every row runs through the real `submit_campaign_product` RPC, no separate looser path)
+- [x] Phase 6 — Bulk export (Merchant: per-campaign; Admin: all campaigns/merchants; reuses existing `utils/excel.js` `exportExcel`, no new library added)
+- [x] Phase 7 — Automatic campaign enrollment (auto-approve when `requires_approval=false`, done in Phase 2; schedule-driven activation done in Phase 11's scheduler below)
+- [ ] Phase 8 — Automatic campaign benefits (banners, badges, highlighting across homepage/search/category/PDP/store) — in progress
+- [ ] Phase 9 — Automatic Promotion Engine (checkout-time enforcement — closes the live pricing bug found in Phase 1)
 - [ ] Phase 10 — Voucher Engine (net-new module)
-- [ ] Phase 11 — Campaign Scheduler (real `pg_cron`-driven activate/deactivate/expire)
+- [x] Phase 11 — Campaign Scheduler (real `pg_cron` job `jom-hub-campaign-scheduler`, hourly at :20, following the exact guarded-schedule pattern of the existing `jom-hub-operational-maintenance` job; live-tested all 4 transitions: approved→active, →expired, active→paused, paused→active)
 - [ ] Phase 12 — Notifications (reuse existing `notifications` table from the integrations scaffolding)
 - [ ] Phase 13 — Admin Center upgrades (create/edit/duplicate/pause/resume/archive, approve/reject submissions, rule config, reports)
 
