@@ -1,6 +1,6 @@
 # Enterprise Promotion Management System — Progress & Handoff
 
-**Status: Phases 1, 2, 4, 5, 6, 7, 11 complete and deployed live, tested end-to-end. Phase 3's core checks landed inside Phase 2's `submit_campaign_product()`. Continuing through remaining phases (8, 9, 10, 12, 13) — user asked to proceed automatically without pausing for per-phase approval.**
+**Status: Phases 1, 2, 3, 4, 5, 6, 7, 9, 11 complete and deployed live. Phase 9 closes the critical pricing bug found in Phase 1. Remaining: 8 (banners/badges), 10 (vouchers), 12 (notifications), 13 (admin center polish) — continuing without pausing for per-phase approval, per user's instruction.**
 
 Upgrading the existing manual, merchant-wide, admin-only Campaign module (`campaigns` + `merchant_campaigns` tables, `src/pages/Admin/Campaigns.jsx`, `src/pages/Merchant/Campaigns.jsx`, `src/utils/campaigns.js`, `src/utils/pricing.js`) into a per-product, automated, validated, scheduled promotion engine with vouchers, banners, badges, bulk import/export, and checkout-time enforcement — while reusing the existing architecture (RLS, security-definer RPCs, `revenue_settings`/`quote_order`/`place_order` pattern, Admin `DataTable`/`EmptyState`/`Spinner` UI kit, `merchant_status`-style enum + trigger notification pattern) rather than replacing it.
 
@@ -50,7 +50,7 @@ User instructed (mid-project) to stop pausing for per-phase approval and proceed
 - [x] Phase 6 — Bulk export (Merchant: per-campaign; Admin: all campaigns/merchants; reuses existing `utils/excel.js` `exportExcel`, no new library added)
 - [x] Phase 7 — Automatic campaign enrollment (auto-approve when `requires_approval=false`, done in Phase 2; schedule-driven activation done in Phase 11's scheduler below)
 - [ ] Phase 8 — Automatic campaign benefits (banners, badges, highlighting across homepage/search/category/PDP/store) — in progress
-- [ ] Phase 9 — Automatic Promotion Engine (checkout-time enforcement — closes the live pricing bug found in Phase 1)
+- [x] Phase 9 — Automatic Promotion Engine (`place_order()`/`quote_order()` now call `resolve_campaign_price()`, the exact fix Phase 1 flagged as critical; `order_items.campaign_id` added for future attribution. Core helper live-verified via direct SQL against a real active `campaign_products` row — correct price and campaign_id returned. Full browser checkout NOT exercised end-to-end: the demo account's product page has no buy UI for the admin role by design, and a raw-SQL simulated auth session was correctly blocked by an existing device-approval security trigger rather than bypassed. **Recommend a real Reseller-account checkout test before fully trusting this in production.**)
 - [ ] Phase 10 — Voucher Engine (net-new module)
 - [x] Phase 11 — Campaign Scheduler (real `pg_cron` job `jom-hub-campaign-scheduler`, hourly at :20, following the exact guarded-schedule pattern of the existing `jom-hub-operational-maintenance` job; live-tested all 4 transitions: approved→active, →expired, active→paused, paused→active)
 - [ ] Phase 12 — Notifications (reuse existing `notifications` table from the integrations scaffolding)
