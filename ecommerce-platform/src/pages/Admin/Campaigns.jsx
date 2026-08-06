@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { CalendarDays, Check, ClipboardList, Plus, Power, Tag, X } from 'lucide-react'
+import { CalendarDays, Check, ClipboardList, Download, Plus, Power, Tag, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { peso } from '../../utils/format'
+import { exportExcel } from '../../utils/excel'
 import Spinner from '../../components/ui/Spinner'
 import Button from '../../components/ui/Button'
 import EmptyState from '../../components/ui/EmptyState'
@@ -33,6 +34,16 @@ export default function Campaigns() {
     loadPending()
   }
   useEffect(() => { load(); loadPending() }, [])
+  // Phase 6: full cross-merchant export (every status, not just pending)
+  // for admin reporting -- reuses the same exportExcel util as the
+  // merchant's per-campaign export and the existing Sales report.
+  const exportAllSubmissions = async () => {
+    const { data, error } = await supabase.from('campaign_products').select('*, campaigns(name), products(name, sku), merchant_profiles(business_name)').order('created_at', { ascending: false })
+    if (error) return toast.error(error.message)
+    if (!data.length) return toast.error('No product submissions to export yet.')
+    const rows = data.map((s) => [s.products?.sku || '', s.products?.name || '', s.campaigns?.name || '', s.merchant_profiles?.business_name || '', peso(s.campaign_price), s.stock_allocation ?? '', s.status, (s.validation_errors || []).join(' | '), s.rejection_reason || ''])
+    exportExcel('campaign-product-submissions.xls', 'Submissions', ['SKU', 'Product', 'Campaign', 'Merchant', 'Campaign price', 'Stock allocation', 'Status', 'Validation errors', 'Rejection reason'], rows, { title: 'All campaign product submissions' })
+  }
   const update = (key) => (event) => setForm((current) => ({ ...current, [key]: event.target.type === 'checkbox' ? event.target.checked : event.target.value }))
   const create = async (event) => {
     event.preventDefault(); setSaving(true)
@@ -53,7 +64,7 @@ export default function Campaigns() {
   return <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8"><div className="mb-6"><p className="text-xs font-bold uppercase tracking-[0.16em] text-teal-600">Marketplace promotions</p><h1 className="mt-1 font-display text-2xl font-bold text-ink">Campaign Management</h1><p className="mt-1 text-sm text-ink/50">Create platform-wide offers merchants can join.</p></div>
 
     <div className="mb-8 rounded-2xl border border-black/[0.06] bg-surface p-5 shadow-soft">
-      <div className="flex items-center gap-2"><span className="grid h-9 w-9 place-items-center rounded-xl bg-mango-50 text-mango-600"><ClipboardList size={18} /></span><h2 className="font-display font-bold text-ink">Pending product submissions</h2></div>
+      <div className="flex items-center justify-between gap-2"><div className="flex items-center gap-2"><span className="grid h-9 w-9 place-items-center rounded-xl bg-mango-50 text-mango-600"><ClipboardList size={18} /></span><h2 className="font-display font-bold text-ink">Pending product submissions</h2></div><Button size="sm" variant="secondary" icon={Download} onClick={exportAllSubmissions}>Export all</Button></div>
       {pendingLoading ? <div className="flex justify-center py-10"><Spinner /></div> : pending.length === 0 ? (
         <div className="mt-3"><EmptyState icon={ClipboardList} title="Nothing to review" message="Merchant product submissions needing approval will appear here." /></div>
       ) : (

@@ -1,13 +1,35 @@
 import { useCallback, useEffect, useState } from 'react'
-import { BadgeCheck, CalendarDays, ChevronDown, Megaphone, Package, Send, Tag, X } from 'lucide-react'
+import { BadgeCheck, CalendarDays, ChevronDown, Download, Megaphone, Package, Send, Tag, Upload, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { peso } from '../../utils/format'
+import { exportExcel } from '../../utils/excel'
 import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
+
+// Phase 5/6: minimal dependency-free CSV parser (handles quoted fields
+// with embedded commas/newlines) -- no existing CSV/XLSX library in this
+// project, and the export side already reuses utils/excel.js's
+// exportExcel rather than adding one.
+function parseCsv(text) {
+  const rows = []
+  let row = [], field = '', inQuotes = false
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i]
+    if (inQuotes) {
+      if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++ } else inQuotes = false }
+      else field += c
+    } else if (c === '"') inQuotes = true
+    else if (c === ',') { row.push(field); field = '' }
+    else if (c === '\n' || c === '\r') { if (c === '\r' && text[i + 1] === '\n') i++; row.push(field); rows.push(row); row = []; field = '' }
+    else field += c
+  }
+  if (field.length || row.length) { row.push(field); rows.push(row) }
+  return rows.filter((r) => r.some((cell) => cell.trim() !== ''))
+}
 
 // Status -> Badge tone, matching the merchant_status-style enum pattern
 // already used across the app (Approval Center, Merchants, etc).
@@ -26,6 +48,8 @@ export default function MerchantCampaigns() {
   const [submitting, setSubmitting] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [editPrice, setEditPrice] = useState('')
+  const [importing, setImporting] = useState(null)
+  const [importReport, setImportReport] = useState(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -33,7 +57,7 @@ export default function MerchantCampaigns() {
     const [campaignResult, joinedResult, productResult, submissionResult] = await Promise.all([
       supabase.from('campaigns').select('*').eq('is_active', true).gte('ends_at', now).order('starts_at'),
       supabase.from('merchant_campaigns').select('campaign_id').eq('merchant_id', user.id),
-      supabase.from('products').select('id, name, price, stock_quantity, is_active').eq('merchant_id', user.id).eq('is_active', true).order('name'),
+      supabase.from('products').select('id, name, sku, price, stock_quantity, is_active').eq('merchant_id', user.id).eq('is_active', true).order('name'),
       supabase.from('campaign_products').select('*').eq('merchant_id', user.id)
     ])
     if (campaignResult.error || joinedResult.error) toast.error(campaignResult.error?.message || joinedResult.error?.message)
@@ -87,13 +111,10 @@ export default function MerchantCampaigns() {
     const price = Number(pickerPrice)
     if (!price || price <= 0) return toast.error('Enter a valid campaign price.')
     setSubmitting(true)
-    const { error } = await supabase.rpc('submit_campaign_product', { p_campaign_id: campaignId, p_product_id: pickerProduct, p_campaign_price: price })
+    const { data, error } = await supabase.rpc('submit_campaign_product', { p_campaign_id: campaignId, p_product_id: pickerProduct, p_campaign_price: price })
     setSubmitting(false)
-    if (error) {
-      const detail = error.details || error.message
-      return toast.error(detail === 'VALIDATION_FAILED' ? 'Submission saved as Draft — see the validation notes below.' : detail)
-    }
-    toast.success('Product submitted to campaign.')
+    if (error) return toast.error(error.message)
+    toast[data.validation_errors?.length ? 'error' : 'success'](data.validation_errors?.length ? 'Saved as Draft — see the validation notes below.' : 'Product submitted to campaign.')
     setPickerProduct(''); setPickerPrice('')
     load()
   }
@@ -101,12 +122,9 @@ export default function MerchantCampaigns() {
   const saveEdit = async (submission) => {
     const price = Number(editPrice)
     if (!price || price <= 0) return toast.error('Enter a valid campaign price.')
-    const { error } = await supabase.rpc('submit_campaign_product', { p_campaign_id: submission.campaign_id, p_product_id: submission.product_id, p_campaign_price: price })
-    if (error) {
-      const detail = error.details || error.message
-      if (detail !== 'VALIDATION_FAILED') return toast.error(detail)
-    }
-    toast.success('Submission updated.')
+    const { data, error } = await supabase.rpc('submit_campaign_product', { p_campaign_id: submission.campaign_id, p_product_id: submission.product_id, p_campaign_price: price })
+    if (error) return toast.error(error.message)
+    toast[data.validation_errors?.length ? 'error' : 'success'](data.validation_errors?.length ? 'Saved as Draft — see the validation notes below.' : 'Submission updated.')
     setEditingId(null)
     load()
   }
@@ -116,6 +134,56 @@ export default function MerchantCampaigns() {
     if (error) return toast.error(error.message)
     toast.success('Submission withdrawn.')
     load()
+  }
+
+  // Phase 5: bulk import from a CSV with columns sku (or product_id),
+  // campaign_price (or discount, as a % to compute price from), and an
+  // optional stock_allocation. Every row goes through the exact same
+  // submit_campaign_product validation as a single manual submission --
+  // no separate/looser bulk-import code path.
+  const importCsv = async (campaignId, file) => {
+    setImporting(campaignId)
+    setImportReport(null)
+    try {
+      const text = await file.text()
+      const rows = parseCsv(text)
+      if (rows.length < 2) { toast.error('CSV has no data rows.'); return }
+      const header = rows[0].map((h) => h.trim().toLowerCase())
+      const idx = (name) => header.indexOf(name)
+      const skuIdx = idx('sku'), productIdIdx = idx('product_id'), priceIdx = idx('campaign_price'), discountIdx = idx('discount'), stockIdx = idx('stock_allocation')
+      if (skuIdx === -1 && productIdIdx === -1) { toast.error('CSV needs a "sku" or "product_id" column.'); return }
+      const report = []
+      for (const r of rows.slice(1)) {
+        const sku = skuIdx >= 0 ? (r[skuIdx] || '').trim() : ''
+        const productId = productIdIdx >= 0 ? (r[productIdIdx] || '').trim() : ''
+        const rowLabel = sku || productId || '(row)'
+        const product = productId ? products.find((p) => p.id === productId) : products.find((p) => (p.sku || '').toLowerCase() === sku.toLowerCase())
+        if (!product) { report.push({ label: rowLabel, ok: false, message: 'Product not found (check SKU / Product ID, and that it belongs to your store).' }); continue }
+        let price = priceIdx >= 0 && r[priceIdx] ? Number(r[priceIdx]) : null
+        if (!price && discountIdx >= 0 && r[discountIdx]) price = Number((Number(product.price) * (1 - Number(r[discountIdx]) / 100)).toFixed(2))
+        if (!price || price <= 0) { report.push({ label: product.name, ok: false, message: 'Missing/invalid campaign_price or discount column.' }); continue }
+        const stockAllocation = stockIdx >= 0 && r[stockIdx] ? Number(r[stockIdx]) : null
+        const { data, error } = await supabase.rpc('submit_campaign_product', { p_campaign_id: campaignId, p_product_id: product.id, p_campaign_price: price, p_stock_allocation: stockAllocation })
+        if (error) report.push({ label: product.name, ok: false, message: error.message })
+        else if (data.validation_errors?.length) report.push({ label: product.name, ok: false, message: data.validation_errors.join(' ') })
+        else report.push({ label: product.name, ok: true, message: `Submitted at ${peso(price)}${data.status === 'approved' ? ' (auto-approved)' : ' (pending review)'}` })
+      }
+      setImportReport({ campaignId, rows: report })
+      const okCount = report.filter((r) => r.ok).length
+      toast[okCount === report.length ? 'success' : 'error'](`Imported ${okCount}/${report.length} rows successfully.`)
+      load()
+    } finally {
+      setImporting(null)
+    }
+  }
+
+  const exportCampaignCsv = (campaign) => {
+    const rows = submissionsFor(campaign.id).map((s) => {
+      const product = products.find((p) => p.id === s.product_id)
+      return [product?.sku || '', product?.name || '', product?.price != null ? peso(product.price) : '', peso(s.campaign_price), s.stock_allocation ?? '', s.status, (s.validation_errors || []).join(' | '), s.rejection_reason || '']
+    })
+    exportExcel(`campaign-${campaign.name.replace(/[^a-z0-9]+/gi, '-')}-products.xls`, 'Campaign Products',
+      ['SKU', 'Product', 'Original price', 'Campaign price', 'Stock allocation', 'Status', 'Validation errors', 'Rejection reason'], rows, { title: campaign.name })
   }
 
   if (loading) return <div className="flex justify-center py-24"><Spinner /></div>
@@ -171,6 +239,21 @@ export default function MerchantCampaigns() {
                         <input type="number" min="0.01" step="0.01" placeholder="Campaign price" className="input-field w-full text-sm sm:w-36" value={pickerPrice} onChange={(e) => setPickerPrice(e.target.value)} />
                         <Button size="sm" icon={Send} disabled={submitting} onClick={() => submitProduct(campaign.id)}>Submit</Button>
                       </div>
+
+                      <div className="flex flex-wrap items-center gap-3 border-t border-black/[0.06] pt-3 text-xs">
+                        <label className="cursor-pointer font-semibold text-teal-700 hover:underline">
+                          <input type="file" accept=".csv" className="hidden" disabled={importing === campaign.id} onChange={(e) => { const input = e.target; const file = input.files?.[0]; if (file) importCsv(campaign.id, file).finally(() => { input.value = '' }) }} />
+                          <span className="inline-flex items-center gap-1"><Upload size={13} />{importing === campaign.id ? 'Importing…' : 'Import CSV'}</span>
+                        </label>
+                        <button type="button" onClick={() => exportCampaignCsv(campaign)} disabled={mySubmissions.length === 0} className="inline-flex items-center gap-1 font-semibold text-teal-700 hover:underline disabled:cursor-not-allowed disabled:text-ink/30 disabled:no-underline"><Download size={13} /> Export</button>
+                        <span className="text-ink/40">CSV columns: sku or product_id, campaign_price (or discount %), stock_allocation (optional)</span>
+                      </div>
+
+                      {importReport?.campaignId === campaign.id && (
+                        <div className="max-h-40 space-y-1 overflow-y-auto rounded-lg bg-surface-inset p-2.5 text-xs">
+                          {importReport.rows.map((r, i) => <p key={i} className={r.ok ? 'text-teal-700' : 'text-coral-600'}>{r.ok ? '✓' : '✗'} <span className="font-semibold">{r.label}</span> — {r.message}</p>)}
+                        </div>
+                      )}
 
                       {pickerProduct && (() => {
                         const info = pricingInfo(campaign.id)
