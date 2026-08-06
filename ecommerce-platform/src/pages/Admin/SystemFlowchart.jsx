@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import {
-  ArrowDown, BadgeCheck, Building2, CheckCircle2, CircleDollarSign,
+  ArrowDown, ArrowRight, BadgeCheck, Building2, CheckCircle2, CircleDollarSign,
   ExternalLink, Network, PackageCheck, Printer, RefreshCw, ShieldCheck,
   ShoppingBag, Store, Truck, UserRound, WalletCards
 } from 'lucide-react'
@@ -62,37 +62,37 @@ const lanes = [
 ]
 
 const tones = {
-  teal: 'border-teal-200 bg-teal-50 text-teal-800',
-  mango: 'border-mango-200 bg-mango-100 text-mango-700',
-  coral: 'border-coral-200 bg-coral-100 text-coral-700',
-  violet: 'border-violet-200 bg-violet-50 text-violet-800',
-  blue: 'border-sky-200 bg-sky-50 text-sky-800'
+  teal: 'border-teal-500/25 bg-teal-500/10 text-teal-800 dark:text-teal-200',
+  mango: 'border-mango-500/25 bg-mango-500/10 text-mango-800 dark:text-mango-200',
+  coral: 'border-coral-500/25 bg-coral-500/10 text-coral-800 dark:text-coral-200',
+  violet: 'border-violet-500/25 bg-violet-500/10 text-violet-800 dark:text-violet-200',
+  blue: 'border-sky-500/25 bg-sky-500/10 text-sky-800 dark:text-sky-200'
 }
 
 const roleTones = {
-  Admin: 'bg-slate-800 text-white',
-  Merchant: 'bg-mango-100 text-mango-700',
-  Reseller: 'bg-coral-100 text-coral-700',
-  Customer: 'bg-violet-100 text-violet-800',
-  System: 'bg-teal-100 text-teal-800',
-  User: 'bg-sky-100 text-sky-800'
+  Admin: 'bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900',
+  Merchant: 'bg-mango-500/15 text-mango-700 dark:text-mango-300',
+  Reseller: 'bg-coral-500/15 text-coral-700 dark:text-coral-300',
+  Customer: 'bg-violet-500/15 text-violet-700 dark:text-violet-300',
+  System: 'bg-teal-500/15 text-teal-700 dark:text-teal-300',
+  User: 'bg-sky-500/15 text-sky-700 dark:text-sky-300'
 }
 
 function StepCard({ step, number }) {
   const Icon = step.icon
   return (
-    <article className="relative min-w-0 flex-1 rounded-2xl border border-black/[0.07] bg-surface p-4 shadow-sm sm:p-5">
+    <article className="card relative min-w-0 flex-1 p-4 transition-transform hover:-translate-y-0.5 sm:p-5">
       <div className="flex items-start gap-3">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-teal-950 text-white">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-teal-700 to-teal-950 text-white">
           <Icon size={19} />
         </span>
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[10px] font-extrabold uppercase tracking-[.15em] text-ink/35">Step {number}</span>
+            <span className="text-[10px] font-extrabold uppercase tracking-[.15em] text-fg-muted">Step {number}</span>
             <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${roleTones[step.role]}`}>{step.role}</span>
           </div>
-          <h3 className="mt-1 font-display text-base font-bold text-ink">{step.title}</h3>
-          <p className="mt-1.5 text-xs leading-5 text-ink/60 sm:text-sm sm:leading-6">{step.text}</p>
+          <h3 className="mt-1 font-display text-base font-bold text-fg">{step.title}</h3>
+          <p className="mt-1.5 text-xs leading-5 text-fg-muted sm:text-sm sm:leading-6">{step.text}</p>
         </div>
       </div>
     </article>
@@ -126,12 +126,12 @@ export default function SystemFlowchart() {
         </div>
       </header>
 
-      <div className="mt-6 space-y-3">
-        {lanes.map((lane, laneIndex) => (
+      <div className="mt-8 space-y-8">
+        {lanes.map((lane) => (
           <section key={lane.title}>
-            <div className={`rounded-2xl border p-4 sm:p-5 ${tones[lane.tone]}`}>
+            <div className={`card p-4 sm:p-5 ${tones[lane.tone]}`}>
               <h2 className="font-display text-lg font-extrabold sm:text-xl">{lane.title}</h2>
-              <p className="mt-1 text-xs opacity-70 sm:text-sm">{lane.subtitle}</p>
+              <p className="mt-1 text-xs opacity-80 sm:text-sm">{lane.subtitle}</p>
             </div>
             <div className="relative mt-3 flex flex-col gap-2 lg:flex-row lg:items-stretch">
               {lane.steps.map((step, stepIndex) => {
@@ -140,29 +140,25 @@ export default function SystemFlowchart() {
                   <div key={step.title} className="contents">
                     <StepCard step={step} number={stepNumber} />
                     {stepIndex < lane.steps.length - 1 && (
-                      <div className="grid shrink-0 place-items-center text-teal-600">
-                        <ArrowDown size={20} className="lg:-rotate-90" />
+                      <div className="grid shrink-0 place-items-center text-teal-600 dark:text-teal-400">
+                        <ArrowDown size={18} className="lg:hidden" />
+                        <ArrowRight size={18} className="hidden lg:block" />
                       </div>
                     )}
                   </div>
                 )
               })}
             </div>
-            {laneIndex < lanes.length - 1 && (
-              <div className="flex h-12 items-center justify-center text-teal-600">
-                <ArrowDown size={24} />
-              </div>
-            )}
           </section>
         ))}
       </div>
 
-      <aside className="mt-6 rounded-2xl border border-mango-200 bg-mango-100 p-5">
+      <aside className="card mt-8 mb-4 border-mango-500/25 bg-mango-500/10 p-5">
         <div className="flex items-start gap-3">
-          <RefreshCw size={20} className="mt-0.5 shrink-0 text-mango-700" />
+          <RefreshCw size={20} className="mt-0.5 shrink-0 text-mango-700 dark:text-mango-300" />
           <div>
-            <h2 className="font-display font-bold text-ink">Important cycle</h2>
-            <p className="mt-1 text-sm leading-6 text-ink/65">
+            <h2 className="font-display font-bold text-fg">Important cycle</h2>
+            <p className="mt-1 text-sm leading-6 text-fg-muted">
               After completion, updated stock and sales reports return to Merchant and Admin monitoring. The Reseller can continue selecting products and serving customers through the same unique storefront link.
             </p>
           </div>

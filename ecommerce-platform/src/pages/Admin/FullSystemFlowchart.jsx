@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import {
-  ArrowDown, ArrowLeft, BadgeCheck, Banknote, Building2, CheckCircle2, CircleDollarSign,
-  Clock3, CreditCard, ExternalLink, IdCard, Lock, PackageCheck, Printer, ShieldAlert,
+  ArrowDown, ArrowLeft, ArrowRight, BadgeCheck, Banknote, Building2, CheckCircle2, CircleDollarSign,
+  Clock3, CreditCard, ExternalLink, GitBranch, IdCard, Lock, PackageCheck, Printer, ShieldAlert,
   ShieldCheck, ShoppingBag, Store, Truck, Undo2, UserRound, Users, Wallet, WalletCards, Zap
 } from 'lucide-react'
 
@@ -79,115 +79,108 @@ const lanes = [
 ]
 
 const tones = {
-  teal: 'border-teal-200 bg-teal-50 text-teal-800',
-  mango: 'border-mango-200 bg-mango-100 text-mango-700',
-  coral: 'border-coral-200 bg-coral-100 text-coral-700',
-  violet: 'border-violet-200 bg-violet-50 text-violet-800',
-  blue: 'border-sky-200 bg-sky-50 text-sky-800'
+  teal: 'border-teal-500/25 bg-teal-500/10 text-teal-800 dark:text-teal-200',
+  mango: 'border-mango-500/25 bg-mango-500/10 text-mango-800 dark:text-mango-200',
+  coral: 'border-coral-500/25 bg-coral-500/10 text-coral-800 dark:text-coral-200',
+  violet: 'border-violet-500/25 bg-violet-500/10 text-violet-800 dark:text-violet-200',
+  blue: 'border-sky-500/25 bg-sky-500/10 text-sky-800 dark:text-sky-200'
 }
 
 const roleTones = {
-  Admin: 'bg-slate-800 text-white',
-  Merchant: 'bg-mango-100 text-mango-700',
-  Reseller: 'bg-coral-100 text-coral-700',
-  Customer: 'bg-violet-100 text-violet-800',
-  System: 'bg-teal-100 text-teal-800',
-  User: 'bg-sky-100 text-sky-800'
+  Admin: 'bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900',
+  Merchant: 'bg-mango-500/15 text-mango-700 dark:text-mango-300',
+  Reseller: 'bg-coral-500/15 text-coral-700 dark:text-coral-300',
+  Customer: 'bg-violet-500/15 text-violet-700 dark:text-violet-300',
+  System: 'bg-teal-500/15 text-teal-700 dark:text-teal-300',
+  User: 'bg-sky-500/15 text-sky-700 dark:text-sky-300'
 }
 
-const ACCENT = '#0F9D78'
+// ---------------------------------------------------------------------
+// The process, as a single ordered timeline — every device gets the
+// same reliable, no-horizontal-scroll rendering (a wide SVG diagram
+// reads fine on a monitor but is unusable on a phone). "split" stages
+// render as a responsive card grid so branch/merge points still read
+// as real branch/merge points, just without needing 2D diagram routing.
+// ---------------------------------------------------------------------
+const flowStages = [
+  { type: 'split', label: 'Two separate approval gates', options: [
+    { role: 'Merchant', title: 'Permit + subscription approved' },
+    { role: 'Reseller', title: 'ID + wallet top-up approved' }
+  ] },
+  { type: 'step', role: 'Merchant', title: 'Add product to catalog', note: 'Feeds every order below — nothing downstream can start without this.' },
+  { type: 'split', label: 'An order starts one of two ways', options: [
+    { tag: '2a', role: 'Reseller', title: 'Browse catalog & add to cart', note: 'Wholesale purchase' },
+    { tag: '2b', role: 'Customer', title: 'Orders from the storefront', note: 'Reseller accepts, then converts it to cart' }
+  ] },
+  { type: 'step', role: 'System', title: 'Cart', note: 'Both paths land here — from this point on, there’s only one flow.' },
+  { type: 'step', role: 'System', title: 'Checkout', note: 'Quote, then pay — price and stock are re-verified on the server, never trusted from the browser.' },
+  { type: 'step', role: 'System', title: 'Wallet debited immediately', note: 'Held as escrow — the Merchant is not paid yet.', accent: true },
+  { type: 'split', label: 'Delivery — two ways to ship', options: [
+    { role: 'Merchant', title: 'Ship manually', note: 'Tracking number + estimated delivery date' },
+    { role: 'System', title: 'Book via Lalamove', note: 'Automatic, once the quote is accepted' }
+  ] },
+  { type: 'step', role: 'System', title: 'Auto-complete after 7 days', note: 'Unless an Order Case dispute is opened in that window.' },
+  { type: 'split', label: 'Settlement', options: [
+    { role: 'System', title: 'Merchant paid', note: 'Subtotal minus the Merchant success fee', accent: true },
+    { role: 'System', title: 'Reseller refunded', note: 'If cancelled instead — this skips delivery entirely', accent: true, dashed: true }
+  ] }
+]
 
-function FlowBox({ x, y, w, h = 78, title, sub, accent }) {
+function MiniCard({ tag, role, title, note, accent, dashed, compact }) {
   return (
-    <g>
-      <rect x={x} y={y} width={w} height={h} rx={14} fill={accent ? ACCENT : 'none'} fillOpacity={accent ? 0.1 : 1} stroke={accent ? ACCENT : 'currentColor'} strokeWidth={accent ? 2 : 1.4} />
-      <text x={x + w / 2} y={y + h / 2 + (sub ? -6 : 5)} textAnchor="middle" fontSize="14" fontWeight="700" fill="currentColor">{title}</text>
-      {sub && <text x={x + w / 2} y={y + h / 2 + 16} textAnchor="middle" fontSize="11" fill="currentColor" opacity="0.65">{sub}</text>}
-    </g>
-  )
-}
-
-function FlowLine({ d, dashed, accent, label, labelX, labelY }) {
-  return (
-    <g>
-      <path d={d} fill="none" stroke={accent ? ACCENT : 'currentColor'} strokeWidth={accent ? 2 : 1.4} strokeDasharray={dashed ? '6 4' : undefined} markerEnd={accent ? 'url(#arrowTeal)' : 'url(#arrow)'} />
-      {label && (
-        <text x={labelX} y={labelY} textAnchor="middle" fontSize="11" fontWeight="700" fill={accent ? ACCENT : 'currentColor'} opacity={accent ? 1 : 0.75}>{label}</text>
-      )}
-    </g>
-  )
-}
-
-function MainFlowDiagram() {
-  return (
-    <figure className="rounded-2xl border border-black/[0.07] bg-surface p-4 sm:p-6">
-      <div className="overflow-x-auto">
-        <svg viewBox="0 0 1300 1400" role="img" aria-label="Full order flow: Merchant and Reseller each clear separate approval gates, a Reseller order starts either from browsing the wholesale catalog or from a converted customer storefront request, both land in one shared cart, checkout debits the Reseller's wallet immediately as escrow, delivery happens manually or via Lalamove and auto-completes after 7 days, and only then is the Merchant paid — or, if cancelled, the Reseller is refunded in full." style={{ minWidth: '780px' }}>
-          <defs>
-            <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
-              <polygon points="0,0 9,4 0,8" fill="currentColor" />
-            </marker>
-            <marker id="arrowTeal" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
-              <polygon points="0,0 9,4 0,8" fill={ACCENT} />
-            </marker>
-          </defs>
-
-          <g fontFamily="Segoe UI, sans-serif">
-            {/* Row 1 — approval gates */}
-            <FlowBox x={30} y={20} w={380} title="Merchant approved" sub="permit + subscription" />
-            <FlowBox x={890} y={20} w={380} title="Reseller approved" sub="ID + wallet top-up" />
-
-            {/* Row 2 */}
-            <FlowBox x={30} y={170} w={380} title="Add product" sub="to catalog" />
-            <FlowBox x={460} y={170} w={380} title="Browse & add to cart" sub="2a — wholesale purchase" />
-            <FlowBox x={890} y={170} w={380} title="Customer orders" sub="2b — from the storefront" />
-
-            {/* Row 3 / 4 — storefront request path */}
-            <FlowBox x={890} y={320} w={380} title="Reseller accepts" sub="in the Customer Orders inbox" />
-            <FlowBox x={890} y={470} w={380} title="Convert to cart" sub="find or create the customer" />
-
-            {/* Spine */}
-            <FlowBox x={460} y={620} w={380} h={64} title="Cart" />
-            <FlowBox x={460} y={730} w={380} title="Checkout" sub="quote → pay, server-verified" />
-            <FlowBox x={460} y={860} w={380} title="Wallet debited" sub="escrow — Merchant not paid yet" accent />
-
-            {/* Delivery fork */}
-            <FlowBox x={90} y={1000} w={380} title="Ship manually" sub="Merchant sets tracking + ETA" />
-            <FlowBox x={830} y={1000} w={380} title="Book via Lalamove" sub="automatic once quote accepted" />
-
-            <FlowBox x={460} y={1140} w={380} title="Auto-complete" sub="7 days, unless disputed" />
-
-            {/* Settlement fork */}
-            <FlowBox x={90} y={1280} w={380} title="Merchant paid" sub="subtotal − success fee" accent />
-            <FlowBox x={830} y={1280} w={380} title="Reseller refunded" sub="if cancelled instead" accent />
-
-            {/* Arrows */}
-            <FlowLine d="M 220 98 L 220 168" />
-            <FlowLine d="M 1080 98 L 1080 168" label="2b" labelX={1100} labelY={138} />
-            <FlowLine d="M 895 98 L 845 168" label="2a" labelX={860} labelY={134} />
-            <FlowLine d="M 1080 248 L 1080 318" />
-            <FlowLine d="M 1080 398 L 1080 468" />
-
-            <FlowLine d="M 650 248 L 650 618" />
-            <FlowLine d="M 890 548 L 845 618" />
-            <FlowLine d="M 220 248 C 220 420, 300 500, 460 655" dashed label="must be listed &amp; in stock" labelX={330} labelY={430} />
-
-            <FlowLine d="M 650 684 L 650 728" />
-            <FlowLine d="M 650 808 L 650 858" />
-
-            <FlowLine d="M 500 938 L 475 998" />
-            <FlowLine d="M 800 938 L 825 998" />
-
-            <FlowLine d="M 475 1078 L 460 1138" />
-            <FlowLine d="M 825 1078 L 840 1138" />
-
-            <FlowLine d="M 460 1218 L 475 1278" label="on completion" labelX={330} labelY={1255} />
-            <FlowLine d="M 840 899 C 1270 960, 1270 1200, 1020 1278" dashed accent label="if cancelled — skips delivery" labelX={1010} labelY={1060} />
-          </g>
-        </svg>
+    <div className={`card relative p-4 transition-transform hover:-translate-y-0.5 ${compact ? '' : 'sm:p-5'} ${accent ? 'border-teal-500/40 bg-teal-500/[0.06]' : ''} ${dashed ? 'border-dashed' : ''}`}>
+      <div className="flex flex-wrap items-center gap-2">
+        {tag && <span className="rounded-md bg-ink/10 px-1.5 py-0.5 text-[10px] font-extrabold text-ink/50">{tag}</span>}
+        {role && <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${roleTones[role]}`}>{role}</span>}
+        {accent && <span className="ml-auto text-teal-600 dark:text-teal-300"><Banknote size={14} /></span>}
       </div>
-      <figcaption className="mt-3 text-xs text-ink/50 sm:text-sm">
-        The teal path is money: it leaves the Reseller's wallet at Checkout and only reaches the Merchant after Settlement — cancelling at any point before then sends it back to the Reseller instead.
+      <h3 className="mt-2 font-display text-sm font-bold leading-snug text-fg sm:text-base">{title}</h3>
+      {note && <p className="mt-1 text-xs leading-5 text-fg-muted sm:text-sm">{note}</p>}
+    </div>
+  )
+}
+
+function TimelineRail({ isLast, accent }) {
+  return (
+    <div className="flex w-9 shrink-0 flex-col items-center">
+      <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 ${accent ? 'border-teal-500 bg-teal-500/15' : 'border-line bg-surface'}`}>
+        <span className={`h-2.5 w-2.5 rounded-full ${accent ? 'bg-teal-500' : 'bg-fg-muted'}`} />
+      </span>
+      {!isLast && <span className={`mt-1 w-px flex-1 ${accent ? 'bg-teal-500/40' : 'bg-line'}`} />}
+    </div>
+  )
+}
+
+function ProcessTimeline() {
+  return (
+    <figure>
+      <div>
+        {flowStages.map((stage, i) => {
+          const isLast = i === flowStages.length - 1
+          return (
+            <div key={i} className="flex gap-3 sm:gap-4">
+              <TimelineRail isLast={isLast} accent={stage.accent || stage.options?.some((o) => o.accent)} />
+              <div className={`min-w-0 flex-1 ${isLast ? 'pb-1' : 'pb-6 sm:pb-8'}`}>
+                {stage.type === 'step' ? (
+                  <MiniCard role={stage.role} title={stage.title} note={stage.note} accent={stage.accent} />
+                ) : (
+                  <>
+                    <p className="mb-2 flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wide text-fg-muted">
+                      <GitBranch size={13} /> {stage.label}
+                    </p>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {stage.options.map((opt) => <MiniCard key={opt.title} {...opt} compact />)}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+      <figcaption className="mt-1 flex items-start gap-2 text-xs leading-5 text-fg-muted sm:text-sm">
+        <Banknote size={14} className="mt-0.5 shrink-0 text-teal-600 dark:text-teal-300" />
+        The teal-marked steps are the money path: it leaves the Reseller's wallet at Checkout and only reaches the Merchant at Settlement — cancelling anywhere before then sends it back to the Reseller instead, without waiting for delivery.
       </figcaption>
     </figure>
   )
@@ -196,18 +189,18 @@ function MainFlowDiagram() {
 function StepCard({ step, number }) {
   const Icon = step.icon
   return (
-    <article className="relative min-w-0 flex-1 rounded-2xl border border-black/[0.07] bg-surface p-4 shadow-sm sm:p-5">
+    <article className="card relative min-w-0 flex-1 p-4 transition-transform hover:-translate-y-0.5 sm:p-5">
       <div className="flex items-start gap-3">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-teal-950 text-white">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-teal-700 to-teal-950 text-white">
           <Icon size={19} />
         </span>
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[10px] font-extrabold uppercase tracking-[.15em] text-ink/35">Step {number}</span>
+            <span className="text-[10px] font-extrabold uppercase tracking-[.15em] text-fg-muted">Step {number}</span>
             <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${roleTones[step.role]}`}>{step.role}</span>
           </div>
-          <h3 className="mt-1 font-display text-base font-bold text-ink">{step.title}</h3>
-          <p className="mt-1.5 text-xs leading-5 text-ink/60 sm:text-sm sm:leading-6">{step.text}</p>
+          <h3 className="mt-1 font-display text-base font-bold text-fg">{step.title}</h3>
+          <p className="mt-1.5 text-xs leading-5 text-fg-muted sm:text-sm sm:leading-6">{step.text}</p>
         </div>
       </div>
     </article>
@@ -243,23 +236,33 @@ const adminGroups = [
   { title: 'Reports', items: ['Sales', 'Inventory', 'Top-Up', 'Withdrawal', 'Ordered'] }
 ]
 
+function SectionHeading({ title, subtitle, tone }) {
+  return (
+    <div className={`card p-4 sm:p-5 ${tone ? tones[tone] : ''}`}>
+      <h2 className="font-display text-lg font-extrabold sm:text-xl">{title}</h2>
+      {subtitle && <p className="mt-1 text-xs opacity-80 sm:text-sm">{subtitle}</p>}
+    </div>
+  )
+}
+
 export default function FullSystemFlowchart() {
   let stepNumber = 0
   return (
-    <div className="mx-auto max-w-7xl px-3 py-6 sm:px-6 sm:py-8 lg:px-8">
-      <Link to="/admin/system-flowchart" className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-teal-700 hover:underline print:hidden">
+    <div className="mx-auto max-w-5xl px-3 py-6 sm:px-6 sm:py-8 lg:px-8">
+      <Link to="/admin/system-flowchart" className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-teal-700 transition hover:gap-2.5 hover:text-teal-600 dark:text-teal-300 print:hidden">
         <ArrowLeft size={15} /> Back to the short version
       </Link>
-      <header className="rounded-3xl bg-gradient-to-br from-teal-950 via-teal-800 to-teal-600 p-5 text-white shadow-xl sm:p-8">
+
+      <header className="overflow-hidden rounded-3xl bg-gradient-to-br from-teal-950 via-teal-800 to-teal-600 p-5 text-white shadow-xl sm:p-8">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-          <div>
+          <div className="min-w-0">
             <p className="text-xs font-extrabold uppercase tracking-[.2em] text-mango-300">Admin reference — full detail</p>
-            <h1 className="mt-2 font-display text-3xl font-extrabold sm:text-4xl">Full System Flowchart</h1>
+            <h1 className="mt-2 font-display text-2xl font-extrabold leading-tight sm:text-4xl">Full System Flowchart</h1>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-white/70 sm:text-base">
               Every step from account approval to money settling in a Merchant's wallet — including the escrow mechanic, both delivery paths, and the wallet funding/cashout loop.
             </p>
           </div>
-          <button type="button" onClick={() => window.print()} className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-surface px-4 py-2.5 text-sm font-bold text-teal-900 transition hover:bg-mango-100 print:hidden">
+          <button type="button" onClick={() => window.print()} className="flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-teal-900 shadow-sm transition hover:bg-mango-100 print:hidden">
             <Printer size={17} /> Print
           </button>
         </div>
@@ -269,22 +272,16 @@ export default function FullSystemFlowchart() {
       </header>
 
       <section className="mt-8">
-        <div className="rounded-2xl border border-black/[0.07] bg-surface p-4 sm:p-5">
-          <h2 className="font-display text-lg font-extrabold text-ink sm:text-xl">The Process, Start to Finish</h2>
-          <p className="mt-1 text-xs text-ink/55 sm:text-sm">One diagram, actual direction — scroll the step cards below for what each box means in detail.</p>
-        </div>
-        <div className="mt-3">
-          <MainFlowDiagram />
+        <SectionHeading title="The Process, Start to Finish" subtitle="Real direction, top to bottom — every split shown as an actual branch, every merge as the line continuing below it." />
+        <div className="card mt-3 p-4 sm:p-6">
+          <ProcessTimeline />
         </div>
       </section>
 
-      <div className="mt-10 space-y-3">
-        {lanes.map((lane, laneIndex) => (
+      <div className="mt-10 space-y-8">
+        {lanes.map((lane) => (
           <section key={lane.title}>
-            <div className={`rounded-2xl border p-4 sm:p-5 ${tones[lane.tone]}`}>
-              <h2 className="font-display text-lg font-extrabold sm:text-xl">{lane.title}</h2>
-              <p className="mt-1 text-xs opacity-70 sm:text-sm">{lane.subtitle}</p>
-            </div>
+            <SectionHeading title={lane.title} subtitle={lane.subtitle} tone={lane.tone} />
             <div className="relative mt-3 flex flex-col gap-2 lg:flex-row lg:items-stretch">
               {lane.steps.map((step, stepIndex) => {
                 stepNumber += 1
@@ -292,31 +289,24 @@ export default function FullSystemFlowchart() {
                   <div key={step.title} className="contents">
                     <StepCard step={step} number={stepNumber} />
                     {stepIndex < lane.steps.length - 1 && (
-                      <div className="grid shrink-0 place-items-center text-teal-600">
-                        <ArrowDown size={20} className="lg:-rotate-90" />
+                      <div className="grid shrink-0 place-items-center text-teal-600 dark:text-teal-400">
+                        <ArrowDown size={18} className="lg:hidden" />
+                        <ArrowRight size={18} className="hidden lg:block" />
                       </div>
                     )}
                   </div>
                 )
               })}
             </div>
-            {laneIndex < lanes.length - 1 && (
-              <div className="flex h-12 items-center justify-center text-teal-600">
-                <ArrowDown size={24} />
-              </div>
-            )}
           </section>
         ))}
       </div>
 
       <section className="mt-10">
-        <div className="rounded-2xl border border-black/[0.07] bg-surface p-4 sm:p-5">
-          <h2 className="font-display text-lg font-extrabold text-ink sm:text-xl">Wallet Funding &amp; Cashout Loop</h2>
-          <p className="mt-1 text-xs text-ink/55 sm:text-sm">Runs independently of the order flow above — every Reseller and Merchant wallet feeds from here.</p>
-        </div>
+        <SectionHeading title="Wallet Funding & Cashout Loop" subtitle="Runs independently of the order flow above — every Reseller and Merchant wallet feeds from here." />
         <div className="mt-3 grid gap-3 md:grid-cols-2">
           {walletLoop.map((col) => (
-            <div key={col.title} className={`rounded-2xl border p-4 sm:p-5 ${tones[col.tone]}`}>
+            <div key={col.title} className={`card p-4 sm:p-5 ${tones[col.tone]}`}>
               <div className="flex items-center gap-2">
                 <Banknote size={18} />
                 <h3 className="font-display text-base font-bold">{col.title}</h3>
@@ -334,19 +324,16 @@ export default function FullSystemFlowchart() {
         </div>
       </section>
 
-      <section className="mt-10">
-        <div className="rounded-2xl border border-black/[0.07] bg-surface p-4 sm:p-5">
-          <h2 className="font-display text-lg font-extrabold text-ink sm:text-xl">Admin Oversight</h2>
-          <p className="mt-1 text-xs text-ink/55 sm:text-sm">Not a flow — this is what Admin is watching day to day while the above runs.</p>
-        </div>
+      <section className="mt-10 mb-4">
+        <SectionHeading title="Admin Oversight" subtitle="Not a flow — this is what Admin is watching day to day while the above runs." />
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {adminGroups.map((group) => (
-            <div key={group.title} className="rounded-2xl border border-black/[0.07] bg-surface p-4">
-              <div className="flex items-center gap-2 text-slate-700">
+            <div key={group.title} className="card p-4">
+              <div className="flex items-center gap-2 text-fg-muted">
                 <ShieldAlert size={16} />
-                <h3 className="font-display text-sm font-extrabold">{group.title}</h3>
+                <h3 className="font-display text-sm font-extrabold text-fg">{group.title}</h3>
               </div>
-              <ul className="mt-2.5 space-y-1.5 text-xs leading-5 text-ink/65">
+              <ul className="mt-2.5 space-y-1.5 text-xs leading-5 text-fg-muted">
                 {group.items.map((item) => <li key={item}>· {item}</li>)}
               </ul>
             </div>
