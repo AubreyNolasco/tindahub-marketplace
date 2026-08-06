@@ -44,6 +44,22 @@ export default function Checkout() {
   const [quote, setQuote] = useState(null)
   const [quoteLoading, setQuoteLoading] = useState(false)
 
+  const loadMerchant = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('merchant_profiles')
+      .select('id, business_name')
+      .eq('id', merchantId)
+      .maybeSingle()
+    if (error) toast.error(error.message)
+    setMerchant(data)
+  }, [merchantId])
+
+  const loadWallet = useCallback(async () => {
+    const { data, error } = await supabase.from('wallets').select('balance').eq('owner_id', user.id).maybeSingle()
+    if (error) toast.error(error.message)
+    setWallet(data)
+  }, [user])
+
   useEffect(() => {
     if (merchantId) loadMerchant()
     loadWallet()
@@ -67,22 +83,6 @@ export default function Checkout() {
       .then(({ data, error }) => { if (!active) return; if (error) { setQuote(null); toast.error(`Unable to verify checkout price: ${error.message}`) } else setQuote(data); setQuoteLoading(false) })
     return () => { active = false }
   }, [merchantId, items])
-
-  const loadMerchant = useCallback(async () => {
-    const { data, error } = await supabase
-      .from('merchant_profiles')
-      .select('id, business_name')
-      .eq('id', merchantId)
-      .maybeSingle()
-    if (error) toast.error(error.message)
-    setMerchant(data)
-  }, [merchantId])
-
-  const loadWallet = useCallback(async () => {
-    const { data, error } = await supabase.from('wallets').select('balance').eq('owner_id', user.id).maybeSingle()
-    if (error) toast.error(error.message)
-    setWallet(data)
-  }, [user])
 
   if (items.length === 0) {
     return (
