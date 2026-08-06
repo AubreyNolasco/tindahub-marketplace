@@ -6,7 +6,8 @@ import { supabase } from '../lib/supabase'
 import Spinner from '../components/ui/Spinner'
 import EmptyState from '../components/ui/EmptyState'
 import Modal from '../components/ui/Modal'
-import { applyCampaignDiscount, getActiveCampaignDiscounts } from '../utils/campaigns'
+import { applyCampaignDiscount, getActiveCampaignDiscounts, getActiveCampaignProducts } from '../utils/campaigns'
+import { getUnitPrice } from '../utils/pricing'
 import { isStoreOpen } from '../utils/storeHours'
 
 const REQUEST_ERROR_MESSAGES = {
@@ -35,12 +36,13 @@ export default function ResellerStorefront() {
       const storeResult = slug ? await supabase.rpc('get_reseller_storefront_by_slug', { p_slug: slug }) : await supabase.rpc('get_reseller_storefront', { p_reseller_id: id })
       const storefront = storeResult.data?.[0] || null
       if (!storefront) { setStore(null); setProducts([]); setLoading(false); return }
-      const [listResult, discounts] = await Promise.all([
+      const [listResult, discounts, campaignProducts] = await Promise.all([
         supabase.from('reseller_storefront_products').select('product_id,products(*,merchant_profiles(business_name,store_open_time,store_close_time,auto_pause_outside_hours,store_timezone))').eq('reseller_id', storefront.id),
-        getActiveCampaignDiscounts()
+        getActiveCampaignDiscounts(),
+        getActiveCampaignProducts()
       ])
       setStore(storefront)
-      setProducts((listResult.data || []).map((row) => row.products).filter((product) => product?.is_active && isStoreOpen(product.merchant_profiles)).map((product) => applyCampaignDiscount(product, discounts)))
+      setProducts((listResult.data || []).map((row) => row.products).filter((product) => product?.is_active && isStoreOpen(product.merchant_profiles)).map((product) => applyCampaignDiscount(product, discounts, campaignProducts)))
       setLoading(false)
     })()
   }, [id, slug])
@@ -150,11 +152,18 @@ export default function ResellerStorefront() {
                     {product.stock_quantity <= 5 && product.stock_quantity > 0 && (
                       <span className="absolute left-2 top-2 rounded-full bg-mango-500 px-2 py-0.5 text-[10px] font-bold text-white shadow">Low stock</span>
                     )}
+                    {product.campaign_discount_percent > 0 && (
+                      <span className="absolute right-2 top-2 rounded-full bg-mango-500 px-2 py-0.5 text-[10px] font-bold text-white shadow">{Math.round(product.campaign_discount_percent)}% OFF</span>
+                    )}
                   </div>
                   <div className="p-3 pb-0 sm:p-4 sm:pb-0">
                     <p className="truncate text-[10px] font-bold uppercase tracking-wide text-teal-600 dark:text-teal-400">{product.merchant_profiles?.business_name}</p>
                     <h3 className="mt-1 line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-tight text-fg sm:text-base">{product.name}</h3>
-                    <p className="mt-2 font-display text-base font-bold text-teal-700 dark:text-teal-300 sm:text-lg">₱{Number(product.price).toLocaleString()}</p>
+                    {product.campaign_discount_percent > 0 ? (
+                      <p className="mt-2 flex items-baseline gap-1.5"><span className="font-display text-base font-bold text-teal-700 dark:text-teal-300 sm:text-lg">₱{getUnitPrice(product, 1).toLocaleString()}</span><span className="text-xs text-fg-muted line-through">₱{Number(product.price).toLocaleString()}</span></p>
+                    ) : (
+                      <p className="mt-2 font-display text-base font-bold text-teal-700 dark:text-teal-300 sm:text-lg">₱{Number(product.price).toLocaleString()}</p>
+                    )}
                   </div>
                 </button>
                 <div className="p-3 pt-3 sm:p-4">

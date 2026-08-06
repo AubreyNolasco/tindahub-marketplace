@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ChevronDown, Filter, PackageSearch, Search, SlidersHorizontal, Store, X } from 'lucide-react'
+import { ChevronDown, Filter, PackageSearch, Search, SlidersHorizontal, Store, Tag, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 import ProductCard from '../components/product/ProductCard'
 import EmptyState from '../components/ui/EmptyState'
 import Spinner from '../components/ui/Spinner'
-import { applyCampaignDiscount, getActiveCampaignDiscounts } from '../utils/campaigns'
+import { applyCampaignDiscount, getActiveCampaignDiscounts, getActiveCampaignProducts } from '../utils/campaigns'
 import { isStoreOpen } from '../utils/storeHours'
 
 function FilterPanel({ categories, merchants, activeCategory, setActiveCategory, activeMerchant, setActiveMerchant, categorySearch, setCategorySearch, storeSearch, setStoreSearch, minPrice, setMinPrice, maxPrice, setMaxPrice, clearFilters, onClose }) {
@@ -72,8 +72,8 @@ export default function Catalog() {
     query = sort === 'price_low' ? query.order('price', { ascending: true }) : sort === 'price_high' ? query.order('price', { ascending: false }) : sort === 'name' ? query.order('name', { ascending: true }) : query.order('created_at', { ascending: false })
     const { data, error } = await query.limit(200)
     if (error) toast.error(error.message)
-    const campaignDiscounts = await getActiveCampaignDiscounts()
-    setProducts((data || []).filter(product => isStoreOpen(product.merchant_profiles)).map((product) => applyCampaignDiscount(product, campaignDiscounts)))
+    const [campaignDiscounts, campaignProducts] = await Promise.all([getActiveCampaignDiscounts(), getActiveCampaignProducts()])
+    setProducts((data || []).filter(product => isStoreOpen(product.merchant_profiles)).map((product) => applyCampaignDiscount(product, campaignDiscounts, campaignProducts)))
     setLoading(false)
   }, [activeCategory, activeMerchant, debouncedSearch, minPrice, maxPrice, sort])
 
@@ -87,6 +87,16 @@ export default function Catalog() {
 
   return <div className="min-h-screen bg-bg">
     <section className="relative overflow-hidden border-b border-teal-900/10 bg-gradient-to-br from-teal-950 via-teal-900 to-teal-700 text-white"><div className="pointer-events-none absolute -right-24 -top-32 h-80 w-80 rounded-full border-[55px] border-white/[0.04]" /><div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12"><div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-teal-100"><Store size={13} /> JOM HUB Marketplace</div><h1 className="mt-4 max-w-2xl font-display text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">Everything your business needs.</h1><p className="mt-3 max-w-xl text-sm leading-6 text-white/70 sm:text-base">Discover products from verified stores. Browse everything or use the filters to find the right match.</p><label className="relative mt-7 block max-w-3xl"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-teal-900/45" size={20} /><input className="w-full rounded-2xl border border-white/20 bg-surface py-4 pl-12 pr-12 text-sm text-ink shadow-xl shadow-black/10 outline-none transition placeholder:text-ink/35 focus:ring-4 focus:ring-white/20 sm:text-base" placeholder="Search products, stores, categories or SKU..." value={search} onChange={(e) => setSearch(e.target.value)} />{search && <button type="button" onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-ink/35 hover:bg-black/5"><X size={17} /></button>}</label></div></section>
+    {!activeCategory && !activeMerchant && !debouncedSearch && products.some((p) => p.campaign_discount_percent > 0) && (
+      <section className="border-b border-black/[0.06] bg-gradient-to-br from-mango-50 to-white dark:from-mango-500/5 dark:to-transparent">
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+          <div className="mb-4 flex items-center gap-2"><span className="grid h-9 w-9 place-items-center rounded-xl bg-mango-500 text-white shadow-sm"><Tag size={18} /></span><div><h2 className="font-display text-lg font-bold text-ink">On campaign right now</h2><p className="text-xs text-ink/50">Limited-time marketplace discounts, updated automatically.</p></div></div>
+          <div className="flex gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:overflow-visible lg:grid-cols-5">
+            {products.filter((p) => p.campaign_discount_percent > 0).slice(0, 10).map((product) => <div key={product.id} className="w-36 shrink-0 sm:w-auto"><ProductCard product={product} /></div>)}
+          </div>
+        </div>
+      </section>
+    )}
     <div className="mx-auto max-w-7xl px-4 pt-5 sm:px-6 md:hidden"><button type="button" onClick={() => setFiltersOpen(true)} className="btn-secondary flex w-full items-center justify-center gap-2 shadow-sm"><Filter size={17} /> Filter products {activeFilterCount > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-teal-600 px-1 text-[10px] text-white">{activeFilterCount}</span>}</button></div>
 
     <div className="mx-auto grid max-w-7xl gap-5 px-2 py-6 sm:px-6 md:grid-cols-[240px_minmax(0,1fr)] lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-7 lg:py-8"><aside className="hidden overflow-hidden rounded-2xl border border-black/[0.06] bg-surface shadow-card md:sticky md:top-24 md:block md:h-[calc(100vh-7rem)]"><FilterPanel {...filterProps} /></aside><main className="min-w-0"><div className="mb-5 flex flex-col gap-3 px-2 sm:flex-row sm:items-center sm:justify-between sm:px-0"><div><h2 className="font-display text-xl font-bold text-ink">{activeMerchantName ? `${activeMerchantName} Products` : activeCategoryName ? `${activeCategoryName} Products` : 'All Products'}</h2><p className="mt-1 text-sm text-ink/50">{loading ? 'Loading products...' : `${products.length} product${products.length === 1 ? '' : 's'} found`}</p><div className="mt-2 flex flex-wrap gap-1.5">{activeCategoryName && <span className="badge bg-teal-50 text-teal-700">Category: {activeCategoryName}</span>}{activeMerchantName && <span className="badge bg-teal-50 text-teal-700">Store: {activeMerchantName}</span>}{(minPrice || maxPrice) && <span className="badge bg-teal-50 text-teal-700">Price: ₱{minPrice || '0'} – ₱{maxPrice || 'Any'}</span>}</div></div><label className="relative"><select value={sort} onChange={(e) => setSort(e.target.value)} className="input-field appearance-none py-2 pl-3 pr-9 text-sm"><option value="newest">Newest first</option><option value="price_low">Price: low to high</option><option value="price_high">Price: high to low</option><option value="name">Product name</option></select><ChevronDown size={15} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink/40" /></label></div>
