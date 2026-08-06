@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import {
-  ArrowDown, ArrowRight, BadgeCheck, Building2, CheckCircle2, CircleDollarSign,
+  BadgeCheck, Building2, CheckCircle2, CircleDollarSign,
   ExternalLink, Network, PackageCheck, Printer, RefreshCw, ShieldCheck,
   ShoppingBag, Store, Truck, UserRound, WalletCards
 } from 'lucide-react'
@@ -133,20 +133,10 @@ export default function SystemFlowchart() {
               <h2 className="font-display text-lg font-extrabold sm:text-xl">{lane.title}</h2>
               <p className="mt-1 text-xs opacity-80 sm:text-sm">{lane.subtitle}</p>
             </div>
-            <div className="relative mt-3 flex flex-col gap-2 lg:flex-row lg:items-stretch">
-              {lane.steps.map((step, stepIndex) => {
+            <div className="mt-3 grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
+              {lane.steps.map((step) => {
                 stepNumber += 1
-                return (
-                  <div key={step.title} className="contents">
-                    <StepCard step={step} number={stepNumber} />
-                    {stepIndex < lane.steps.length - 1 && (
-                      <div className="grid shrink-0 place-items-center text-teal-600 dark:text-teal-400">
-                        <ArrowDown size={18} className="lg:hidden" />
-                        <ArrowRight size={18} className="hidden lg:block" />
-                      </div>
-                    )}
-                  </div>
-                )
+                return <StepCard key={step.title} step={step} number={stepNumber} />
               })}
             </div>
           </section>

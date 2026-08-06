@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import {
-  ArrowDown, ArrowLeft, ArrowRight, BadgeCheck, Banknote, Building2, CheckCircle2, CircleDollarSign,
+  ArrowLeft, BadgeCheck, Banknote, Building2, CheckCircle2, CircleDollarSign,
   Clock3, CreditCard, ExternalLink, GitBranch, IdCard, Lock, PackageCheck, Printer, ShieldAlert,
   ShieldCheck, ShoppingBag, Store, Truck, Undo2, UserRound, Users, Wallet, WalletCards, Zap
 } from 'lucide-react'
@@ -103,7 +103,7 @@ const roleTones = {
 // as real branch/merge points, just without needing 2D diagram routing.
 // ---------------------------------------------------------------------
 const flowStages = [
-  { type: 'split', label: 'Two separate approval gates', options: [
+  { type: 'split', label: 'Two separate approval gates', stageNote: 'Admin can also grant a Merchant temporary operate access while their permit is still pending, and adjust or revoke that window at any time — a side door around this gate, not a replacement for it.', options: [
     { role: 'Merchant', title: 'Permit + subscription approved' },
     { role: 'Reseller', title: 'ID + wallet top-up approved' }
   ] },
@@ -168,9 +168,10 @@ function ProcessTimeline() {
                     <p className="mb-2 flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wide text-fg-muted">
                       <GitBranch size={13} /> {stage.label}
                     </p>
-                    <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
                       {stage.options.map((opt) => <MiniCard key={opt.title} {...opt} compact />)}
                     </div>
+                    {stage.stageNote && <p className="mt-2 text-xs leading-5 text-fg-muted">{stage.stageNote}</p>}
                   </>
                 )}
               </div>
@@ -282,20 +283,10 @@ export default function FullSystemFlowchart() {
         {lanes.map((lane) => (
           <section key={lane.title}>
             <SectionHeading title={lane.title} subtitle={lane.subtitle} tone={lane.tone} />
-            <div className="relative mt-3 flex flex-col gap-2 lg:flex-row lg:items-stretch">
-              {lane.steps.map((step, stepIndex) => {
+            <div className="mt-3 grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
+              {lane.steps.map((step) => {
                 stepNumber += 1
-                return (
-                  <div key={step.title} className="contents">
-                    <StepCard step={step} number={stepNumber} />
-                    {stepIndex < lane.steps.length - 1 && (
-                      <div className="grid shrink-0 place-items-center text-teal-600 dark:text-teal-400">
-                        <ArrowDown size={18} className="lg:hidden" />
-                        <ArrowRight size={18} className="hidden lg:block" />
-                      </div>
-                    )}
-                  </div>
-                )
+                return <StepCard key={step.title} step={step} number={stepNumber} />
               })}
             </div>
           </section>
