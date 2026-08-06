@@ -95,6 +95,104 @@ const roleTones = {
   User: 'bg-sky-100 text-sky-800'
 }
 
+const ACCENT = '#0F9D78'
+
+function FlowBox({ x, y, w, h = 78, title, sub, accent }) {
+  return (
+    <g>
+      <rect x={x} y={y} width={w} height={h} rx={14} fill={accent ? ACCENT : 'none'} fillOpacity={accent ? 0.1 : 1} stroke={accent ? ACCENT : 'currentColor'} strokeWidth={accent ? 2 : 1.4} />
+      <text x={x + w / 2} y={y + h / 2 + (sub ? -6 : 5)} textAnchor="middle" fontSize="14" fontWeight="700" fill="currentColor">{title}</text>
+      {sub && <text x={x + w / 2} y={y + h / 2 + 16} textAnchor="middle" fontSize="11" fill="currentColor" opacity="0.65">{sub}</text>}
+    </g>
+  )
+}
+
+function FlowLine({ d, dashed, accent, label, labelX, labelY }) {
+  return (
+    <g>
+      <path d={d} fill="none" stroke={accent ? ACCENT : 'currentColor'} strokeWidth={accent ? 2 : 1.4} strokeDasharray={dashed ? '6 4' : undefined} markerEnd={accent ? 'url(#arrowTeal)' : 'url(#arrow)'} />
+      {label && (
+        <text x={labelX} y={labelY} textAnchor="middle" fontSize="11" fontWeight="700" fill={accent ? ACCENT : 'currentColor'} opacity={accent ? 1 : 0.75}>{label}</text>
+      )}
+    </g>
+  )
+}
+
+function MainFlowDiagram() {
+  return (
+    <figure className="rounded-2xl border border-black/[0.07] bg-surface p-4 sm:p-6">
+      <div className="overflow-x-auto">
+        <svg viewBox="0 0 1300 1400" role="img" aria-label="Full order flow: Merchant and Reseller each clear separate approval gates, a Reseller order starts either from browsing the wholesale catalog or from a converted customer storefront request, both land in one shared cart, checkout debits the Reseller's wallet immediately as escrow, delivery happens manually or via Lalamove and auto-completes after 7 days, and only then is the Merchant paid — or, if cancelled, the Reseller is refunded in full." style={{ minWidth: '780px' }}>
+          <defs>
+            <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+              <polygon points="0,0 9,4 0,8" fill="currentColor" />
+            </marker>
+            <marker id="arrowTeal" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+              <polygon points="0,0 9,4 0,8" fill={ACCENT} />
+            </marker>
+          </defs>
+
+          <g fontFamily="Segoe UI, sans-serif">
+            {/* Row 1 — approval gates */}
+            <FlowBox x={30} y={20} w={380} title="Merchant approved" sub="permit + subscription" />
+            <FlowBox x={890} y={20} w={380} title="Reseller approved" sub="ID + wallet top-up" />
+
+            {/* Row 2 */}
+            <FlowBox x={30} y={170} w={380} title="Add product" sub="to catalog" />
+            <FlowBox x={460} y={170} w={380} title="Browse & add to cart" sub="2a — wholesale purchase" />
+            <FlowBox x={890} y={170} w={380} title="Customer orders" sub="2b — from the storefront" />
+
+            {/* Row 3 / 4 — storefront request path */}
+            <FlowBox x={890} y={320} w={380} title="Reseller accepts" sub="in the Customer Orders inbox" />
+            <FlowBox x={890} y={470} w={380} title="Convert to cart" sub="find or create the customer" />
+
+            {/* Spine */}
+            <FlowBox x={460} y={620} w={380} h={64} title="Cart" />
+            <FlowBox x={460} y={730} w={380} title="Checkout" sub="quote → pay, server-verified" />
+            <FlowBox x={460} y={860} w={380} title="Wallet debited" sub="escrow — Merchant not paid yet" accent />
+
+            {/* Delivery fork */}
+            <FlowBox x={90} y={1000} w={380} title="Ship manually" sub="Merchant sets tracking + ETA" />
+            <FlowBox x={830} y={1000} w={380} title="Book via Lalamove" sub="automatic once quote accepted" />
+
+            <FlowBox x={460} y={1140} w={380} title="Auto-complete" sub="7 days, unless disputed" />
+
+            {/* Settlement fork */}
+            <FlowBox x={90} y={1280} w={380} title="Merchant paid" sub="subtotal − success fee" accent />
+            <FlowBox x={830} y={1280} w={380} title="Reseller refunded" sub="if cancelled instead" accent />
+
+            {/* Arrows */}
+            <FlowLine d="M 220 98 L 220 168" />
+            <FlowLine d="M 1080 98 L 1080 168" label="2b" labelX={1100} labelY={138} />
+            <FlowLine d="M 895 98 L 845 168" label="2a" labelX={860} labelY={134} />
+            <FlowLine d="M 1080 248 L 1080 318" />
+            <FlowLine d="M 1080 398 L 1080 468" />
+
+            <FlowLine d="M 650 248 L 650 618" />
+            <FlowLine d="M 890 548 L 845 618" />
+            <FlowLine d="M 220 248 C 220 420, 300 500, 460 655" dashed label="must be listed &amp; in stock" labelX={330} labelY={430} />
+
+            <FlowLine d="M 650 684 L 650 728" />
+            <FlowLine d="M 650 808 L 650 858" />
+
+            <FlowLine d="M 500 938 L 475 998" />
+            <FlowLine d="M 800 938 L 825 998" />
+
+            <FlowLine d="M 475 1078 L 460 1138" />
+            <FlowLine d="M 825 1078 L 840 1138" />
+
+            <FlowLine d="M 460 1218 L 475 1278" label="on completion" labelX={330} labelY={1255} />
+            <FlowLine d="M 840 899 C 1270 960, 1270 1200, 1020 1278" dashed accent label="if cancelled — skips delivery" labelX={1010} labelY={1060} />
+          </g>
+        </svg>
+      </div>
+      <figcaption className="mt-3 text-xs text-ink/50 sm:text-sm">
+        The teal path is money: it leaves the Reseller's wallet at Checkout and only reaches the Merchant after Settlement — cancelling at any point before then sends it back to the Reseller instead.
+      </figcaption>
+    </figure>
+  )
+}
+
 function StepCard({ step, number }) {
   const Icon = step.icon
   return (
@@ -170,7 +268,17 @@ export default function FullSystemFlowchart() {
         </div>
       </header>
 
-      <div className="mt-6 space-y-3">
+      <section className="mt-8">
+        <div className="rounded-2xl border border-black/[0.07] bg-surface p-4 sm:p-5">
+          <h2 className="font-display text-lg font-extrabold text-ink sm:text-xl">The Process, Start to Finish</h2>
+          <p className="mt-1 text-xs text-ink/55 sm:text-sm">One diagram, actual direction — scroll the step cards below for what each box means in detail.</p>
+        </div>
+        <div className="mt-3">
+          <MainFlowDiagram />
+        </div>
+      </section>
+
+      <div className="mt-10 space-y-3">
         {lanes.map((lane, laneIndex) => (
           <section key={lane.title}>
             <div className={`rounded-2xl border p-4 sm:p-5 ${tones[lane.tone]}`}>
