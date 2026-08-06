@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
-import { AlertCircle, ChevronRight, ClipboardList, House, Menu, Package, PanelLeftClose, Handshake, Store, WalletCards, X } from 'lucide-react'
+import { AlertCircle, ClipboardList, House, Menu, Package, PanelLeftClose, Handshake, Store, WalletCards, X } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { isCompleteAddress } from '../../utils/address'
 import RoleNotifications from '../notifications/RoleNotifications'
 import InteractivePageGuide from '../onboarding/InteractivePageGuide'
 import JomBits from '../assistant/JomBits'
 import CommandPalette from '../ui/CommandPalette'
+import SidebarNav from './SidebarNav'
 
 export default function WorkspaceLayout({ title, subtitle, sections, children }) {
   const [open, setOpen] = useState(false)
@@ -27,18 +28,15 @@ export default function WorkspaceLayout({ title, subtitle, sections, children })
   return <div className="min-h-[calc(100vh-4rem)] lg:flex">
     {open && <button onClick={() => setOpen(false)} aria-label="Close navigation" className="fixed inset-x-0 bottom-0 top-16 z-40 bg-scrim/40 backdrop-blur-sm lg:hidden" />}
     <aside className={`fixed bottom-0 left-0 top-16 z-50 flex w-[min(19rem,calc(100vw-1.5rem))] flex-col border-r border-line bg-surface shadow-2xl transition-transform duration-300 lg:sticky lg:z-20 lg:h-[calc(100vh-4rem)] lg:shrink-0 lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'} ${collapsed ? 'lg:w-[84px]' : 'lg:w-64'}`}>
-      <div className={`flex h-[76px] items-center border-b border-line bg-teal-50 dark:bg-teal-500/10 ${collapsed ? 'justify-center px-3' : 'justify-between px-5'}`}>
+      <div className={`flex h-[76px] shrink-0 items-center border-b border-line bg-teal-50 dark:bg-teal-500/10 ${collapsed ? 'justify-center px-3' : 'justify-between px-5'}`}>
         {!collapsed && <div className="min-w-0"><div className="flex items-center gap-2 font-display font-bold text-teal-900 dark:text-teal-200"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-600 text-white"><Store size={17} /></span><span className="truncate">{title}</span></div><p className="ml-10 mt-0.5 text-xs text-fg-muted">{subtitle}</p></div>}
         <button onClick={() => setOpen(false)} className="rounded-xl p-2 text-fg-muted hover:bg-teal-100 dark:hover:bg-teal-500/15 lg:hidden"><X size={20} /></button>
         <button onClick={() => setCollapsed((value) => !value)} className="hidden rounded-xl p-2 text-fg-muted hover:bg-teal-100 dark:hover:bg-teal-500/15 lg:block"><PanelLeftClose size={19} className={collapsed ? 'rotate-180' : ''} /></button>
       </div>
-      <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-5">
-        {sections.map((section) => <div key={section.label}>
-          {!collapsed && <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-fg-muted">{section.label}</p>}
-          <div className="space-y-1">{section.items.map(({ to, label, icon: Icon, end, badge }) => <NavLink key={to} to={to} end={end} title={collapsed ? label : undefined} data-guide-current-nav={current?.to === to ? 'true' : undefined} className={({ isActive }) => `group flex min-h-11 items-center rounded-xl text-sm font-semibold transition-all ${collapsed ? 'justify-center px-2' : 'gap-3 px-3'} ${isActive ? 'bg-teal-600 text-white shadow-md shadow-teal-900/10' : 'text-fg-muted hover:bg-teal-50 hover:text-fg dark:hover:bg-teal-500/10'}`}>{({ isActive }) => <><Icon size={18} className={isActive ? 'text-white' : 'text-teal-600'} />{!collapsed && <><span className="flex-1 truncate">{label}</span>{badge > 0 && <span className={`grid h-5 min-w-5 shrink-0 place-items-center rounded-full px-1 text-[10px] font-bold ${isActive ? 'bg-white/25 text-white' : 'bg-coral-500 text-white'}`}>{badge > 9 ? '9+' : badge}</span>}{isActive && <ChevronRight size={15} />}</>}</>}</NavLink>)}</div>
-        </div>)}
-      </nav>
-      {!collapsed && <div className="border-t border-line p-4"><div className="rounded-xl bg-surface-inset px-3 py-3 text-xs leading-5 text-fg-muted">Secure workspace for your account activity and reports.</div></div>}
+
+      <SidebarNav sections={sections} collapsed={collapsed} currentPath={location.pathname} onNavigate={() => setOpen(false)} />
+
+      {!collapsed && <div className="shrink-0 border-t border-line p-4"><div className="rounded-xl bg-surface-inset px-3 py-3 text-xs leading-5 text-fg-muted">Secure workspace for your account activity and reports.</div></div>}
     </aside>
     <section className="min-w-0 flex-1 bg-bg pb-20 lg:pb-0">
       <div className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-line bg-surface/90 px-3 backdrop-blur sm:px-5 lg:px-8">

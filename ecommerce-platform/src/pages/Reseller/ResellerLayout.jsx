@@ -6,29 +6,33 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 
 const buildSections = (pendingRequestCount) => [
-  { label: 'Workspace', items: [
-    { to: '/reseller', label: 'Overview', icon: LayoutDashboard, end: true },
-    { to: '/reseller/orders', label: 'Orders', icon: ClipboardList },
-    { to: '/reseller/products', label: 'My Product List', icon: Store },
+  { label: 'Overview', items: [
+    { to: '/reseller', label: 'Overview', icon: LayoutDashboard, end: true }
+  ]},
+  { label: 'Sales', items: [
     { to: '/reseller/order-requests', label: 'Customer Orders', icon: Inbox, badge: pendingRequestCount },
     { to: '/reseller/customers', label: 'Customers', icon: Users },
-    { to: '/reseller/chats', label: 'Messages', icon: MessageSquare },
+    { to: '/reseller/products', label: 'My Product List', icon: Store },
+    { to: '/reseller/orders', label: 'Orders', icon: ClipboardList }
+  ]},
+  { label: 'Account & Support', items: [
     { to: '/reseller/support', label: 'Chat Support', icon: LifeBuoy },
-    { to: '/reseller/wallet', label: 'Wallet', icon: WalletCards },
     { to: '/reseller/delivery', label: 'Delivery Settings', icon: Truck },
+    { to: '/reseller/chats', label: 'Messages', icon: MessageSquare },
     { to: '/reseller/address', label: 'My Address', icon: MapPin },
-    { to: '/reseller/account', label: 'Update Account', icon: UserRound }
+    { to: '/reseller/account', label: 'Update Account', icon: UserRound },
+    { to: '/reseller/wallet', label: 'Wallet', icon: WalletCards }
   ]},
   { label: 'Service Referrals', items: [
     { to: '/clinics', label: 'Browse Services', icon: Handshake },
     { to: '/reseller/referrals', label: 'My Referrals', icon: Send }
   ]},
   { label: 'Reports', items: [
-    { to: '/reseller/reports/sales', label: 'Sales Report', icon: BarChart3 },
     { to: '/reseller/reports/inventory', label: 'Inventory Report', icon: Boxes },
+    { to: '/reseller/reports/ordered', label: 'Ordered Report', icon: ClipboardList },
+    { to: '/reseller/reports/sales', label: 'Sales Report', icon: BarChart3 },
     { to: '/reseller/reports/topups', label: 'Top-Up Report', icon: FileUp },
-    { to: '/reseller/reports/withdrawals', label: 'Withdrawal Report', icon: FileDown },
-    { to: '/reseller/reports/ordered', label: 'Ordered Report', icon: ClipboardList }
+    { to: '/reseller/reports/withdrawals', label: 'Withdrawal Report', icon: FileDown }
   ]}
 ]
 
