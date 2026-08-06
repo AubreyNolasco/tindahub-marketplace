@@ -48,6 +48,13 @@ function guideFor(profile, role) {
   }
 }
 
+// Public pages anyone can land on regardless of who (if anyone) is logged
+// in -- a customer following a Reseller's storefront link, or a logged-in
+// user just checking a public page, should never see another role's "here's
+// what to do in your dashboard" guide layered on top of it.
+const PUBLIC_PATH_PREFIXES = ['/store/', '/reseller-store/', '/merchant-store/', '/policy', '/legal/']
+const isPublicPath = (pathname) => pathname === '/' || PUBLIC_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix))
+
 export default function PostLoginGuide() {
   const { session, user, profile, role, loading, deviceAccessStatus } = useAuth()
   const location = useLocation()
@@ -61,7 +68,7 @@ export default function PostLoginGuide() {
       setOpen(false)
       return
     }
-    if (loading || !user || !profile || !storageKey || ['/auth/callback', '/device-access'].includes(location.pathname)) return
+    if (loading || !user || !profile || !storageKey || ['/auth/callback', '/device-access'].includes(location.pathname) || isPublicPath(location.pathname)) return
     try { setOpen(!sessionStorage.getItem(storageKey)) } catch { setOpen(true) }
   }, [deviceAccessStatus, loading, user, profile, storageKey, location.pathname])
 
