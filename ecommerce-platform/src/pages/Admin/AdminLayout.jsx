@@ -4,7 +4,7 @@ import {
   BarChart3, Boxes, Building2, ChevronRight, CircleDollarSign,
   ClipboardList, CreditCard, FileChartColumn, FileDown,
   FileUp, FolderTree, House, IdCard, LayoutDashboard, LifeBuoy, Menu, MessageSquare,
-  Megaphone, PanelLeftClose, Presentation, ReceiptText, ShieldAlert, ShieldCheck, Star, UsersRound, WalletCards, X, History, CalendarDays, UserCog, Scale, BookOpenCheck, KeyRound, Activity, Workflow, Bug, Clock3, Truck, Plug
+  Megaphone, PanelLeftClose, Presentation, ReceiptText, ShieldAlert, ShieldCheck, Star, UsersRound, WalletCards, X, History, CalendarDays, UserCog, Scale, BookOpenCheck, KeyRound, Activity, Workflow, Bug, Clock3, Truck, Plug, Network
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { canAccessAdmin } from '../../config/adminPermissions'
@@ -29,6 +29,7 @@ const sections = [
       { to: '/admin/delivery-providers', label: 'Delivery Providers', icon: Truck, adminOnly: true },
       { to: '/admin/integrations', label: 'Integrations', icon: Plug, adminOnly: true },
       { to: '/admin/system-flowchart', label: 'System Flowchart', icon: Workflow, adminOnly: true },
+      { to: '/admin/system-flowchart/full', label: 'Full System Flowchart', icon: Network, adminOnly: true },
       { to: '/admin/process-guide', label: 'Process Guide', icon: BookOpenCheck, adminOnly: true },
       { to: '/admin/merchant-presentation', label: 'Merchant Slides', icon: Presentation, adminOnly: true },
       { to: '/admin/reseller-presentation', label: 'Reseller Slides', icon: Presentation, adminOnly: true },

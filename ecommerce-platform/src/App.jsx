@@ -114,6 +114,7 @@ const MerchantDeliverySettings = lazy(() => import('./pages/Merchant/DeliverySet
 const LegalSettings = lazy(() => import('./pages/Admin/LegalSettings'))
 const ProcessGuide = lazy(() => import('./pages/Admin/ProcessGuide'))
 const SystemFlowchart = lazy(() => import('./pages/Admin/SystemFlowchart'))
+const FullSystemFlowchart = lazy(() => import('./pages/Admin/FullSystemFlowchart'))
 const AdminFullAccess = lazy(() => import('./pages/Admin/FullAccess'))
 const ApprovalCenter = lazy(() => import('./pages/Admin/ApprovalCenter'))
 const OrderCases = lazy(() => import('./pages/Admin/OrderCases'))
@@ -243,6 +244,7 @@ export default function App() {
                   <Route path="delivery-providers" element={<AdminPermissionRoute adminOnly><AdminDeliveryProviders /></AdminPermissionRoute>} />
                   <Route path="integrations" element={<AdminPermissionRoute adminOnly><Integrations /></AdminPermissionRoute>} />
                   <Route path="system-flowchart" element={<AdminPermissionRoute adminOnly><SystemFlowchart /></AdminPermissionRoute>} />
+                  <Route path="system-flowchart/full" element={<AdminPermissionRoute adminOnly><FullSystemFlowchart /></AdminPermissionRoute>} />
                   <Route path="process-guide" element={<AdminPermissionRoute adminOnly><ProcessGuide /></AdminPermissionRoute>} />
                   <Route path="merchant-presentation" element={<AdminPermissionRoute adminOnly><ProcessPresentation audience="merchant" /></AdminPermissionRoute>} />
                   <Route path="reseller-presentation" element={<AdminPermissionRoute adminOnly><ProcessPresentation audience="reseller" /></AdminPermissionRoute>} />

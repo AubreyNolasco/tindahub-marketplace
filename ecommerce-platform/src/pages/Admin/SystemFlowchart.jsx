@@ -1,6 +1,7 @@
+import { Link } from 'react-router-dom'
 import {
   ArrowDown, BadgeCheck, Building2, CheckCircle2, CircleDollarSign,
-  ExternalLink, PackageCheck, Printer, RefreshCw, ShieldCheck,
+  ExternalLink, Network, PackageCheck, Printer, RefreshCw, ShieldCheck,
   ShoppingBag, Store, Truck, UserRound, WalletCards
 } from 'lucide-react'
 
@@ -38,12 +39,13 @@ const lanes = [
   },
   {
     title: '4. Customer Purchase',
-    subtitle: 'Customer contacts the reseller outside the main system',
+    subtitle: 'Customer can now order directly, or fall back to contacting the reseller',
     tone: 'violet',
     steps: [
       { icon: UserRound, role: 'Customer', title: 'Open reseller link', text: 'The customer sees only that reseller’s selected available products.' },
-      { icon: ShoppingBag, role: 'Customer', title: 'Choose a product', text: 'The How to Buy popup explains the next step and safety reminders.' },
-      { icon: ExternalLink, role: 'Customer', title: 'Contact the reseller', text: 'Continue through Facebook, phone, Viber, or WhatsApp, depending on availability.' }
+      { icon: ShoppingBag, role: 'Customer', title: 'Open a product & order', text: 'Product detail popup, then an order form (qty, name, phone, address) submits a request straight to the reseller — no account needed.' },
+      { icon: ExternalLink, role: 'Customer', title: 'Or contact the reseller', text: 'Facebook, phone, Viber, or WhatsApp remain available as a secondary fallback inside the same popup.' },
+      { icon: PackageCheck, role: 'Reseller', title: 'Review in Customer Orders', text: 'Accept or decline the request in the Reseller’s own inbox, with the customer’s contact/address attached.' }
     ]
   },
   {
@@ -51,7 +53,7 @@ const lanes = [
     subtitle: 'Transaction moves from reseller to fulfillment',
     tone: 'blue',
     steps: [
-      { icon: WalletCards, role: 'Reseller', title: 'Fund and place order', text: 'Use wallet funds to order the required quantity from the Merchant.' },
+      { icon: WalletCards, role: 'Reseller', title: 'Fund and place order', text: 'From a wholesale catalog purchase, or an accepted customer request converted into cart — either way, the same wallet-funded checkout places the order with the Merchant.' },
       { icon: CircleDollarSign, role: 'System', title: 'Record payment', text: 'Track product cost, platform fee, collection status, and reseller margin.' },
       { icon: Truck, role: 'Merchant', title: 'Fulfill delivery', text: 'Merchant prepares the item and updates the delivery milestones.' },
       { icon: CheckCircle2, role: 'System', title: 'Complete the order', text: 'Completion updates reports, wallet records, inventory, and sales history.' }
@@ -110,9 +112,14 @@ export default function SystemFlowchart() {
               End-to-end view of how Admin, Merchant, Reseller, Customer, and the system work together.
             </p>
           </div>
-          <button type="button" onClick={() => window.print()} className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-surface px-4 py-2.5 text-sm font-bold text-teal-900 transition hover:bg-mango-100 print:hidden">
-            <Printer size={17} /> Print flowchart
-          </button>
+          <div className="flex flex-wrap gap-2 print:hidden">
+            <Link to="/admin/system-flowchart/full" className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-mango-300 px-4 py-2.5 text-sm font-bold text-teal-950 transition hover:bg-mango-200">
+              <Network size={17} /> View full system flowchart
+            </Link>
+            <button type="button" onClick={() => window.print()} className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-surface px-4 py-2.5 text-sm font-bold text-teal-900 transition hover:bg-mango-100">
+              <Printer size={17} /> Print flowchart
+            </button>
+          </div>
         </div>
         <div className="mt-6 flex flex-wrap gap-2">
           {Object.keys(roleTones).map((role) => <span key={role} className={`rounded-full px-3 py-1.5 text-xs font-bold ${roleTones[role]}`}>{role}</span>)}
