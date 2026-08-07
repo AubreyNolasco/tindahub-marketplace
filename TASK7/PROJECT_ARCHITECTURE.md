@@ -27,6 +27,7 @@ This document is the official architecture specification for JOM HUB, as given b
  Categories              Store Reviews            Booking
  Flash Sale              Store Followers          Appointment
  Discounts               Store Ratings
+ Vouchers
 
                               │
                               ▼
@@ -67,7 +68,7 @@ Contains: Home, About, How It Works, Testimonials, FAQ, Become Merchant, Become 
 **Never place business management here.**
 
 ### Marketplace — Customer Experience
-Contains: Products, Food, Services, Merchant Stores, Clinic Referral, Real Estate Referral, Search, Categories, Discounts, Flash Sale, Checkout.
+Contains: Products, Food, Services, Merchant Stores, Clinic Referral, Real Estate Referral, Search, Categories, Discounts, Flash Sale, Vouchers, Checkout.
 **Marketplace is NOT the Dashboard.**
 
 ### Business Panel — Business Management
@@ -106,9 +107,9 @@ This section is not part of the owner's original spec — it is a factual mappin
 | Landing Website | `src/pages/Home.jsx` and other public marketing routes in `App.jsx` (Terms, Privacy, Merchant/Reseller Agreement, FAQ, etc.) |
 | Authentication | `src/pages/Login.jsx`, `src/contexts/AuthContext.jsx` — Supabase Auth, OTP email-code sign-in (no passwords) |
 | Marketplace (customer shopping) | `src/pages/Catalog.jsx`, `src/pages/ProductDetail.jsx`, `src/pages/ResellerStorefront.jsx` (public reseller storefront links), storefront ordering flow |
-| Business Panel → Merchant Dashboard | `src/pages/Merchant/*` (`MerchantLayout.jsx` + child pages: Products, Campaigns, Orders, Wallet, Delivery Settings, etc.) |
-| Business Panel → Reseller Dashboard | `src/pages/Reseller/*` (`Cart.jsx`, `Checkout.jsx`, `Customers.jsx`, `Orders`, `Wallet`, storefront order requests) |
-| Business Panel → Admin Dashboard | `src/pages/Admin/*` (`AdminLayout.jsx` + Merchants approval, Campaigns, Integrations, Sales/Reports, Reseller ID Verification, etc.) |
+| Business Panel → Merchant Dashboard | `src/pages/Merchant/*` (`MerchantLayout.jsx` + child pages: Products, Campaigns, Vouchers, Orders, Wallet, Delivery Settings, etc.) |
+| Business Panel → Reseller Dashboard | `src/pages/Reseller/*` (`Cart.jsx`, `Checkout.jsx` — now also applies a voucher code at checkout, see `TASK6.md` Phase 10 — `Customers.jsx`, `Orders`, `Wallet`, storefront order requests) |
+| Business Panel → Admin Dashboard | `src/pages/Admin/*` (`AdminLayout.jsx` + Merchants approval, Campaigns, Vouchers, Integrations, Sales/Reports (including Campaign Performance), Reseller ID Verification, etc.) |
 | Referral Services (Clinic / Real Estate) | `src/pages/Merchant/ClinicServices.jsx`, `src/pages/Reseller/*referral*` — service-referral/booking flow, a distinct product line from physical-goods shopping |
 
 **Known deviation to watch for:** some role dashboards currently live under route prefixes like `/merchant/...` and `/reseller/...` rather than a single unified `/business-panel/...` prefix. This is a routing detail, not an architecture violation — each dashboard is still its own module, gated by role, reached only through Authentication. Do not "fix" this by merging routes into the Marketplace or Landing site.

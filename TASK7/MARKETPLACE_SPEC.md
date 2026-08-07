@@ -8,8 +8,9 @@ The Marketplace module (see `PROJECT_ARCHITECTURE.md`) is the customer-facing sh
 - **Merchant Stores** — a Merchant's public product listing surface, reviews/ratings (existing `Reviews & Ratings` merchant page and its customer-facing counterpart).
 - **Services / Referral Platform** — Clinic Referral and Real Estate Referral are a distinct booking/appointment flow, not physical-goods checkout; keep their data model (bookings/appointments) separate from `orders`/`order_items`.
 - **Reseller Storefronts** — `ResellerStorefront.jsx`, a public slug-based page where a Reseller's own customers shop and submit `storefront_order_requests` without needing a login.
-- **Discounts / Flash Sale / Campaigns** — see `TASK6.md` for the full current build-out (per-product campaign submissions, pricing rules, scheduler, and — once Phase 9 lands — real checkout-time enforcement). "Flash Sale" and "Seasonal Campaign" are `campaign_kind` variants of the same underlying `campaigns`/`campaign_products` model, not separate tables.
-- **Checkout** — `Reseller/Checkout.jsx`, always server-quoted (`quote_order` RPC) before the actual charge (`place_order` and its wrappers) — the displayed price is never trusted as the charged price.
+- **Discounts / Flash Sale / Campaigns** — see `TASK6.md` for the full current build-out (per-product campaign submissions, pricing rules, scheduler, checkout-time enforcement since Phase 9). "Flash Sale" and "Seasonal Campaign" are `campaign_kind` variants of the same underlying `campaigns`/`campaign_products` model, not separate tables.
+- **Vouchers** — `public.vouchers`/`voucher_redemptions`, net-new module (`TASK6.md` Phase 10). Platform-wide vouchers are Admin-only; Merchants can create their own store/product/category/shipping-scoped vouchers. All writes go through `create_voucher`/`update_voucher`/`delete_voucher` — the table itself has no direct client grant, unlike `campaigns` (see `BUSINESS_RULES.md`'s Security Rules for why).
+- **Checkout** — `Reseller/Checkout.jsx`, always server-quoted (`quote_order` RPC) before the actual charge (`place_order` and its wrappers) — the displayed price is never trusted as the charged price. A voucher code, if applied, rides along in the same `quote_order`/`place_order` calls (`p_voucher_code`) rather than a separate validate-then-charge round trip.
 
 ## API Rules
 
@@ -48,6 +49,7 @@ SEO only matters where an unauthenticated visitor lands from a search engine or 
 - **Live verification before considering a feature done**, using the existing "Admin Demo Merchant" account (same login has both an admin profile and a merchant profile, purpose-built for exactly this) to exercise real Merchant/Reseller flows without needing a second real account. See `TASK6.md`'s Phase 2/7/11 write-ups for the reference pattern (submit → approve → verify both sides → withdraw → clean up test data).
 - Any test/seed data created for verification is deleted afterward unless it's an intentional persistent fixture (sample product catalog, recurring calendar campaigns) — don't leave `TEST ...`-prefixed rows sitting in production data.
 - Bugs found *during* live testing get fixed and re-verified in the same pass, not filed for later — see the enum-cast bug and the validation-rollback bug in `TASK6.md`, both caught by actually clicking through the feature rather than only reading the code.
+- Direct SQL against the live database (simulating a user via the `request.jwt.claims` GUC, as an alternative to a real browser session) is an accepted verification method for backend logic when a real login isn't available in the environment — but it is **not** a substitute for one real browser checkout before trusting checkout-affecting logic in production. As of `TASK6.md` Phase 9/10/12/13, that real-browser pass is still outstanding — flagged there, not silently assumed done.
 
 ## Development Phases
 
