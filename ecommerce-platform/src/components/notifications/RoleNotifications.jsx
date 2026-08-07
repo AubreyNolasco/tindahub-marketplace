@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Bell, CalendarClock, LifeBuoy, PackageCheck, ShieldAlert, ShoppingBag, WalletCards, X } from 'lucide-react'
+import { Bell, CalendarClock, LifeBuoy, Megaphone, PackageCheck, ShieldAlert, ShoppingBag, Ticket, WalletCards, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
@@ -29,6 +29,13 @@ export default function RoleNotifications() {
     const { data: supportMessages } = await supabase.from('support_messages').select('id,message,created_at').eq('user_id',user.id).eq('is_read',false).in('sender_role',['admin','staff']).order('created_at',{ascending:false}).limit(10)
     supportMessages?.forEach(row=>items.unshift({id:`support:${row.id}`,title:'New message from Admin',message:row.message,to:`/${role}/support`,action:'Open Chat Support',icon:LifeBuoy,tone:'teal'}))
 
+    // Phase 12: campaign/voucher events written by review_campaign_submission(),
+    // run_campaign_scheduler(), and place_order() have no natural source-row
+    // feed to derive from (unlike orders/withdrawals above), so they're read
+    // straight from public.notifications instead.
+    const { data: storedNotifications } = await supabase.from('notifications').select('id,category,title,body,link,created_at').eq('owner_id',user.id).is('read_at',null).order('created_at',{ascending:false}).limit(15)
+    storedNotifications?.forEach(row=>items.unshift({id:`notif:${row.id}`,notificationId:row.id,title:row.title,message:row.body||'',to:row.link||`/${role}/campaigns`,action:'View',icon:row.category==='voucher'?Ticket:Megaphone,tone:'teal'}))
+
     if (role === 'merchant') {
       const [{ data: orders }, { data: subscription }] = await Promise.all([
         supabase.from('orders').select('id,order_number,status,updated_at,proposed_shipping_fee,shipping_fee_confirmation_status,shipping_fee_reseller_note,order_cases(id,case_type,status,updated_at)').eq('merchant_id', user.id).in('status', ['confirmed','processing','shipped']).order('created_at', { ascending:false }).limit(10),
@@ -57,6 +64,7 @@ export default function RoleNotifications() {
       .on('postgres_changes',{event:'*',schema:'public',table:'withdrawal_requests',filter:`owner_id=eq.${user.id}`},load)
       .on('postgres_changes',{event:'*',schema:'public',table:'order_cases'},load)
       .on('postgres_changes',{event:'*',schema:'public',table:'support_messages',filter:`user_id=eq.${user.id}`},load)
+      .on('postgres_changes',{event:'*',schema:'public',table:'notifications',filter:`owner_id=eq.${user.id}`},load)
     if (role === 'merchant') channel.on('postgres_changes', { event:'*', schema:'public', table:'subscriptions', filter:`owner_id=eq.${user.id}` }, load)
     channel.subscribe()
     return () => { supabase.removeChannel(channel) }
@@ -72,7 +80,7 @@ export default function RoleNotifications() {
   const toggle = () => {
     setOpen(value => !value)
   }
-  const act = item => { const ids=[...new Set([...seen,item.id])].slice(-100);setSeen(ids);try{localStorage.setItem(seenKey,JSON.stringify(ids))}catch{/* restricted storage */}setOpen(false);navigate(item.to) }
+  const act = item => { const ids=[...new Set([...seen,item.id])].slice(-100);setSeen(ids);try{localStorage.setItem(seenKey,JSON.stringify(ids))}catch{/* restricted storage */}if(item.notificationId)supabase.from('notifications').update({read_at:new Date().toISOString()}).eq('id',item.notificationId).then(()=>{});setOpen(false);navigate(item.to) }
 
   return <div className="relative" ref={panelRef} data-guide-notifications>
     <button type="button" onClick={toggle} className="relative grid h-10 w-10 place-items-center rounded-xl border border-black/[.06] bg-surface text-teal-700 shadow-sm transition hover:bg-teal-50" aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`} aria-expanded={open}>

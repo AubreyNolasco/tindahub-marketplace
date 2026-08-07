@@ -106,6 +106,7 @@ const AdminCampaigns = lazy(() => import('./pages/Admin/Campaigns'))
 const MerchantCampaigns = lazy(() => import('./pages/Merchant/Campaigns'))
 const AdminVouchers = lazy(() => import('./pages/Admin/Vouchers'))
 const MerchantVouchers = lazy(() => import('./pages/Merchant/Vouchers'))
+const AdminCampaignPerformanceReport = lazy(() => import('./pages/Admin/Reports/CampaignPerformanceReport'))
 const ProfileAddress = lazy(() => import('./pages/ProfileAddress'))
 const AccountSettings = lazy(() => import('./pages/AccountSettings'))
 const AdminRegistrations = lazy(() => import('./pages/Admin/Registrations'))
@@ -266,6 +267,7 @@ export default function App() {
                   <Route path="wallet" element={<AdminPermissionRoute permission="wallet"><AdminWallet /></AdminPermissionRoute>} />
                   <Route path="sales" element={<AdminPermissionRoute permission="sales"><Sales /></AdminPermissionRoute>} />
                   <Route path="reports/sales" element={<AdminPermissionRoute permission="reports"><AdminSalesReport /></AdminPermissionRoute>} />
+                  <Route path="reports/campaigns" element={<AdminPermissionRoute permission="reports"><AdminCampaignPerformanceReport /></AdminPermissionRoute>} />
                   <Route path="reports/inventory" element={<AdminPermissionRoute permission="reports"><AdminInventoryReport /></AdminPermissionRoute>} />
                   <Route path="reports/topups" element={<AdminPermissionRoute permission="reports"><AdminTopupReport /></AdminPermissionRoute>} />
                   <Route path="reports/withdrawals" element={<AdminPermissionRoute permission="reports"><AdminWithdrawalReport /></AdminPermissionRoute>} />

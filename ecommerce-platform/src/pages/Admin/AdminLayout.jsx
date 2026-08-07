@@ -46,6 +46,7 @@ const sections = [
   {
     label: 'Reports',
     items: [
+      { to: '/admin/reports/campaigns', label: 'Campaign Performance', icon: Megaphone, permission: 'reports' },
       { to: '/admin/reports/inventory', label: 'Inventory Report', icon: Boxes, permission: 'reports' },
       { to: '/admin/reports/ordered', label: 'Ordered Report', icon: ClipboardList, permission: 'reports' },
       { to: '/admin/reports/sales', label: 'Sales Report', icon: FileChartColumn, permission: 'reports' },
