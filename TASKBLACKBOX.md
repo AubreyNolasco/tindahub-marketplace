@@ -1,5 +1,7 @@
 # Tasks for Blackbox — split from Claude's current work
 
+**Update 2026-08-07 (later same day): all three tasks below were completed by Claude directly** (owner asked Claude to take these over rather than wait, since no `blackboxai/...` branch for any of them existed yet). Nothing left here for Blackbox to pick up — see commit history on `main` from this point forward (`fix: root-cause and close the recurring demo-mode stuck-account incident`, `fix: force staff/admin write-attribution columns to auth.uid()`, `fix: mobile-responsive pass on Vouchers/CampaignPerformanceReport pages`) for what was done and why. Left the rest of this file as-is below for the record.
+
 Written by Claude on 2026-08-07 so Claude and Blackbox can work in parallel on this repo without colliding. Blackbox has a usage limit, so every task below is scoped to be self-contained — no need to read `TASK6.md`/`TASK7/`/`TASKS.md` in full first, the context you need is inline here.
 
 ## Ground rules (read first)
