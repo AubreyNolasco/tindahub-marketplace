@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Customer Storefront Ordering — Workflow</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #F5F8F6;
+    --panel: #FFFFFF;
+    --panel-inset: #EEF4F1;
+    --ink: #16211E;
+    --ink-soft: #4B5B56;
+    --ink-faint: #83938D;
+    --line: #DCE6E1;
+    --teal: #0F9D78;
+    --teal-ink: #0B7A5D;
+    --teal-soft: #E1F5EE;
+    --mango: #C97A12;
+    --mango-soft: #FBEEDA;
+    --coral: #C0472F;
+    --coral-soft: #FBE7E2;
+    --sans: "Segoe UI", ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono: "Cascadia Code", Consolas, ui-monospace, "SFMono-Regular", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0E1512;
+      --panel: #131C18;
+      --panel-inset: #182420;
+      --ink: #E8F1EC;
+      --ink-soft: #9FB3AB;
+      --ink-faint: #62766E;
+      --line: #24322C;
+      --teal: #38C79A;
+      --teal-ink: #7BE0BE;
+      --teal-soft: #12332A;
+      --mango: #E3A24C;
+      --mango-soft: #362A14;
+      --coral: #E28870;
+      --coral-soft: #3A1E17;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0E1512; --panel: #131C18; --panel-inset: #182420; --ink: #E8F1EC;
+    --ink-soft: #9FB3AB; --ink-faint: #62766E; --line: #24322C; --teal: #38C79A;
+    --teal-ink: #7BE0BE; --teal-soft: #12332A; --mango: #E3A24C; --mango-soft: #362A14;
+    --coral: #E28870; --coral-soft: #3A1E17;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.6;
+    padding: 32px 20px 80px;
+  }
+  main { max-width: 1080px; margin: 0 auto; }
+  h1 { font-size: 1.7rem; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .kicker { color: var(--teal-ink); font-weight: 700; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.14em; margin: 0 0 8px; }
+  .lede { color: var(--ink-soft); max-width: 720px; margin: 0 0 28px; font-size: 0.98rem; }
+  section { margin-bottom: 40px; }
+  h2 { font-size: 1.05rem; margin: 0 0 14px; display: flex; align-items: center; gap: 8px; }
+  h2 .num { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 7px; background: var(--teal-soft); color: var(--teal-ink); font-size: 0.75rem; font-weight: 800; }
+
+  /* Batch checklist */
+  .batches { display: grid; gap: 10px; }
+  .batch { display: flex; align-items: flex-start; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; }
+  .batch .badge { flex-shrink: 0; margin-top: 2px; width: 22px; height: 22px; border-radius: 999px; display: grid; place-items: center; font-size: 0.72rem; font-weight: 800; }
+  .badge.done { background: var(--teal-soft); color: var(--teal-ink); }
+  .badge.live { background: var(--mango-soft); color: var(--mango); }
+  .batch .txt b { font-size: 0.92rem; }
+  .batch .txt p { margin: 2px 0 0; color: var(--ink-soft); font-size: 0.85rem; }
+  .tag { display: inline-block; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 8px; border-radius: 999px; margin-left: 8px; vertical-align: middle; }
+  .tag.done { background: var(--teal-soft); color: var(--teal-ink); }
+  .tag.progress { background: var(--mango-soft); color: var(--mango); }
+
+  /* Diagram */
+  figure { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px; }
+  figure svg { width: 100%; height: auto; display: block; }
+  figcaption { color: var(--ink-faint); font-size: 0.8rem; margin-top: 12px; text-align: center; }
+
+  /* Bug cards */
+  .bugs { display: grid; gap: 12px; }
+  .bug { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .bug .row { display: flex; gap: 10px; align-items: baseline; font-size: 0.88rem; }
+  .bug .row + .row { margin-top: 6px; }
+  .bug .lbl { flex-shrink: 0; width: 54px; font-weight: 800; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; padding-top: 2px; }
+  .lbl.broke { color: var(--coral); }
+  .lbl.fix { color: var(--teal-ink); }
+  .bug .title { font-weight: 700; margin-bottom: 4px; }
+  code { font-family: var(--mono); font-size: 0.85em; background: var(--panel-inset); padding: 1px 6px; border-radius: 5px; }
+
+  .status { background: var(--teal-soft); border: 1px solid var(--teal); border-radius: 14px; padding: 16px 18px; color: var(--ink); }
+  .status b { color: var(--teal-ink); }
+
+  footer { color: var(--ink-faint); font-size: 0.78rem; text-align: center; margin-top: 48px; }
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker">TASK3 · Customer Storefront Ordering</p>
+  <h1>How this feature actually works, end to end</h1>
+  <p class="lede">One picture of the whole mechanism — from a customer tapping "Order" on a public storefront, through the Reseller's inbox, into the existing wallet-safe checkout. Below that: what's done, and the three real bugs the live click-through caught (and fixed) along the way.</p>
+
+  <section>
+    <h2><span class="num">1</span>Batch status</h2>
+    <div class="batches">
+      <div class="batch">
+        <div class="badge done">✓</div>
+        <div class="txt"><b>Batch 1 — Fix storefront slug fallback</b><span class="tag done">Done</span><p>Backfilled missing slugs, made the trigger self-healing on signup. Verified live: 0 resellers missing a slug.</p></div>
+      </div>
+      <div class="batch">
+        <div class="badge done">✓</div>
+        <div class="txt"><b>Batch 2 — <code>storefront_order_requests</code> table + RPC</b><span class="tag done">Done</span><p>New table, owner-only RLS, and the app's first anon-write RPC (validated + rate-limited). Verified live.</p></div>
+      </div>
+      <div class="batch">
+        <div class="badge done">✓</div>
+        <div class="txt"><b>Batch 3 — Storefront modal rework</b><span class="tag done">Done</span><p>Product detail → order form → confirmation, replacing the old contact-only modal. Live-clicked and confirmed.</p></div>
+      </div>
+      <div class="batch">
+        <div class="badge done">✓</div>
+        <div class="txt"><b>Batch 4 — Reseller "Customer Orders" inbox</b><span class="tag done">Done</span><p>Accept / Decline / Convert page, cart bridge, nav badge. Shipped, then hardened by 3 bugs the live test caught (below).</p></div>
+      </div>
+      <div class="batch">
+        <div class="badge live">●</div>
+        <div class="txt"><b>Batch 5 — End-to-end live verification</b><span class="tag progress">In progress</span><p>Live-clicking the full path in your own Chrome as an admin-in-reseller-mode account. Customer → request → accept → convert confirmed. Resuming now to finish Checkout → <code>converted</code>.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">2</span>The mechanism</h2>
+    <figure>
+      <svg viewBox="0 0 1180 470" role="img" aria-label="Flow: a customer submits a storefront order request, which the Reseller accepts and converts through the existing unchanged checkout RPC, which then marks the request converted.">
+        <defs>
+          <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+            <polygon points="0,0 9,4 0,8" fill="currentColor"/>
+          </marker>
+          <marker id="arrowTeal" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+            <polygon points="0,0 9,4 0,8" fill="#0F9D78"/>
+          </marker>
+        </defs>
+
+        <!-- Row 1 -->
+        <g font-family="Segoe UI, sans-serif">
+          <!-- A: Customer -->
+          <rect x="20" y="60" width="250" height="86" rx="14" fill="none" stroke="currentColor" stroke-width="1.4"/>
+          <text x="145" y="94" text-anchor="middle" font-size="13.5" font-weight="700" fill="currentColor">Customer</text>
+          <text x="145" y="114" text-anchor="middle" font-size="11" fill="currentColor" opacity="0.7">no account · public /store/:slug</text>
+          <text x="145" y="130" text-anchor="middle" font-size="11" fill="currentColor" opacity="0.7">taps product → order form</text>
+
+          <!-- arrow A->B -->
+          <line x1="270" y1="103" x2="320" y2="103" stroke="currentColor" stroke-width="1.4" marker-end="url(#arrow)"/>
+
+          <!-- B: RPC -->
+          <rect x="320" y="52" width="270" height="102" rx="14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="5 3"/>
+          <text x="455" y="82" text-anchor="middle" font-size="12.5" font-weight="700" fill="currentColor">RPC submit_storefront_​order_request</text>
+          <text x="455" y="102" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.7">anon + authenticated</text>
+          <text x="455" y="118" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.7">validates reseller/product/qty,</text>
+          <text x="455" y="134" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.7">sanitizes, rate-limits by IP</text>
+
+          <!-- arrow B->C -->
+          <line x1="590" y1="103" x2="640" y2="103" stroke="currentColor" stroke-width="1.4" marker-end="url(#arrow)"/>
+
+          <!-- C: table row -->
+          <rect x="640" y="60" width="250" height="86" rx="14" fill="#0F9D78" fill-opacity="0.08" stroke="#0F9D78" stroke-width="1.6"/>
+          <text x="765" y="90" text-anchor="middle" font-size="12.5" font-weight="700" fill="currentColor">storefront_order_requests</text>
+          <text x="765" y="110" text-anchor="middle" font-size="11" fill="currentColor" opacity="0.75">status: pending</text>
+          <text x="765" y="127" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.6">owner-only RLS, no direct insert</text>
+
+          <!-- arrow C->D -->
+          <line x1="890" y1="103" x2="940" y2="103" stroke="currentColor" stroke-width="1.4" marker-end="url(#arrow)"/>
+
+          <!-- D: Reseller inbox -->
+          <rect x="940" y="60" width="220" height="86" rx="14" fill="none" stroke="currentColor" stroke-width="1.4"/>
+          <text x="1050" y="90" text-anchor="middle" font-size="12.5" font-weight="700" fill="currentColor">Reseller Inbox</text>
+          <text x="1050" y="110" text-anchor="middle" font-size="11" fill="currentColor" opacity="0.7">"Customer Orders" page</text>
+          <text x="1050" y="127" text-anchor="middle" font-size="11" fill="currentColor" opacity="0.7">Accept / Decline</text>
+
+          <!-- Decline dead-end -->
+          <line x1="1050" y1="146" x2="1050" y2="180" stroke="currentColor" stroke-width="1.2" stroke-dasharray="3 3" marker-end="url(#arrow)"/>
+          <rect x="960" y="180" width="180" height="34" rx="10" fill="none" stroke="currentColor" stroke-width="1" opacity="0.6"/>
+          <text x="1050" y="202" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.7">status: declined (dead-end)</text>
+
+          <!-- elbow connector D -> E (row 2 start) -->
+          <path d="M 940 103 H 900 V 300 H 270" fill="none" stroke="currentColor" stroke-width="1.4" marker-end="url(#arrow)"/>
+          <text x="905" y="220" font-size="10.5" fill="currentColor" opacity="0.75" transform="rotate(90 905 220)" text-anchor="middle">accepted</text>
+
+          <!-- Row 2 -->
+          <!-- E: Convert -->
+          <rect x="20" y="257" width="250" height="86" rx="14" fill="none" stroke="currentColor" stroke-width="1.4"/>
+          <text x="145" y="287" text-anchor="middle" font-size="13" font-weight="700" fill="currentColor">Convert clicked</text>
+          <text x="145" y="307" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.7">find customer by phone, or</text>
+          <text x="145" y="322" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.7">complete address → create one</text>
+
+          <line x1="270" y1="300" x2="320" y2="300" stroke="currentColor" stroke-width="1.4" marker-end="url(#arrow)"/>
+
+          <!-- F: Cart -->
+          <rect x="320" y="257" width="250" height="86" rx="14" fill="none" stroke="currentColor" stroke-width="1.4"/>
+          <text x="445" y="287" text-anchor="middle" font-size="13" font-weight="700" fill="currentColor">Cart (/cart)</text>
+          <text x="445" y="307" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.7">CartContext.addItem()</text>
+          <text x="445" y="322" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.7">+ pending-conversion map</text>
+
+          <line x1="570" y1="300" x2="620" y2="300" stroke="currentColor" stroke-width="1.4" marker-end="url(#arrow)"/>
+
+          <!-- G: Checkout / unchanged RPC -->
+          <rect x="620" y="249" width="290" height="102" rx="14" fill="#0F9D78" fill-opacity="0.1" stroke="#0F9D78" stroke-width="2"/>
+          <text x="765" y="279" text-anchor="middle" font-size="12.5" font-weight="700" fill="currentColor">place_customer_receiver_​shipping_order</text>
+          <text x="765" y="299" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.75">wallet debit, escrow, fees</text>
+          <text x="765" y="315" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0F9D78">UNCHANGED — untouched by this feature</text>
+
+          <line x1="910" y1="300" x2="960" y2="300" stroke="currentColor" stroke-width="1.4" marker-end="url(#arrow)"/>
+
+          <!-- H: Order created -->
+          <rect x="960" y="257" width="200" height="86" rx="14" fill="none" stroke="currentColor" stroke-width="1.4"/>
+          <text x="1060" y="287" text-anchor="middle" font-size="13" font-weight="700" fill="currentColor">Order created</text>
+          <text x="1060" y="307" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.7">real order, money moved</text>
+
+          <!-- feedback arrow H -> C -->
+          <path d="M 1060 257 V 220 C 1060 190, 900 175, 765 175 C 630 175, 700 145, 700 146" fill="none" stroke="#0F9D78" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#arrowTeal)"/>
+          <text x="880" y="188" text-anchor="middle" font-size="10.5" fill="#0F9D78" font-weight="700">best-effort: status → converted</text>
+          <text x="880" y="202" text-anchor="middle" font-size="10" fill="#0F9D78" opacity="0.85">+ converted_customer_id / converted_order_id</text>
+        </g>
+      </svg>
+      <figcaption>Every hop before the teal box is new; the teal box is the existing wallet-safe order RPC, called exactly as it already is elsewhere — this feature only ever feeds it, never edits it.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2><span class="num">3</span>Bugs the live click-through caught</h2>
+    <p class="lede" style="margin-bottom:16px;">Build, lint, and tests all passed for Batch 4 before any of these were visible — none of them were the kind a test suite catches. All three only showed up once I actually clicked through the flow in your Chrome.</p>
+    <div class="bugs">
+      <div class="bug">
+        <div class="title">1 · Convert always failed — <code>customers.address</code> is validated on every insert</div>
+        <div class="row"><span class="lbl broke">Broke</span><span>A DB trigger requires any customer's address to already be in the "street, barangay, city, province" shape — a storefront customer's free-text address almost never matches that, so <em>every</em> real Convert would fail.</span></div>
+        <div class="row"><span class="lbl fix">Fixed</span><span>Convert now opens a small "complete the address" form (reusing the same address fields used elsewhere) only when needed, prefilled with what the customer already typed.</span></div>
+      </div>
+      <div class="bug">
+        <div class="title">2 · Convert added to cart, then landed on a 404</div>
+        <div class="row"><span class="lbl broke">Broke</span><span>Code navigated to <code>/reseller/cart</code>, but the Cart page is actually mounted at <code>/cart</code> — the item was added correctly, the Reseller just got a dead page right after.</span></div>
+        <div class="row"><span class="lbl fix">Fixed</span><span>Pointed the navigation at the real route.</span></div>
+      </div>
+      <div class="bug">
+        <div class="title">3 · Checkout crashed outright (pre-existing, unrelated to this feature)</div>
+        <div class="row"><span class="lbl broke">Broke</span><span>Checkout.jsx referenced two functions inside a <code>useEffect</code> dependency array before they were declared further down the file — a hard crash on every load, for any reseller, whenever the cart actually had items. This bug predates this feature; it just had never been reachable in earlier testing because the cart was never getting populated.</span></div>
+        <div class="row"><span class="lbl fix">Fixed</span><span>Reordered the declarations above the effect that uses them — no logic changed, purely a move.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">4</span>Where things stand right now</h2>
+    <div class="status">
+      <p style="margin:0 0 8px;"><b>In progress:</b> just fixed bug #3 above. Next: rebuild → lint → test → commit → push → wait for the CI + Vercel deploy → resume the live click-through in your Chrome from Checkout onward, to confirm the order actually places and the original request flips to <code>converted</code>.</p>
+      <p style="margin:0;">Everything up through "Convert → lands correctly in Cart" has already been confirmed live, in your own browser, on the real deployed site.</p>
+    </div>
+  </section>
+
+  <footer>Generated for TASK3.md · Customer Storefront Ordering — open this file directly in a browser to view.</footer>
+</main>
+</body>
+</html>

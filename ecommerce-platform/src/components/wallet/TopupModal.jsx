@@ -7,7 +7,20 @@ import { cleanText, compressImage, safeUploadPath, validateImage, validatePaymen
 import BankTransferQr from '../payment/BankTransferQr'
 import { ensurePaymentReferenceAvailable, paymentReferenceErrorMessage } from '../../lib/paymentReference'
 import { createPaymongoCheckout, isPaymongoEnabled } from '../../lib/services/paymongo'
+import { createMayaCheckout, isMayaEnabled } from '../../lib/services/maya'
+import { createStripeCheckout, isStripeEnabled } from '../../lib/services/stripe'
+import { createPaypalCheckout, isPaypalEnabled } from '../../lib/services/paypal'
 import { isGoogleDriveEnabled, uploadPaymentProofToGoogleDrive } from '../../lib/services/googleDriveUpload'
+
+// One entry per online gateway — each is purely additive and silently
+// disappears if that provider isn't configured, same fallback contract
+// PayMongo originally established.
+const ONLINE_PROVIDERS = [
+  { key: 'paymongo', label: 'PayMongo', isEnabled: isPaymongoEnabled, checkout: createPaymongoCheckout },
+  { key: 'maya', label: 'Maya', isEnabled: isMayaEnabled, checkout: createMayaCheckout },
+  { key: 'stripe', label: 'Stripe', isEnabled: isStripeEnabled, checkout: createStripeCheckout },
+  { key: 'paypal', label: 'PayPal', isEnabled: isPaypalEnabled, checkout: createPaypalCheckout },
+]
 
 export default function TopupModal({ open, onClose, onSubmitted }) {
   const { user } = useAuth()
@@ -17,29 +30,36 @@ export default function TopupModal({ open, onClose, onSubmitted }) {
   const [proofFile, setProofFile] = useState(null)
   const [proofPreview, setProofPreview] = useState(null)
   const [submitting, setSubmitting] = useState(false)
-  const [paymongoAvailable, setPaymongoAvailable] = useState(false)
-  const [payingOnline, setPayingOnline] = useState(false)
+  const [availableProviders, setAvailableProviders] = useState([])
+  const [payingProvider, setPayingProvider] = useState(null)
 
-  // Manual form below is always rendered regardless of this check — Pay
-  // Online is purely additive and silently disappears if PayMongo isn't
-  // configured (or the check itself fails), never blocking the existing flow.
+  // Manual form below is always rendered regardless of this check — every
+  // Pay Online button is purely additive and silently disappears if that
+  // provider isn't configured (or its check itself fails), never blocking
+  // the existing flow.
   useEffect(() => {
     if (!open) return
-    isPaymongoEnabled().then(setPaymongoAvailable).catch(() => setPaymongoAvailable(false))
+    let cancelled = false
+    Promise.all(
+      ONLINE_PROVIDERS.map((p) => p.isEnabled().then((ok) => (ok ? p.key : null)).catch(() => null))
+    ).then((results) => {
+      if (!cancelled) setAvailableProviders(results.filter(Boolean))
+    })
+    return () => { cancelled = true }
   }, [open])
 
   if (!open) return null
 
-  const payOnline = async () => {
+  const payOnline = async (provider) => {
     const numericAmount = Number(amount)
     if (!numericAmount || numericAmount <= 0) return toast.error('Enter a valid amount.')
-    setPayingOnline(true)
+    setPayingProvider(provider.key)
     try {
-      const { checkout_url: checkoutUrl } = await createPaymongoCheckout(numericAmount)
+      const { checkout_url: checkoutUrl } = await provider.checkout(numericAmount)
       window.location.href = checkoutUrl
     } catch (err) {
       toast.error(err.message === 'NOT_CONFIGURED' ? 'Online payment is unavailable right now — use the form below.' : (err.message || 'Could not start online payment. Use the form below.'))
-      setPayingOnline(false)
+      setPayingProvider(null)
     }
   }
 
@@ -135,17 +155,20 @@ export default function TopupModal({ open, onClose, onSubmitted }) {
             />
           </div>
 
-          {paymongoAvailable && (
+          {availableProviders.length > 0 && (
             <div className="space-y-3">
-              <button
-                type="button"
-                onClick={payOnline}
-                disabled={payingOnline}
-                className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {payingOnline ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
-                {payingOnline ? 'Redirecting to PayMongo...' : 'Pay Online (instant)'}
-              </button>
+              {ONLINE_PROVIDERS.filter((p) => availableProviders.includes(p.key)).map((provider) => (
+                <button
+                  key={provider.key}
+                  type="button"
+                  onClick={() => payOnline(provider)}
+                  disabled={!!payingProvider}
+                  className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {payingProvider === provider.key ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
+                  {payingProvider === provider.key ? `Redirecting to ${provider.label}...` : `Pay with ${provider.label} (instant)`}
+                </button>
+              ))}
               <div className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.14em] text-ink/35">
                 <span className="h-px flex-1 bg-black/10" />or pay manually<span className="h-px flex-1 bg-black/10" />
               </div>
