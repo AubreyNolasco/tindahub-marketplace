@@ -240,7 +240,7 @@ export default function AdminVouchers() {
             <label className="text-sm font-medium text-ink/65">Total use limit<input type="number" min="1" placeholder="Unlimited" className="input-field mt-1" value={editing.usage_limit} onChange={(e) => setEditing({ ...editing, usage_limit: e.target.value })} /></label>
             <label className="text-sm font-medium text-ink/65">Uses per customer<input required type="number" min="1" className="input-field mt-1" value={editing.usage_limit_per_user} onChange={(e) => setEditing({ ...editing, usage_limit_per_user: e.target.value })} /></label>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="text-sm font-medium text-ink/65">Starts<input required type="datetime-local" className="input-field mt-1 text-sm" value={editing.starts_at} onChange={(e) => setEditing({ ...editing, starts_at: e.target.value })} /></label>
             <label className="text-sm font-medium text-ink/65">Ends<input required type="datetime-local" className="input-field mt-1 text-sm" value={editing.ends_at} onChange={(e) => setEditing({ ...editing, ends_at: e.target.value })} /></label>
           </div>
