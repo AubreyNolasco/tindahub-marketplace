@@ -104,6 +104,8 @@ const LoginHistory = lazy(() => import('./pages/Admin/LoginHistory'))
 const ReviewsManagement = lazy(() => import('./pages/ReviewsManagement'))
 const AdminCampaigns = lazy(() => import('./pages/Admin/Campaigns'))
 const MerchantCampaigns = lazy(() => import('./pages/Merchant/Campaigns'))
+const AdminVouchers = lazy(() => import('./pages/Admin/Vouchers'))
+const MerchantVouchers = lazy(() => import('./pages/Merchant/Vouchers'))
 const ProfileAddress = lazy(() => import('./pages/ProfileAddress'))
 const AccountSettings = lazy(() => import('./pages/AccountSettings'))
 const AdminRegistrations = lazy(() => import('./pages/Admin/Registrations'))
@@ -208,6 +210,7 @@ export default function App() {
                   <Route path="products/:id/edit" element={<ProductForm />} />
                   <Route path="reviews" element={<ReviewsManagement />} />
                   <Route path="campaigns" element={<MerchantCampaigns />} />
+                  <Route path="vouchers" element={<MerchantVouchers />} />
                   <Route path="orders" element={<Orders />} />
                   <Route path="purchases" element={<Purchases />} />
                   <Route path="chats" element={<MerchantChats />} />
@@ -270,6 +273,7 @@ export default function App() {
                   <Route path="login-history" element={<AdminPermissionRoute permission="login_history"><LoginHistory /></AdminPermissionRoute>} />
                   <Route path="reviews" element={<AdminPermissionRoute permission="reviews"><ReviewsManagement admin /></AdminPermissionRoute>} />
                   <Route path="campaigns" element={<AdminPermissionRoute permission="campaigns"><AdminCampaigns /></AdminPermissionRoute>} />
+                  <Route path="vouchers" element={<AdminPermissionRoute permission="vouchers"><AdminVouchers /></AdminPermissionRoute>} />
                   <Route path="registrations" element={<AdminPermissionRoute permission="registrations"><AdminRegistrations /></AdminPermissionRoute>} />
                 </Route>
 

@@ -4,7 +4,7 @@ import {
   BarChart3, Boxes, Building2, CircleDollarSign,
   ClipboardList, CreditCard, FileChartColumn, FileDown,
   FileUp, FolderTree, House, IdCard, LayoutDashboard, LifeBuoy, Menu, MessageSquare,
-  Megaphone, PanelLeftClose, Presentation, ReceiptText, ShieldAlert, ShieldCheck, Star, UsersRound, WalletCards, X, History, CalendarDays, UserCog, Scale, BookOpenCheck, KeyRound, Activity, Workflow, Bug, Clock3, Truck, Plug
+  Megaphone, PanelLeftClose, Presentation, ReceiptText, ShieldAlert, ShieldCheck, Star, UsersRound, WalletCards, X, History, CalendarDays, UserCog, Scale, BookOpenCheck, KeyRound, Activity, Workflow, Bug, Clock3, Truck, Plug, Ticket
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { canAccessAdmin } from '../../config/adminPermissions'
@@ -57,6 +57,7 @@ const sections = [
     label: 'Content & Growth',
     items: [
       { to: '/admin/campaigns', label: 'Campaigns', icon: Megaphone, permission: 'campaigns' },
+      { to: '/admin/vouchers', label: 'Vouchers', icon: Ticket, permission: 'vouchers' },
       { to: '/admin/categories', label: 'Categories', icon: FolderTree, permission: 'categories' },
       { to: '/admin/homepage', label: 'Homepage', icon: House, permission: 'homepage' },
       { to: '/admin/registrations', label: 'Registration Calendar', icon: CalendarDays, permission: 'registrations' },

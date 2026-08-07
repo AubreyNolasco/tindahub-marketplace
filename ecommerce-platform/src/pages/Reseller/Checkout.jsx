@@ -24,6 +24,21 @@ const ERROR_MESSAGES = {
   NO_WALLET: 'No wallet was found for your account. Refresh the page or contact support.'
 }
 
+// Voucher error codes returned by resolve_voucher() -- surfaced next to
+// the code input via quote_order()'s voucher_error field, and reused
+// here for the rare race where place_order()'s re-validation (a code
+// that expired or hit its usage limit between quote and place) fails
+// instead.
+const VOUCHER_ERROR_MESSAGES = {
+  VOUCHER_NOT_FOUND: 'That voucher code doesn’t exist.',
+  VOUCHER_EXPIRED: 'That voucher isn’t active right now.',
+  VOUCHER_NOT_ELIGIBLE: 'That voucher doesn’t apply to the items in this cart.',
+  VOUCHER_MIN_SPEND_NOT_MET: 'Your order doesn’t meet this voucher’s minimum spend.',
+  VOUCHER_USAGE_LIMIT_REACHED: 'That voucher has reached its usage limit.',
+  VOUCHER_ALREADY_USED: 'You’ve already used that voucher.',
+  VOUCHER_INVALID: 'That voucher code is invalid.'
+}
+
 export default function Checkout() {
   const { merchantId } = useParams()
   const navigate = useNavigate()
@@ -49,6 +64,8 @@ export default function Checkout() {
   const [shippingAccepted, setShippingAccepted] = useState(false)
   const [quote, setQuote] = useState(null)
   const [quoteLoading, setQuoteLoading] = useState(false)
+  const [voucherInput, setVoucherInput] = useState('')
+  const [activeVoucherCode, setActiveVoucherCode] = useState(null)
 
   const loadMerchant = useCallback(async () => {
     const { data, error } = await supabase
@@ -93,10 +110,13 @@ export default function Checkout() {
     if (!merchantId || items.length === 0) return
     let active = true
     setQuoteLoading(true)
-    supabase.rpc('quote_order', { p_merchant_id: merchantId, p_items: items.map((item) => ({ product_id: item.product_id, quantity: item.quantity })), p_shipping_fee: 0 })
+    supabase.rpc('quote_order', { p_merchant_id: merchantId, p_items: items.map((item) => ({ product_id: item.product_id, quantity: item.quantity })), p_shipping_fee: 0, p_voucher_code: activeVoucherCode })
       .then(({ data, error }) => { if (!active) return; if (error) { setQuote(null); toast.error(`Unable to verify checkout price: ${error.message}`) } else setQuote(data); setQuoteLoading(false) })
     return () => { active = false }
-  }, [merchantId, items])
+  }, [merchantId, items, activeVoucherCode])
+
+  const applyVoucher = () => setActiveVoucherCode(voucherInput.trim().toUpperCase() || null)
+  const removeVoucher = () => { setVoucherInput(''); setActiveVoucherCode(null) }
 
   if (items.length === 0) {
     return (
@@ -144,10 +164,10 @@ export default function Checkout() {
       const rpc = customerId ? 'place_customer_receiver_shipping_order' : 'place_receiver_shipping_order'
       const params = customerId ? {
         p_merchant_id: merchantId, p_customer_id: customerId, p_shipping_address: address,
-        p_items: items.map((i) => ({ product_id: i.product_id, quantity: i.quantity }))
+        p_items: items.map((i) => ({ product_id: i.product_id, quantity: i.quantity })), p_voucher_code: activeVoucherCode
       } : {
         p_merchant_id: merchantId, p_shipping_address: address,
-        p_items: items.map((i) => ({ product_id: i.product_id, quantity: i.quantity }))
+        p_items: items.map((i) => ({ product_id: i.product_id, quantity: i.quantity })), p_voucher_code: activeVoucherCode
       }
       const { data: order, error } = await supabase.rpc(rpc, params)
 
@@ -174,7 +194,7 @@ export default function Checkout() {
       toast.success('Order placed! Product and system fees were charged to your wallet. Shipping will be paid upon delivery.')
       navigate(role === 'merchant' ? '/merchant/purchases' : '/reseller/orders')
     } catch (err) {
-      toast.error(ERROR_MESSAGES[err.message] || err.message || 'An error occurred during checkout.')
+      toast.error(ERROR_MESSAGES[err.message] || VOUCHER_ERROR_MESSAGES[err.message] || err.message || 'An error occurred during checkout.')
     } finally {
       setSubmitting(false)
     }
@@ -199,7 +219,24 @@ export default function Checkout() {
             ))}
             <div className="flex justify-between border-t border-black/5 pt-2 text-ink/60"><span>Shipping fee</span><span className="font-semibold text-mango-600">Pay upon delivery</span></div>
             {resellerOperationFee > 0 && <div className="flex justify-between text-ink/60"><span>{quote?.reseller_fee_percent || 1}% Reseller System Fee</span><span>{peso(resellerOperationFee)}</span></div>}
+            {quote?.voucher_valid && Number(quote.voucher_discount) > 0 && <div className="flex justify-between text-teal-700"><span>Voucher ({activeVoucherCode})</span><span>-{peso(quote.voucher_discount)}</span></div>}
             <div className="flex justify-between border-t border-black/5 pt-3 font-display text-lg font-bold text-ink"><span>Final amount to pay</span><span className="text-teal-700">{peso(total)}</span></div>
+          </div>
+
+          <div className="mt-4 border-t border-black/5 pt-4">
+            {activeVoucherCode ? (
+              <div className="flex items-center justify-between rounded-xl bg-surface-inset px-3 py-2.5 text-sm">
+                <span className="font-semibold text-ink">
+                  {quoteLoading ? `Checking ${activeVoucherCode}…` : quote?.voucher_valid ? <span className="text-teal-700">"{activeVoucherCode}" applied</span> : <span className="text-coral-600">{VOUCHER_ERROR_MESSAGES[quote?.voucher_error] || quote?.voucher_error || 'That voucher isn’t valid for this order.'}</span>}
+                </span>
+                <button type="button" onClick={removeVoucher} className="text-xs font-semibold text-ink/50 hover:underline">Remove</button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <input type="text" placeholder="Voucher code" className="input-field flex-1 text-sm uppercase" value={voucherInput} onChange={(e) => setVoucherInput(e.target.value)} />
+                <button type="button" disabled={!voucherInput.trim()} onClick={applyVoucher} className="btn-secondary px-4 text-sm">Apply</button>
+              </div>
+            )}
           </div>
           {resellerOperationFee > 0 && <p className="mt-3 text-xs leading-5 text-ink/50">Server-verified wholesale amount plus the system fee will be charged. The fee is capped from {peso(quote?.reseller_fee_minimum || 3)} to {peso(quote?.reseller_fee_maximum || 50)} per order. Earnings are not guaranteed.</p>}
           {role === 'reseller' && <div className={`mt-4 grid grid-cols-2 gap-3 rounded-xl p-4 ${estimatedProfit > 0 ? 'bg-mango-100/60 dark:bg-mango-500/10' : 'bg-coral-50 dark:bg-coral-500/10'}`}><div><p className="text-[10px] font-semibold uppercase tracking-wide text-ink/40">Your customer will pay</p><p className="mt-1 font-display text-lg font-bold text-ink">{peso(customerRevenue)}</p></div><div><p className="text-[10px] font-semibold uppercase tracking-wide text-ink/40">Estimated Reseller profit</p><p className={`mt-1 font-display text-lg font-bold ${estimatedProfit > 0 ? 'text-teal-700' : 'text-coral-600'}`}>{peso(estimatedProfit)}</p></div><p className="col-span-2 text-[10px] leading-4 text-ink/45">Cart estimate after the JOM HUB system fee, before delivery, marketing, returns, and taxes. The customer selling price is not charged by JOM HUB.</p></div>}
