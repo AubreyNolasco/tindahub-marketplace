@@ -53,8 +53,13 @@ export default function MarketplaceSlideshow({ campaignSlide, customSlides }) {
           <div className="relative max-w-md" style={{ color: slide.text_color || '#FFFFFF' }}>
             <p className="font-display text-2xl font-extrabold leading-tight sm:text-3xl">{slide.title}</p>
             {slide.text && <p className="mt-2 text-sm leading-6 opacity-90">{slide.text}</p>}
+            {/* Always-white button on a colored/image slide -- text
+                must stay a fixed dark color regardless of site theme,
+                not the theme-aware "ink" token (which turns light in
+                dark mode and disappears against this white
+                background). */}
             {slide.button_label && (
-              <Link to={slide.button_link || '/marketplace'} className="mt-4 inline-flex items-center rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-ink hover:opacity-90">
+              <Link to={slide.button_link || '/marketplace'} className="mt-4 inline-flex items-center rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-teal-900 hover:opacity-90">
                 {slide.button_label}
               </Link>
             )}
