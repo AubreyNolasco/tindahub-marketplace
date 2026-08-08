@@ -83,3 +83,11 @@ The owner shared a reference image (`JOM HUB Marketplace UI_UX Showcase.png`, pr
 - Rating filter: clicking "4★ & up" correctly applied a `Rating: 4★ & up` badge and kept all 6 products visible (every sample product genuinely has ≥4.0 average, so that's the correct result, not a no-op).
 - No console errors on any of the three pages.
 - One tooling hiccup during this verification pass: the screenshot capture tool returned blank frames partway through (unrelated to the app — confirmed by cross-checking the same page state with `get_page_text`, which returned full, correct content each time). Verification continued via text extraction and element-targeted interaction instead of fighting the screenshot tool further.
+
+## Business Panel dashboard: checked, already done — no changes made
+
+The last sequenced item was the Business Panel dashboard (mockup's "Welcome back, Aubrey!" panel: stat cards, sales chart, recent-orders table). Read `Merchant/MerchantDashboard.jsx` and `Reseller/ResellerDashboard.jsx` in full before touching anything, per this file's own "analyze first" convention — and found both already match the mockup's shape closely: a `PageHeader` welcome greeting, a 4-card `StatCard` grid (sales/wallet/orders/customers, the same layout the mockup shows), an `AnalyticsPanel` 14-day trend chart, and a recent-activity list using `Badge` for order status. This is leftover quality from `TASK2.md`'s prior "UI/UX Consistency Pass," not something this session built.
+
+Redesigning something that already matches would be pure duplicate effort for no visible improvement — skipped, not because the task was unimportant, but because it turned out to already be done. `Admin/AdminDashboard.jsx` wasn't checked the same way, since it serves a structurally different purpose (platform-wide oversight, not "my own store's sales") and isn't really the same page the mockup depicts.
+
+**This closes out the full sequence** from the reference mockup: Marketplace front page (banner/flash-sale/trust badges/categories), Product Detail, Category filter (rating), Store page, and Business Panel dashboard — five of five, with the honest exceptions recorded along the way (no followers feature, no category tree, mobile-width still unverified visually).
