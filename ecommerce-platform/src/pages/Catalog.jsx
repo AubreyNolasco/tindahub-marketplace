@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ChevronDown, Filter, PackageSearch, Search, SlidersHorizontal, Store, Tag, X } from 'lucide-react'
+import { Baby, Car, ChevronDown, Cookie, Dumbbell, Filter, Gem, Gift, Hammer, Home as HomeIcon, LayoutGrid, PackageSearch, Pill, Search, Shirt, SlidersHorizontal, Smartphone, Sparkles, Store, Tag, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 import ProductCard from '../components/product/ProductCard'
@@ -7,6 +7,27 @@ import EmptyState from '../components/ui/EmptyState'
 import Spinner from '../components/ui/Spinner'
 import { applyCampaignDiscount, getActiveCampaignDiscounts, getActiveCampaignProducts } from '../utils/campaigns'
 import { isStoreOpen } from '../utils/storeHours'
+
+// Keyword -> icon for the Shopee/Lazada-style category row. Purely
+// presentational (no schema change — `categories` has no icon column),
+// falls back to a generic grid icon for anything unmatched.
+const CATEGORY_ICON_RULES = [
+  [/electronic|gadget|phone|mobile|computer/i, Smartphone],
+  [/fashion|cloth|apparel|shoe|bag/i, Shirt],
+  [/beauty|cosmetic|skin|personal care/i, Sparkles],
+  [/health|wellness|vitamin|medicine|pharma/i, Pill],
+  [/home|furniture|kitchen|appliance/i, HomeIcon],
+  [/food|grocery|snack|beverage/i, Cookie],
+  [/baby|kid|toy/i, Baby],
+  [/sport|fitness|outdoor|gym/i, Dumbbell],
+  [/auto|motor|vehicle|car/i, Car],
+  [/tool|hardware|construction/i, Hammer],
+  [/jewel|watch|accessor/i, Gem],
+  [/gift|occasion|party/i, Gift],
+]
+function getCategoryIcon(name = '') {
+  return CATEGORY_ICON_RULES.find(([pattern]) => pattern.test(name))?.[1] || Tag
+}
 
 function FilterPanel({ categories, merchants, activeCategory, setActiveCategory, activeMerchant, setActiveMerchant, categorySearch, setCategorySearch, storeSearch, setStoreSearch, minPrice, setMinPrice, maxPrice, setMaxPrice, clearFilters, onClose }) {
   const visibleCategories = categories.filter((category) => category.name.toLowerCase().includes(categorySearch.toLowerCase()))
@@ -72,8 +93,31 @@ export default function Catalog() {
     query = sort === 'price_low' ? query.order('price', { ascending: true }) : sort === 'price_high' ? query.order('price', { ascending: false }) : sort === 'name' ? query.order('name', { ascending: true }) : query.order('created_at', { ascending: false })
     const { data, error } = await query.limit(200)
     if (error) toast.error(error.message)
-    const [campaignDiscounts, campaignProducts] = await Promise.all([getActiveCampaignDiscounts(), getActiveCampaignProducts()])
-    setProducts((data || []).filter(product => isStoreOpen(product.merchant_profiles)).map((product) => applyCampaignDiscount(product, campaignDiscounts, campaignProducts)))
+    const productIds = (data || []).map((product) => product.id)
+    // Rating/sold-count social proof for the Shopee/Lazada-style card —
+    // one bulk query each (join-not-loop), not one per product.
+    // product_reviews is already publicly readable; sold counts need the
+    // dedicated aggregate-only RPC since order_items itself is
+    // participant-scoped RLS.
+    const [campaignDiscounts, campaignProducts, reviewsResult, soldResult] = await Promise.all([
+      getActiveCampaignDiscounts(),
+      getActiveCampaignProducts(),
+      productIds.length ? supabase.from('product_reviews').select('product_id, rating').in('product_id', productIds) : Promise.resolve({ data: [] }),
+      productIds.length ? supabase.rpc('get_product_sold_counts', { p_product_ids: productIds }) : Promise.resolve({ data: [] }),
+    ])
+    const ratingsByProduct = {}
+    for (const review of reviewsResult.data || []) {
+      const bucket = (ratingsByProduct[review.product_id] ??= { sum: 0, count: 0 })
+      bucket.sum += review.rating
+      bucket.count += 1
+    }
+    const soldByProduct = Object.fromEntries((soldResult.data || []).map((row) => [row.product_id, row.sold_count]))
+    setProducts((data || []).filter(product => isStoreOpen(product.merchant_profiles)).map((product) => ({
+      ...applyCampaignDiscount(product, campaignDiscounts, campaignProducts),
+      avg_rating: ratingsByProduct[product.id] ? ratingsByProduct[product.id].sum / ratingsByProduct[product.id].count : 0,
+      review_count: ratingsByProduct[product.id]?.count || 0,
+      sold_count: soldByProduct[product.id] || 0,
+    })))
     setLoading(false)
   }, [activeCategory, activeMerchant, debouncedSearch, minPrice, maxPrice, sort])
 
@@ -87,6 +131,26 @@ export default function Catalog() {
 
   return <div className="min-h-screen bg-bg">
     <section className="relative overflow-hidden border-b border-teal-900/10 bg-gradient-to-br from-teal-950 via-teal-900 to-teal-700 text-white"><div className="pointer-events-none absolute -right-24 -top-32 h-80 w-80 rounded-full border-[55px] border-white/[0.04]" /><div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12"><div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-teal-100"><Store size={13} /> JOM HUB Marketplace</div><h1 className="mt-4 max-w-2xl font-display text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">Everything your business needs.</h1><p className="mt-3 max-w-xl text-sm leading-6 text-white/70 sm:text-base">Discover products from verified stores. Browse everything or use the filters to find the right match.</p><label className="relative mt-7 block max-w-3xl"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-teal-900/45" size={20} /><input className="w-full rounded-2xl border border-white/20 bg-surface py-4 pl-12 pr-12 text-sm text-ink shadow-xl shadow-black/10 outline-none transition placeholder:text-ink/35 focus:ring-4 focus:ring-white/20 sm:text-base" placeholder="Search products, stores, categories or SKU..." value={search} onChange={(e) => setSearch(e.target.value)} />{search && <button type="button" onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-ink/35 hover:bg-black/5"><X size={17} /></button>}</label></div></section>
+    {categories.length > 0 && (
+      <section className="border-b border-black/[0.06] bg-surface">
+        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-5">
+          <div className="flex gap-4 overflow-x-auto pb-1 sm:flex-wrap sm:justify-center sm:gap-6">
+            <button type="button" onClick={() => setActiveCategory(null)} className="flex shrink-0 flex-col items-center gap-1.5 text-center">
+              <span className={`grid h-12 w-12 place-items-center rounded-full transition sm:h-14 sm:w-14 ${!activeCategory ? 'bg-teal-600 text-white shadow-sm' : 'bg-teal-50 text-teal-700 hover:bg-teal-100'}`}><LayoutGrid size={20} /></span>
+              <span className={`text-[10px] font-semibold sm:text-xs ${!activeCategory ? 'text-teal-700' : 'text-ink/55'}`}>All</span>
+            </button>
+            {categories.map((category) => {
+              const Icon = getCategoryIcon(category.name)
+              const active = activeCategory === category.id
+              return <button key={category.id} type="button" onClick={() => setActiveCategory(category.id)} className="flex shrink-0 flex-col items-center gap-1.5 text-center">
+                <span className={`grid h-12 w-12 place-items-center rounded-full transition sm:h-14 sm:w-14 ${active ? 'bg-teal-600 text-white shadow-sm' : 'bg-teal-50 text-teal-700 hover:bg-teal-100'}`}><Icon size={20} /></span>
+                <span className={`max-w-[4.5rem] truncate text-[10px] font-semibold sm:max-w-[5.5rem] sm:text-xs ${active ? 'text-teal-700' : 'text-ink/55'}`}>{category.name}</span>
+              </button>
+            })}
+          </div>
+        </div>
+      </section>
+    )}
     {!activeCategory && !activeMerchant && !debouncedSearch && products.some((p) => p.campaign_discount_percent > 0) && (
       <section className="border-b border-black/[0.06] bg-gradient-to-br from-mango-50 to-white dark:from-mango-500/5 dark:to-transparent">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
@@ -100,7 +164,7 @@ export default function Catalog() {
     <div className="mx-auto max-w-7xl px-4 pt-5 sm:px-6 md:hidden"><button type="button" onClick={() => setFiltersOpen(true)} className="btn-secondary flex w-full items-center justify-center gap-2 shadow-sm"><Filter size={17} /> Filter products {activeFilterCount > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-teal-600 px-1 text-[10px] text-white">{activeFilterCount}</span>}</button></div>
 
     <div className="mx-auto grid max-w-7xl gap-5 px-2 py-6 sm:px-6 md:grid-cols-[240px_minmax(0,1fr)] lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-7 lg:py-8"><aside className="hidden overflow-hidden rounded-2xl border border-black/[0.06] bg-surface shadow-card md:sticky md:top-24 md:block md:h-[calc(100vh-7rem)]"><FilterPanel {...filterProps} /></aside><main className="min-w-0"><div className="mb-5 flex flex-col gap-3 px-2 sm:flex-row sm:items-center sm:justify-between sm:px-0"><div><h2 className="font-display text-xl font-bold text-ink">{activeMerchantName ? `${activeMerchantName} Products` : activeCategoryName ? `${activeCategoryName} Products` : 'All Products'}</h2><p className="mt-1 text-sm text-ink/50">{loading ? 'Loading products...' : `${products.length} product${products.length === 1 ? '' : 's'} found`}</p><div className="mt-2 flex flex-wrap gap-1.5">{activeCategoryName && <span className="badge bg-teal-50 text-teal-700">Category: {activeCategoryName}</span>}{activeMerchantName && <span className="badge bg-teal-50 text-teal-700">Store: {activeMerchantName}</span>}{(minPrice || maxPrice) && <span className="badge bg-teal-50 text-teal-700">Price: ₱{minPrice || '0'} – ₱{maxPrice || 'Any'}</span>}</div></div><label className="relative"><select value={sort} onChange={(e) => setSort(e.target.value)} className="input-field appearance-none py-2 pl-3 pr-9 text-sm"><option value="newest">Newest first</option><option value="price_low">Price: low to high</option><option value="price_high">Price: high to low</option><option value="name">Product name</option></select><ChevronDown size={15} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink/40" /></label></div>
-      {loading ? <div className="flex justify-center py-24"><Spinner /></div> : products.length === 0 ? <div className="rounded-2xl border border-black/[0.06] bg-surface"><EmptyState icon={PackageSearch} title="No products found" message="Try another product name, store, category, or price range." action={<button onClick={clearFilters} className="btn-primary">Clear filters</button>} /></div> : <div className="grid grid-cols-2 gap-2 min-[360px]:grid-cols-4 sm:grid-cols-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">{products.map((product) => <ProductCard key={product.id} product={product} />)}</div>}</main></div>
+      {loading ? <div className="flex justify-center py-24"><Spinner /></div> : products.length === 0 ? <div className="rounded-2xl border border-black/[0.06] bg-surface"><EmptyState icon={PackageSearch} title="No products found" message="Try another product name, store, category, or price range." action={<button onClick={clearFilters} className="btn-primary">Clear filters</button>} /></div> : <div className="grid grid-cols-2 gap-2 min-[360px]:grid-cols-4 sm:grid-cols-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">{products.map((product) => <ProductCard key={product.id} product={product} />)}</div>}</main></div>
 
     {filtersOpen && <div className="fixed inset-0 z-50 md:hidden"><button onClick={() => setFiltersOpen(false)} className="absolute inset-0 bg-scrim/50 backdrop-blur-sm" aria-label="Close filters" /><aside className="absolute bottom-0 left-0 top-0 w-[min(88vw,340px)] shadow-2xl"><FilterPanel {...filterProps} onClose={() => setFiltersOpen(false)} /></aside></div>}
   </div>

@@ -11,6 +11,12 @@ export function peso(amount) {
   return `₱${n.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
+// "1.2K sold" / "3.4M" style compact counts for marketplace social-proof
+// badges (product card sold count, review count).
+export function compactCount(amount) {
+  return new Intl.NumberFormat('en-PH', { notation: 'compact', maximumFractionDigits: 1 }).format(Number(amount || 0))
+}
+
 export function formatDate(dateStr) {
   if (!dateStr) return '—'
   return new Date(dateStr).toLocaleDateString('en-PH', {
