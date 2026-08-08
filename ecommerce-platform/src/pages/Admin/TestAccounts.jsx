@@ -1,14 +1,17 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ShieldAlert, Store, UserRound, Loader2, Trash2 } from 'lucide-react'
+import { ImagePlus, ShieldAlert, Store, UserRound, Loader2, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
+import { SAMPLE_PRODUCTS } from '../../config/sampleProducts'
 
 export default function TestAccounts() {
   const { refreshProfile } = useAuth()
   const [switching, setSwitching] = useState('')
   const [resetting, setResetting] = useState(false)
+  const [seedingSamples, setSeedingSamples] = useState(false)
+  const [deletingSamples, setDeletingSamples] = useState(false)
   const navigate = useNavigate()
 
   const switchTo = async (targetRole) => {
@@ -28,6 +31,28 @@ export default function TestAccounts() {
     setResetting(false)
     if (error) return toast.error(error.message)
     toast.success('Demo data cleared.')
+  }
+
+  // Adds/refreshes the standard sample catalog (photos, prices, a
+  // sold-count anchor, and one rating each) under the Admin Demo
+  // Merchant account, so anyone previewing the marketplace UI sees real
+  // product cards instead of an empty catalog. Safe to click repeatedly
+  // — existing sample products are updated in place, not duplicated.
+  const seedSamples = async () => {
+    setSeedingSamples(true)
+    const { data, error } = await supabase.rpc('admin_seed_sample_catalog', { p_products: SAMPLE_PRODUCTS })
+    setSeedingSamples(false)
+    if (error) return toast.error(error.message)
+    toast.success(`Samples ready: ${data.added} added, ${data.updated} refreshed, ${data.reviews_added} rating${data.reviews_added === 1 ? '' : 's'} seeded.`)
+  }
+
+  const deleteSamples = async () => {
+    if (!window.confirm('Remove all sample products (and their seeded ratings/sold history)? This cannot be undone.')) return
+    setDeletingSamples(true)
+    const { data, error } = await supabase.rpc('admin_delete_sample_catalog')
+    setDeletingSamples(false)
+    if (error) return toast.error(error.message)
+    toast.success(`Removed ${data.products_deleted} sample product${data.products_deleted === 1 ? '' : 's'}.`)
   }
 
   return (
@@ -90,6 +115,44 @@ export default function TestAccounts() {
           {resetting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
           Delete demo data (orders, products, customers, wallet history)
         </button>
+      </div>
+
+      <div className="mt-8">
+        <h2 className="mb-3 font-display font-bold text-ink">Sample catalog</h2>
+        <p className="mb-4 text-xs text-ink/50">
+          Populates the Admin Demo Merchant's store with {SAMPLE_PRODUCTS.length} sample products (real
+          photos, prices, a sold-count badge, and one rating each) so the marketplace catalog isn't
+          empty when previewing UI changes. Safe to run again anytime — existing samples are refreshed
+          in place, not duplicated.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <button
+            onClick={seedSamples}
+            disabled={seedingSamples || deletingSamples}
+            className="card group flex items-center gap-3 p-5 text-left hover:border-teal-100 disabled:opacity-50"
+          >
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-teal-100 text-teal-700">
+              {seedingSamples ? <Loader2 size={20} className="animate-spin" /> : <ImagePlus size={20} />}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-bold text-ink">Add / Refresh Samples</p>
+              <p className="text-xs text-ink/50">Loads {SAMPLE_PRODUCTS.length} sample products with photos</p>
+            </div>
+          </button>
+          <button
+            onClick={deleteSamples}
+            disabled={seedingSamples || deletingSamples}
+            className="card group flex items-center gap-3 p-5 text-left hover:border-coral-200 disabled:opacity-50"
+          >
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-coral-100 text-coral-600">
+              {deletingSamples ? <Loader2 size={20} className="animate-spin" /> : <Trash2 size={20} />}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-bold text-ink">Delete Samples</p>
+              <p className="text-xs text-ink/50">Removes sample products and their ratings/sold history</p>
+            </div>
+          </button>
+        </div>
       </div>
     </div>
   )
