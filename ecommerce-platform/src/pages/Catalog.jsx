@@ -41,12 +41,35 @@ function getCategoryIcon(name = '') {
 }
 
 function FilterPanel({ categories, merchants, activeCategory, setActiveCategory, activeMerchant, setActiveMerchant, categorySearch, setCategorySearch, storeSearch, setStoreSearch, minPrice, setMinPrice, maxPrice, setMaxPrice, minRating, setMinRating, clearFilters, onClose }) {
-  const visibleCategories = categories.filter((category) => category.name.toLowerCase().includes(categorySearch.toLowerCase()))
+  const [expanded, setExpanded] = useState({})
+  const search = categorySearch.toLowerCase()
+  const categoryTree = categories
+    .filter((category) => !category.parent_id)
+    .map((parent) => ({
+      ...parent,
+      children: categories.filter((c) => c.parent_id === parent.id && (!search || c.name.toLowerCase().includes(search))),
+    }))
+    .filter((parent) => !search || parent.name.toLowerCase().includes(search) || parent.children.length > 0)
   const visibleMerchants = merchants.filter((merchant) => merchant.business_name.toLowerCase().includes(storeSearch.toLowerCase()))
   return <div className="flex h-full flex-col bg-surface">
     <div className="flex items-center justify-between border-b border-black/5 px-5 py-4"><div className="flex items-center gap-2"><SlidersHorizontal size={18} className="text-teal-600" /><h2 className="font-display font-bold text-ink">Filters</h2></div>{onClose && <button onClick={onClose} className="rounded-lg p-1.5 text-ink/45 hover:bg-black/5"><X size={19} /></button>}</div>
     <div className="flex-1 divide-y divide-black/5 overflow-y-auto">
-      <section className="p-5"><div className="mb-3 flex items-center justify-between"><h3 className="text-xs font-bold uppercase tracking-[0.14em] text-ink/45">Categories</h3>{activeCategory && <button onClick={() => setActiveCategory(null)} className="text-[11px] font-semibold text-teal-700">Clear</button>}</div><label className="relative block"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink/30" /><input value={categorySearch} onChange={(e) => setCategorySearch(e.target.value)} className="input-field py-2 pl-9 text-xs" placeholder="Search category" /></label><div className="mt-3 space-y-1"><button onClick={() => setActiveCategory(null)} className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm ${!activeCategory ? 'bg-teal-50 font-semibold text-teal-800' : 'text-ink/60 hover:bg-black/[0.03]'}`}><span>All categories</span>{!activeCategory && <span className="h-2 w-2 rounded-full bg-teal-500" />}</button>{visibleCategories.map((category) => <button key={category.id} onClick={() => setActiveCategory(category.id)} className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm ${activeCategory === category.id ? 'bg-teal-50 font-semibold text-teal-800' : 'text-ink/60 hover:bg-black/[0.03]'}`}><span className="truncate">{category.name}</span>{activeCategory === category.id && <span className="h-2 w-2 rounded-full bg-teal-500" />}</button>)}{visibleCategories.length === 0 && <p className="px-3 py-3 text-xs text-ink/40">No matching category</p>}</div></section>
+      <section className="p-5"><div className="mb-3 flex items-center justify-between"><h3 className="text-xs font-bold uppercase tracking-[0.14em] text-ink/45">Categories</h3>{activeCategory && <button onClick={() => setActiveCategory(null)} className="text-[11px] font-semibold text-teal-700">Clear</button>}</div><label className="relative block"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink/30" /><input value={categorySearch} onChange={(e) => setCategorySearch(e.target.value)} className="input-field py-2 pl-9 text-xs" placeholder="Search category" /></label><div className="mt-3 space-y-1">
+        <button onClick={() => setActiveCategory(null)} className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm ${!activeCategory ? 'bg-teal-50 font-semibold text-teal-800' : 'text-ink/60 hover:bg-black/[0.03]'}`}><span>All categories</span>{!activeCategory && <span className="h-2 w-2 rounded-full bg-teal-500" />}</button>
+        {categoryTree.map((category) => {
+          const isExpanded = expanded[category.id] || (search && category.children.length > 0)
+          return <div key={category.id}>
+            <div className={`flex w-full items-center rounded-lg text-left text-sm ${activeCategory === category.id ? 'bg-teal-50 font-semibold text-teal-800' : 'text-ink/60 hover:bg-black/[0.03]'}`}>
+              <button onClick={() => setActiveCategory(category.id)} className="flex flex-1 items-center justify-between px-3 py-2"><span className="truncate">{category.name}</span>{activeCategory === category.id && <span className="h-2 w-2 rounded-full bg-teal-500" />}</button>
+              {category.children.length > 0 && <button onClick={() => setExpanded((e) => ({ ...e, [category.id]: !e[category.id] }))} className="px-2 py-2 text-ink/40" aria-label={isExpanded ? `Collapse ${category.name}` : `Expand ${category.name}`}><ChevronDown size={14} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} /></button>}
+            </div>
+            {isExpanded && category.children.length > 0 && <div className="ml-4 mt-1 space-y-1 border-l border-black/10 pl-3">
+              {category.children.map((child) => <button key={child.id} onClick={() => setActiveCategory(child.id)} className={`flex w-full items-center justify-between rounded-lg px-3 py-1.5 text-left text-xs ${activeCategory === child.id ? 'bg-teal-50 font-semibold text-teal-800' : 'text-ink/55 hover:bg-black/[0.03]'}`}><span className="truncate">{child.name}</span>{activeCategory === child.id && <span className="h-2 w-2 rounded-full bg-teal-500" />}</button>)}
+            </div>}
+          </div>
+        })}
+        {categoryTree.length === 0 && <p className="px-3 py-3 text-xs text-ink/40">No matching category</p>}
+      </div></section>
 
       <section className="p-5"><div className="mb-3 flex items-center justify-between"><h3 className="text-xs font-bold uppercase tracking-[0.14em] text-ink/45">Stores</h3>{activeMerchant && <button onClick={() => setActiveMerchant(null)} className="text-[11px] font-semibold text-teal-700">Clear</button>}</div><label className="relative block"><Store size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink/30" /><input value={storeSearch} onChange={(e) => setStoreSearch(e.target.value)} className="input-field py-2 pl-9 text-xs" placeholder="Search store name" /></label><div className="mt-3 space-y-1"><button onClick={() => setActiveMerchant(null)} className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm ${!activeMerchant ? 'bg-teal-50 font-semibold text-teal-800' : 'text-ink/60 hover:bg-black/[0.03]'}`}><span>All stores</span>{!activeMerchant && <span className="h-2 w-2 rounded-full bg-teal-500" />}</button>{visibleMerchants.map((merchant) => <button key={merchant.id} onClick={() => setActiveMerchant(merchant.id)} className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm ${activeMerchant === merchant.id ? 'bg-teal-50 font-semibold text-teal-800' : 'text-ink/60 hover:bg-black/[0.03]'}`}><span className="truncate">{merchant.business_name}</span>{activeMerchant === merchant.id && <span className="h-2 w-2 rounded-full bg-teal-500" />}</button>)}{visibleMerchants.length === 0 && <p className="px-3 py-3 text-xs text-ink/40">No matching store</p>}</div></section>
 
@@ -80,7 +103,14 @@ export default function Catalog() {
   const loadProducts = useCallback(async () => {
     setLoading(true)
     let query = supabase.from('products').select('*, merchant_profiles(business_name,store_open_time,store_close_time,auto_pause_outside_hours,store_timezone)').eq('is_active', true)
-    if (activeCategory) query = query.eq('category_id', activeCategory)
+    if (activeCategory) {
+      // A parent category with subcategories matches products filed
+      // directly under it OR under any of its (one-level-deep) children —
+      // otherwise selecting "Electronics" would show nothing if every
+      // product were actually tagged under "Electronics > Phones".
+      const childIds = categories.filter((c) => c.parent_id === activeCategory).map((c) => c.id)
+      query = childIds.length ? query.in('category_id', [activeCategory, ...childIds]) : query.eq('category_id', activeCategory)
+    }
     if (activeMerchant) query = query.eq('merchant_id', activeMerchant)
     if (debouncedSearch) {
       const searchTerm = debouncedSearch.replace(/[^\p{L}\p{N}\s-]/gu, ' ').replace(/\s+/g, ' ').trim().slice(0, 100)
@@ -133,7 +163,7 @@ export default function Catalog() {
       sold_count: soldByProduct[product.id] || 0,
     })))
     setLoading(false)
-  }, [activeCategory, activeMerchant, debouncedSearch, minPrice, maxPrice, sort])
+  }, [activeCategory, activeMerchant, debouncedSearch, minPrice, maxPrice, sort, categories])
 
   useEffect(() => { loadProducts() }, [loadProducts])
 
@@ -161,7 +191,7 @@ export default function Catalog() {
               <span className={`grid h-12 w-12 place-items-center rounded-full transition sm:h-14 sm:w-14 ${!activeCategory ? 'bg-teal-600 text-white shadow-sm' : 'bg-teal-50 text-teal-700 hover:bg-teal-100'}`}><LayoutGrid size={20} /></span>
               <span className={`text-[10px] font-semibold sm:text-xs ${!activeCategory ? 'text-teal-700' : 'text-ink/55'}`}>All</span>
             </button>
-            {categories.map((category) => {
+            {categories.filter((category) => !category.parent_id).map((category) => {
               const Icon = getCategoryIcon(category.name)
               const active = activeCategory === category.id
               return <button key={category.id} type="button" onClick={() => setActiveCategory(category.id)} className="flex shrink-0 flex-col items-center gap-1.5 text-center">
