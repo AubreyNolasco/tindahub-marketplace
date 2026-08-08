@@ -1,18 +1,30 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ImagePlus, ShieldAlert, Store, UserRound, Loader2, Trash2 } from 'lucide-react'
+import { ImagePlus, ShieldAlert, Store, UserRound, Loader2, Trash2, Eye, EyeOff } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { SAMPLE_PRODUCTS } from '../../config/sampleProducts'
 
 export default function TestAccounts() {
-  const { refreshProfile } = useAuth()
+  const { user, refreshProfile } = useAuth()
   const [switching, setSwitching] = useState('')
   const [resetting, setResetting] = useState(false)
   const [seedingSamples, setSeedingSamples] = useState(false)
   const [deletingSamples, setDeletingSamples] = useState(false)
+  const [samplesVisible, setSamplesVisible] = useState(null)
+  const [togglingVisibility, setTogglingVisibility] = useState(false)
   const navigate = useNavigate()
+
+  // Read current state directly from the same is_active flag the
+  // toggle itself flips -- no separate "visibility" table to drift
+  // out of sync with reality.
+  useEffect(() => {
+    if (!user) return
+    supabase.from('products').select('is_active').eq('merchant_id', user.id).like('sku', 'JOM-SAMPLE-%').limit(1).then(({ data }) => {
+      if (data?.length) setSamplesVisible(data[0].is_active)
+    })
+  }, [user])
 
   const switchTo = async (targetRole) => {
     setSwitching(targetRole)
@@ -53,6 +65,21 @@ export default function TestAccounts() {
     setDeletingSamples(false)
     if (error) return toast.error(error.message)
     toast.success(`Removed ${data.products_deleted} sample product${data.products_deleted === 1 ? '' : 's'}.`)
+  }
+
+  // On/off without deleting anything -- flips the same is_active flag
+  // Catalog.jsx/MerchantStore.jsx/ResellerStorefront.jsx/
+  // get_clinic_merchants_with_services() already filter on, so
+  // Reseller/Merchant simply stop seeing sample data while it's off,
+  // then see the exact same rows again once switched back on.
+  const toggleVisibility = async () => {
+    const next = !samplesVisible
+    setTogglingVisibility(true)
+    const { data, error } = await supabase.rpc('admin_toggle_sample_visibility', { p_visible: next })
+    setTogglingVisibility(false)
+    if (error) return toast.error(error.message)
+    setSamplesVisible(next)
+    toast.success(next ? `Samples shown (${data.products_updated} products, ${data.services_updated} services).` : `Samples hidden (${data.products_updated} products, ${data.services_updated} services).`)
   }
 
   return (
@@ -125,6 +152,24 @@ export default function TestAccounts() {
           empty when previewing UI changes. Safe to run again anytime — existing samples are refreshed
           in place, not duplicated.
         </p>
+
+        {samplesVisible !== null && (
+          <button
+            onClick={toggleVisibility}
+            disabled={togglingVisibility}
+            className={`mb-4 flex w-full items-center gap-3 rounded-xl border p-4 text-left transition disabled:opacity-50 ${samplesVisible ? 'border-teal-200 bg-teal-50' : 'border-black/[0.06] bg-surface-inset'}`}
+          >
+            <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${samplesVisible ? 'bg-teal-100 text-teal-700' : 'bg-black/[0.04] text-ink/40'}`}>
+              {togglingVisibility ? <Loader2 size={20} className="animate-spin" /> : samplesVisible ? <Eye size={20} /> : <EyeOff size={20} />}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-bold text-ink">Samples are {samplesVisible ? 'visible' : 'hidden'} to Reseller/Merchant</p>
+              <p className="text-xs text-ink/50">{samplesVisible ? 'Turn off before launch to hide sample products and services without deleting them.' : 'Turn on to show sample products and services again — nothing was deleted.'}</p>
+            </div>
+            <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${samplesVisible ? 'bg-teal-600 text-white' : 'bg-black/10 text-ink/50'}`}>{samplesVisible ? 'ON' : 'OFF'}</span>
+          </button>
+        )}
+
         <div className="grid gap-3 sm:grid-cols-2">
           <button
             onClick={seedSamples}
