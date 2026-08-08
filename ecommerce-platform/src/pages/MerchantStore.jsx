@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Store, Package, MessageCircle, Tag, BadgeCheck, ShieldCheck, Truck, Award } from 'lucide-react'
+import { Store, Package, MessageCircle, Tag, BadgeCheck, ShieldCheck, Truck, Award, Heart } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
@@ -25,18 +25,22 @@ export default function MerchantStore() {
   const [merchant, setMerchant] = useState(null)
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [followStats, setFollowStats] = useState({ follower_count: 0, is_following: false })
+  const [followBusy, setFollowBusy] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
-    const [{ data: m, error: merchantErr }, { data: p, error: productsErr }, discounts, campaignProducts] = await Promise.all([
+    const [{ data: m, error: merchantErr }, { data: p, error: productsErr }, discounts, campaignProducts, followResult] = await Promise.all([
       supabase.from('merchant_profiles').select('id,business_name,business_description,status,created_at').eq('id', id).maybeSingle(),
       supabase.from('products').select('*, merchant_profiles(business_name)').eq('merchant_id', id).eq('is_active', true),
       getActiveCampaignDiscounts(),
-      getActiveCampaignProducts()
+      getActiveCampaignProducts(),
+      supabase.rpc('get_merchant_follow_stats', { p_merchant_id: id })
     ])
     if (merchantErr) toast.error(merchantErr.message)
     if (productsErr) toast.error(productsErr.message)
     setMerchant(m)
+    if (followResult.data?.[0]) setFollowStats(followResult.data[0])
 
     const productIds = (p || []).map((product) => product.id)
     const [reviewsResult, soldResult] = await Promise.all([
@@ -60,6 +64,21 @@ export default function MerchantStore() {
   }, [id])
 
   useEffect(() => { load() }, [load])
+
+  const toggleFollow = async () => {
+    if (followBusy) return
+    setFollowBusy(true)
+    const previous = followStats
+    setFollowStats((s) => ({ follower_count: s.follower_count + (s.is_following ? -1 : 1), is_following: !s.is_following }))
+    const { data, error } = await supabase.rpc('toggle_merchant_follow', { p_merchant_id: id })
+    if (error) {
+      toast.error(error.message)
+      setFollowStats(previous)
+    } else {
+      toast.success(data ? 'Following this store.' : 'Unfollowed this store.')
+    }
+    setFollowBusy(false)
+  }
 
   const storeRating = useMemo(() => {
     const withReviews = products.filter((p) => p.review_count > 0)
@@ -85,14 +104,23 @@ export default function MerchantStore() {
                   {storeRating.count > 0 ? <span className="flex items-center gap-1.5"><StarRating value={storeRating.average} size={14} />{storeRating.average.toFixed(1)} ({storeRating.count} review{storeRating.count === 1 ? '' : 's'})</span> : <span>No ratings yet</span>}
                   <span className="text-white/40">·</span>
                   <span>{products.length} product{products.length === 1 ? '' : 's'}</span>
+                  <span className="text-white/40">·</span>
+                  <span>{followStats.follower_count} follower{followStats.follower_count === 1 ? '' : 's'}</span>
                 </div>
               </div>
             </div>
-            {user && user.id !== id && (role === 'reseller' || role === 'merchant') && (
-              <Link to={`/${role}/chats/${id}`} className="flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-teal-800 transition hover:bg-white/90">
-                <MessageCircle size={16} /> Chat
-              </Link>
-            )}
+            <div className="flex items-center gap-2">
+              {role === 'reseller' && user && user.id !== id && (
+                <button onClick={toggleFollow} disabled={followBusy} className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition ${followStats.is_following ? 'bg-white/15 text-white hover:bg-white/25' : 'bg-white text-teal-800 hover:bg-white/90'}`}>
+                  <Heart size={16} className={followStats.is_following ? 'fill-current' : ''} /> {followStats.is_following ? 'Following' : 'Follow'}
+                </button>
+              )}
+              {user && user.id !== id && (role === 'reseller' || role === 'merchant') && (
+                <Link to={`/${role}/chats/${id}`} className="flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-teal-800 transition hover:bg-white/90">
+                  <MessageCircle size={16} /> Chat
+                </Link>
+              )}
+            </div>
           </div>
           <div className="mt-6 flex flex-wrap gap-3">
             {STORE_BADGES.map(({ icon: Icon, text }) => <span key={text} className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/85"><Icon size={14} />{text}</span>)}
