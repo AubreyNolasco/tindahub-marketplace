@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { ShoppingCart, House, Route, Store, UsersRound, Handshake, Star, HelpCircle, LogOut, ChevronDown, LayoutDashboard, Package, ShieldCheck, Menu, X, Sun, Moon, UserRound, LifeBuoy } from 'lucide-react'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { ShoppingCart, House, Route, Store, UsersRound, Handshake, Star, HelpCircle, LogOut, ChevronDown, LayoutDashboard, Package, ShieldCheck, Menu, X, Sun, Moon, UserRound, LifeBuoy, Search } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useCart } from '../../contexts/CartContext'
 import { getAdminHomePath } from '../../config/adminPermissions'
@@ -23,6 +23,7 @@ export default function Navbar() {
   const { totalCount } = useCart()
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [menuOpen, setMenuOpen] = useState(false)
   const [accountMenuOpen, setAccountMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
@@ -30,6 +31,13 @@ export default function Navbar() {
   const accountMenuRef = useRef(null)
   const customerStorefront = pathname.startsWith('/store/') || pathname.startsWith('/reseller-store/')
   const isMarketplace = pathname === '/marketplace'
+  const [marketplaceSearch, setMarketplaceSearch] = useState(searchParams.get('q') || '')
+  const updateMarketplaceSearch = (value) => {
+    setMarketplaceSearch(value)
+    const next = new URLSearchParams(searchParams)
+    if (value) next.set('q', value); else next.delete('q')
+    setSearchParams(next, { replace: true })
+  }
   const dashLink = ['admin', 'staff'].includes(role) ? getAdminHomePath(profile) : role === 'merchant' ? '/merchant' : '/reseller'
   const dashLabel = DASHBOARD_LABELS[role] || 'Dashboard'
   const firstName = typeof profile?.full_name === 'string' ? profile.full_name.split(' ')[0] : 'Account'
@@ -80,7 +88,22 @@ export default function Navbar() {
             in-header, category shortcuts) — the marketing anchor links
             don't apply there. Every other page, including the landing
             page itself when logged in, keeps this row unchanged. */}
-        {!isMarketplace && (
+        {isMarketplace ? (
+          <label className="relative mx-2 hidden max-w-xl flex-1 sm:block">
+            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink/35" />
+            <input
+              value={marketplaceSearch}
+              onChange={(e) => updateMarketplaceSearch(e.target.value)}
+              placeholder="Search products, stores, services..."
+              className="w-full rounded-full border border-black/[0.08] bg-white/80 py-2.5 pl-10 pr-9 text-sm text-ink outline-none transition placeholder:text-ink/35 focus:ring-2 focus:ring-teal-200 dark:border-white/10 dark:bg-slate-900/70 dark:text-slate-100"
+            />
+            {marketplaceSearch && (
+              <button type="button" onClick={() => updateMarketplaceSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1 text-ink/35 hover:bg-black/5" aria-label="Clear search">
+                <X size={15} />
+              </button>
+            )}
+          </label>
+        ) : (
           <nav className="hidden items-center gap-0.5 rounded-full border border-black/[0.05] bg-white/70 p-1.5 text-sm font-semibold text-ink/70 shadow-sm xl:flex dark:border-white/10 dark:bg-slate-900/70 dark:text-slate-200">
             {NAV_LINKS.map(({ id, label, icon: Icon }) => (
               <a key={id} href={`/#${id}`} onClick={goToSection(id)} className="flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-2 transition hover:bg-surface hover:text-teal-700 hover:shadow-sm dark:hover:bg-slate-800">
@@ -164,6 +187,17 @@ export default function Navbar() {
 
       {menuOpen && (
         <nav className="max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-black/5 bg-surface px-3 py-3 text-sm font-medium text-ink/70 shadow-lg xl:hidden dark:border-white/10 dark:bg-slate-900 sm:px-6">
+          {isMarketplace && (
+            <label className="relative mb-2 block sm:hidden">
+              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink/35" />
+              <input
+                value={marketplaceSearch}
+                onChange={(e) => updateMarketplaceSearch(e.target.value)}
+                placeholder="Search products, stores, services..."
+                className="input-field w-full py-2.5 pl-10 pr-3 text-sm"
+              />
+            </label>
+          )}
           {!isMarketplace && NAV_LINKS.map(({ id, label, icon: Icon }) => (
             <a key={id} href={`/#${id}`} onClick={goToSection(id)} className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600">
               <Icon size={17} /> {label}

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Baby, BadgeCheck, Car, ChevronDown, Cookie, Dumbbell, Filter, Gem, Gift, Hammer, Home as HomeIcon, LayoutGrid, PackageSearch, Pill, Search, ShieldCheck, Shirt, SlidersHorizontal, Smartphone, Sparkles, Store, Tag, Truck, X, Zap } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
@@ -82,12 +83,17 @@ function FilterPanel({ categories, merchants, activeCategory, setActiveCategory,
 }
 
 export default function Catalog() {
+  // The search box itself now lives in Navbar.jsx's header, shown only on
+  // /marketplace -- synced here through the URL's ?q= param instead of a
+  // new shared context, since both components already re-render on route
+  // changes and this keeps the search term shareable/bookmarkable too.
+  const [searchParams] = useSearchParams()
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [merchants, setMerchants] = useState([])
   const [activeCategory, setActiveCategory] = useState(null)
   const [activeMerchant, setActiveMerchant] = useState(null)
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(searchParams.get('q') || '')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [categorySearch, setCategorySearch] = useState('')
   const [storeSearch, setStoreSearch] = useState('')
@@ -99,6 +105,7 @@ export default function Catalog() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => { Promise.all([supabase.from('categories').select('*').order('name'), supabase.from('merchant_profiles').select('id,business_name').eq('status', 'approved').order('business_name')]).then(([categoryResult, merchantResult]) => { if (categoryResult.error || merchantResult.error) toast.error(categoryResult.error?.message || merchantResult.error?.message); setCategories(categoryResult.data || []); setMerchants(merchantResult.data || []) }) }, [])
+  useEffect(() => { setSearch(searchParams.get('q') || '') }, [searchParams])
   useEffect(() => { const timer = setTimeout(() => setDebouncedSearch(search.trim()), 300); return () => clearTimeout(timer) }, [search])
   const loadProducts = useCallback(async () => {
     setLoading(true)
@@ -182,7 +189,6 @@ export default function Catalog() {
   const soonestEndsAt = useMemo(() => discountedProducts.map((p) => p.campaign_ends_at).filter(Boolean).sort()[0], [discountedProducts])
 
   return <div className="min-h-screen bg-bg">
-    <section className="relative overflow-hidden border-b border-teal-900/10 bg-gradient-to-br from-teal-950 via-teal-900 to-teal-700 text-white"><div className="pointer-events-none absolute -right-24 -top-32 h-80 w-80 rounded-full border-[55px] border-white/[0.04]" /><div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12"><div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-teal-100"><Store size={13} /> JOM HUB Marketplace</div><h1 className="mt-4 max-w-2xl font-display text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">Everything your business needs.</h1><p className="mt-3 max-w-xl text-sm leading-6 text-white/70 sm:text-base">Discover products from verified stores. Browse everything or use the filters to find the right match.</p><label className="relative mt-7 block max-w-3xl"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-teal-900/45" size={20} /><input className="w-full rounded-2xl border border-white/20 bg-surface py-4 pl-12 pr-12 text-sm text-ink shadow-xl shadow-black/10 outline-none transition placeholder:text-ink/35 focus:ring-4 focus:ring-white/20 sm:text-base" placeholder="Search products, stores, categories or SKU..." value={search} onChange={(e) => setSearch(e.target.value)} />{search && <button type="button" onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-ink/35 hover:bg-black/5"><X size={17} /></button>}</label></div></section>
     {categories.length > 0 && (
       <section className="border-b border-black/[0.06] bg-surface">
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-5">
