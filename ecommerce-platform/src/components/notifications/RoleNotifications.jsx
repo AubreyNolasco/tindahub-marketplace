@@ -6,7 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { formatDate, peso } from '../../utils/format'
 
 const LOW_BALANCE_LIMIT = 500
-const CATEGORY_ICONS = { voucher: Ticket, follow: Heart, review: Star, id_verification: BadgeCheck }
+const CATEGORY_ICONS = { voucher: Ticket, follow: Heart, review: Star, id_verification: BadgeCheck, order_case: ShieldAlert }
 
 export default function RoleNotifications() {
   const { user, role } = useAuth()
