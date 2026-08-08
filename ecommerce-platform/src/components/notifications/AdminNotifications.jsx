@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Bell, CalendarDays, CircleDollarSign, CreditCard, LifeBuoy, ShieldAlert, WalletCards, X } from 'lucide-react'
+import { Bell, Building2, CalendarDays, CircleDollarSign, CreditCard, LifeBuoy, ShieldAlert, WalletCards, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
@@ -25,6 +25,7 @@ export default function AdminNotifications() {
     if (allowed('support')) requests.push(supabase.from('support_messages').select('id,user_id,message,created_at,profiles!support_messages_user_id_fkey(full_name,merchant_profiles!merchant_profiles_id_fkey(business_name))').eq('is_read',false).in('sender_role',['merchant','reseller']).order('created_at',{ascending:false}).limit(20).then(({data}) => (data || []).map(row => ({ id:`support:${row.id}`, title:'New support message', message:`${row.profiles?.merchant_profiles?.business_name || row.profiles?.full_name || 'Account'}: ${row.message}`, to:`/admin/support/${row.user_id}`, icon:LifeBuoy, tone:'teal', created_at:row.created_at }))))
     if (profile?.role==='admin') requests.push(supabase.from('order_cases').select('id,case_type,status,created_at').in('status',['open','admin_review']).order('created_at',{ascending:false}).limit(20).then(({data})=>(data||[]).map(row=>({id:`case:${row.id}:${row.status}`,title:'Order case needs review',message:`${row.case_type} request · ${row.status.replace('_',' ')}`,to:'/admin/order-cases',icon:ShieldAlert,tone:'coral',created_at:row.created_at}))))
     if (allowed('withdrawals')) requests.push(supabase.from('withdrawal_requests').select('id,amount,created_at').eq('status','pending').order('created_at',{ascending:false}).limit(20).then(({data})=>(data||[]).map(row=>({id:`withdrawal:${row.id}`,title:'New withdrawal request',message:`${peso(row.amount)} waiting for review`,to:'/admin/withdrawals',icon:WalletCards,tone:'mango',created_at:row.created_at}))))
+    if (allowed('merchants')) requests.push(supabase.from('merchant_profiles').select('id,business_name,business_permit_submitted_at').eq('business_permit_status','pending').order('business_permit_submitted_at',{ascending:false}).limit(20).then(({data})=>(data||[]).map(row=>({id:`permit:${row.id}:${row.business_permit_submitted_at}`,title:'Business permit submitted',message:`${row.business_name} submitted a permit for review.`,to:'/admin/merchants',icon:Building2,tone:'teal',created_at:row.business_permit_submitted_at}))))
     const groups = await Promise.all(requests)
     setItems(groups.flat().sort((a,b) => new Date(b.created_at) - new Date(a.created_at)))
   }, [user, profile, allowed])
@@ -39,6 +40,7 @@ export default function AdminNotifications() {
     if (allowed('support')) channel.on('postgres_changes',{event:'*',schema:'public',table:'support_messages'},load)
     if (profile?.role==='admin') channel.on('postgres_changes',{event:'*',schema:'public',table:'order_cases'},load)
     if (allowed('withdrawals')) channel.on('postgres_changes',{event:'*',schema:'public',table:'withdrawal_requests'},load)
+    if (allowed('merchants')) channel.on('postgres_changes',{event:'*',schema:'public',table:'merchant_profiles'},load)
     channel.subscribe()
     return () => { supabase.removeChannel(channel) }
   }, [user, profile, allowed, load])
