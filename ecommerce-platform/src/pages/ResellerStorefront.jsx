@@ -6,6 +6,8 @@ import { supabase } from '../lib/supabase'
 import Spinner from '../components/ui/Spinner'
 import EmptyState from '../components/ui/EmptyState'
 import Modal from '../components/ui/Modal'
+import StarRating from '../components/product/StarRating'
+import { compactCount } from '../utils/format'
 import { applyCampaignDiscount, getActiveCampaignDiscounts, getActiveCampaignProducts } from '../utils/campaigns'
 import { getUnitPrice } from '../utils/pricing'
 import { isStoreOpen } from '../utils/storeHours'
@@ -41,8 +43,30 @@ export default function ResellerStorefront() {
         getActiveCampaignDiscounts(),
         getActiveCampaignProducts()
       ])
+      const activeProducts = (listResult.data || []).map((row) => row.products).filter((product) => product?.is_active && isStoreOpen(product.merchant_profiles))
+      const productIds = activeProducts.map((product) => product.id)
+      // Same rating/sold-count social proof as Catalog.jsx and
+      // MerchantStore.jsx — one bulk query each, not per-product. This
+      // is the actual customer-facing buy page (public, no login), so
+      // it's the surface where this signal matters most.
+      const [reviewsResult, soldResult] = await Promise.all([
+        productIds.length ? supabase.from('product_reviews').select('product_id, rating').in('product_id', productIds) : Promise.resolve({ data: [] }),
+        productIds.length ? supabase.rpc('get_product_sold_counts', { p_product_ids: productIds }) : Promise.resolve({ data: [] }),
+      ])
+      const ratingsByProduct = {}
+      for (const review of reviewsResult.data || []) {
+        const bucket = (ratingsByProduct[review.product_id] ??= { sum: 0, count: 0 })
+        bucket.sum += review.rating
+        bucket.count += 1
+      }
+      const soldByProduct = Object.fromEntries((soldResult.data || []).map((row) => [row.product_id, row.sold_count]))
       setStore(storefront)
-      setProducts((listResult.data || []).map((row) => row.products).filter((product) => product?.is_active && isStoreOpen(product.merchant_profiles)).map((product) => applyCampaignDiscount(product, discounts, campaignProducts)))
+      setProducts(activeProducts.map((product) => ({
+        ...applyCampaignDiscount(product, discounts, campaignProducts),
+        avg_rating: ratingsByProduct[product.id] ? ratingsByProduct[product.id].sum / ratingsByProduct[product.id].count : 0,
+        review_count: ratingsByProduct[product.id]?.count || 0,
+        sold_count: soldByProduct[product.id] || 0,
+      })))
       setLoading(false)
     })()
   }, [id, slug])
@@ -149,18 +173,22 @@ export default function ResellerStorefront() {
                     ) : (
                       <div className="grid h-full place-items-center"><Package className="text-teal-300" size={32} /></div>
                     )}
-                    {product.stock_quantity <= 5 && product.stock_quantity > 0 && (
-                      <span className="absolute left-2 top-2 rounded-full bg-mango-500 px-2 py-0.5 text-[10px] font-bold text-white shadow">Low stock</span>
-                    )}
                     {product.campaign_discount_percent > 0 && (
-                      <span className="absolute right-2 top-2 rounded-full bg-mango-500 px-2 py-0.5 text-[10px] font-bold text-white shadow">{Math.round(product.campaign_discount_percent)}% OFF</span>
+                      <span className="absolute left-0 top-2 rounded-r-md bg-coral-600 py-0.5 pl-1.5 pr-2.5 text-[10px] font-extrabold text-white shadow-sm">-{Math.round(product.campaign_discount_percent)}%</span>
+                    )}
+                    {product.stock_quantity <= 5 && product.stock_quantity > 0 && (
+                      <span className="absolute right-2 top-2 rounded-full bg-mango-500 px-2 py-0.5 text-[10px] font-bold text-white shadow">Low stock</span>
                     )}
                   </div>
                   <div className="p-3 pb-0 sm:p-4 sm:pb-0">
                     <p className="truncate text-[10px] font-bold uppercase tracking-wide text-teal-600 dark:text-teal-400">{product.merchant_profiles?.business_name}</p>
                     <h3 className="mt-1 line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-tight text-fg sm:text-base">{product.name}</h3>
+                    {(product.review_count > 0 || product.sold_count > 0) && <div className="mt-1 flex items-center gap-1 text-[11px] text-fg-muted">
+                      {product.review_count > 0 && <><StarRating value={product.avg_rating} size={10} /><span className="font-semibold">{product.avg_rating.toFixed(1)}</span></>}
+                      {product.sold_count > 0 && <span className={product.review_count > 0 ? 'before:mr-1 before:content-["·"]' : ''}>{compactCount(product.sold_count)} sold</span>}
+                    </div>}
                     {product.campaign_discount_percent > 0 ? (
-                      <p className="mt-2 flex items-baseline gap-1.5"><span className="font-display text-base font-bold text-teal-700 dark:text-teal-300 sm:text-lg">₱{getUnitPrice(product, 1).toLocaleString()}</span><span className="text-xs text-fg-muted line-through">₱{Number(product.price).toLocaleString()}</span></p>
+                      <p className="mt-2 flex items-baseline gap-1.5"><span className="font-display text-base font-bold text-coral-600 sm:text-lg">₱{getUnitPrice(product, 1).toLocaleString()}</span><span className="text-xs text-fg-muted line-through">₱{Number(product.price).toLocaleString()}</span></p>
                     ) : (
                       <p className="mt-2 font-display text-base font-bold text-teal-700 dark:text-teal-300 sm:text-lg">₱{Number(product.price).toLocaleString()}</p>
                     )}
@@ -195,6 +223,10 @@ export default function ResellerStorefront() {
                 </div>
                 <p className="mt-4 font-display text-2xl font-bold text-teal-700 dark:text-teal-300">₱{Number(viewingProduct.price).toLocaleString()}</p>
                 <p className="text-xs text-fg-muted">{viewingProduct.merchant_profiles?.business_name}</p>
+                {(viewingProduct.review_count > 0 || viewingProduct.sold_count > 0) && <div className="mt-1.5 flex items-center gap-1.5 text-xs text-fg-muted">
+                  {viewingProduct.review_count > 0 && <><StarRating value={viewingProduct.avg_rating} size={13} /><span className="font-semibold">{viewingProduct.avg_rating.toFixed(1)} ({viewingProduct.review_count})</span></>}
+                  {viewingProduct.sold_count > 0 && <span>{viewingProduct.review_count > 0 ? '· ' : ''}{compactCount(viewingProduct.sold_count)} sold</span>}
+                </div>}
                 {viewingProduct.description && <p className="mt-3 text-sm leading-6 text-fg-muted">{viewingProduct.description}</p>}
                 <div className="mt-4 flex flex-wrap gap-2">
                   <span className="badge bg-teal-500/10 text-teal-700 dark:text-teal-300">Min order: {viewingProduct.min_order_qty || 1}</span>
