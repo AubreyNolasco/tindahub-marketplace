@@ -1,8 +1,14 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Loader2, MapPinned, PackageCheck, Truck, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { peso } from '../../utils/format'
+
+// Lazy: leaflet is ~55KB gzipped and only needed once a Merchant actually
+// clicks "Free distance estimate" — loading it eagerly would add that
+// weight to every Orders page load for every Merchant, most of whom will
+// never open the map.
+const RouteMap = lazy(() => import('./RouteMap'))
 
 const PROVIDER_LABELS = { lalamove: 'Lalamove', grabexpress: 'GrabExpress', borzo: 'Borzo', ninjavan: 'Ninja Van', jnt: 'J&T Express', manual: 'Manual' }
 
@@ -100,6 +106,7 @@ export default function ShippingFeeModal({ order, open, onClose, onSaved }) {
     <label className="mt-4 block text-sm font-semibold">Actual shipping fee<input required type="number" min="0" step=".01" value={fee} onChange={(event)=>{setFee(event.target.value); setQuotationId(null); setAccountId(null)}} className="input-field mt-1" placeholder="0.00" /></label>
     {accountId && <p className="mt-1.5 text-xs font-medium text-teal-700">Delivery quote applied — booking will be automatic once the Reseller accepts.</p>}
     {routeEstimate && <p className="mt-1.5 text-xs font-medium text-ink/50">Road distance: {routeEstimate.distance_km} km (~{routeEstimate.duration_min} min drive) — free estimate, not a booked courier.</p>}
+    {routeEstimate && <Suspense fallback={null}><RouteMap pickup={routeEstimate.pickup} dropoff={routeEstimate.dropoff} geometry={routeEstimate.geometry} /></Suspense>}
     <label className="mt-4 block text-sm font-semibold">Merchant note (optional)<textarea rows="3" maxLength="500" value={note} onChange={(event)=>setNote(event.target.value)} className="input-field mt-1 resize-none" placeholder="Courier, package size, or fee details" /></label>
     <button disabled={saving} className="btn-primary mt-5 flex w-full justify-center gap-2">{saving ? <Loader2 size={16} className="animate-spin"/> : <PackageCheck size={16}/>}Send for Reseller confirmation</button>
   </form></div>

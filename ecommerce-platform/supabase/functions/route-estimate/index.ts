@@ -84,6 +84,8 @@ Deno.serve(async (req) => {
         distance_km: Number((route.distance / 1000).toFixed(2)),
         duration_min: Math.round(route.duration / 60),
         geometry,
+        pickup: { lat: merchant.pickup_latitude, lng: merchant.pickup_longitude },
+        dropoff: { lat: customer.latitude, lng: customer.longitude },
         provider: base.includes('project-osrm.org') ? 'osrm_public_demo' : 'osrm_self_hosted',
       }),
       { headers: { ...cors, 'Content-Type': 'application/json' } }
