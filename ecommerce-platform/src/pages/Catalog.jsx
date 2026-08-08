@@ -92,7 +92,7 @@ export default function Catalog() {
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [merchants, setMerchants] = useState([])
-  const [activeCategory, setActiveCategory] = useState(null)
+  const [activeCategory, setActiveCategory] = useState(searchParams.get('category') || null)
   const [activeMerchant, setActiveMerchant] = useState(null)
   const [search, setSearch] = useState(searchParams.get('q') || '')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -102,11 +102,17 @@ export default function Catalog() {
   const [maxPrice, setMaxPrice] = useState('')
   const [minRating, setMinRating] = useState(0)
   const [sort, setSort] = useState('newest')
-  const [filtersOpen, setFiltersOpen] = useState(false)
+  const [filtersOpen, setFiltersOpen] = useState(searchParams.get('filters') === '1')
   const [loading, setLoading] = useState(true)
   const [marketplaceSlides, setMarketplaceSlides] = useState([])
+  const discountOnly = searchParams.get('discount') === '1'
 
   useEffect(() => { Promise.all([supabase.from('categories').select('*').order('name'), supabase.from('merchant_profiles').select('id,business_name').eq('status', 'approved').order('business_name')]).then(([categoryResult, merchantResult]) => { if (categoryResult.error || merchantResult.error) toast.error(categoryResult.error?.message || merchantResult.error?.message); setCategories(categoryResult.data || []); setMerchants(merchantResult.data || []) }) }, [])
+  // Marketplace.jsx's nav icons drive category/discount/filters-open
+  // through the URL too, same as search — re-sync whenever the icon
+  // row changes them, not just on first mount.
+  useEffect(() => { setActiveCategory(searchParams.get('category') || null) }, [searchParams])
+  useEffect(() => { if (searchParams.get('scrollTo') === 'flash-sale') document.getElementById('flash-sale')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }, [searchParams])
   // Admin-editable slideshow content (Admin/MarketplaceEditor.jsx),
   // same site_settings key/value pattern the Landing page's own
   // Homepage Designer already uses — just a different key.
@@ -185,7 +191,12 @@ export default function Catalog() {
   const activeMerchantName = useMemo(() => merchants.find((merchant) => merchant.id === activeMerchant)?.business_name, [merchants, activeMerchant])
   const clearFilters = () => { setActiveCategory(null); setActiveMerchant(null); setMinPrice(''); setMaxPrice(''); setMinRating(0); setCategorySearch(''); setStoreSearch('') }
   const filterProps = { categories, merchants, activeCategory, setActiveCategory, activeMerchant, setActiveMerchant, categorySearch, setCategorySearch, storeSearch, setStoreSearch, minPrice, setMinPrice, maxPrice, setMaxPrice, minRating, setMinRating, clearFilters }
-  const visibleProducts = useMemo(() => minRating > 0 ? products.filter((p) => p.avg_rating >= minRating) : products, [products, minRating])
+  const visibleProducts = useMemo(() => {
+    let list = products
+    if (minRating > 0) list = list.filter((p) => p.avg_rating >= minRating)
+    if (discountOnly) list = list.filter((p) => p.campaign_discount_percent > 0)
+    return list
+  }, [products, minRating, discountOnly])
   const showPromo = !activeCategory && !activeMerchant && !debouncedSearch
   const discountedProducts = useMemo(() => products.filter((p) => p.campaign_discount_percent > 0), [products])
   const topDiscount = useMemo(() => discountedProducts.reduce((max, p) => Math.max(max, p.campaign_discount_percent), 0), [discountedProducts])

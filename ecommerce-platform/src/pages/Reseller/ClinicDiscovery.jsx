@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Handshake, Building2, UserRound, Clock, DollarSign, Send, X, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
@@ -9,8 +10,17 @@ import EmptyState from '../../components/ui/EmptyState'
 import Modal from '../../components/ui/Modal'
 import { cleanText } from '../../utils/security'
 
+const SERVICE_TYPE_LABEL = { clinic: 'Clinic', real_estate: 'Real Estate' }
+
 export default function ClinicDiscovery() {
   const { user } = useAuth()
+  // Marketplace.jsx's "Clinic"/"Real Estate" nav icons drive this via
+  // the URL, same pattern the header search box already uses --
+  // merchant_profiles.service_type is a real field ('clinic',
+  // 'real_estate', or 'both'), not a decorative filter with nothing
+  // behind it.
+  const [searchParams] = useSearchParams()
+  const serviceType = searchParams.get('serviceType')
   const [clinics, setClinics] = useState([])
   const [customers, setCustomers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -65,11 +75,16 @@ export default function ClinicDiscovery() {
     setSending(false)
   }
 
+  // A "both" merchant offers either kind of service, so it should
+  // still show up under either specific filter, not just under
+  // "Services" with no filter at all.
+  const visibleClinics = useMemo(() => clinics.filter((clinic) => !serviceType || clinic.service_type === serviceType || clinic.service_type === 'both'), [clinics, serviceType])
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6">
         <p className="text-xs font-bold uppercase tracking-[0.16em] text-teal-600">Referral opportunities</p>
-        <h1 className="mt-1 font-display text-2xl font-bold text-ink">Services & Providers</h1>
+        <h1 className="mt-1 font-display text-2xl font-bold text-ink">{serviceType ? `${SERVICE_TYPE_LABEL[serviceType] || 'Service'} Providers` : 'Services & Providers'}</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/50">
           Refer your customers to partner clinics, real estate agents, and service providers. Earn a referral fee when the service is completed — no upfront cost.
         </p>
@@ -77,11 +92,11 @@ export default function ClinicDiscovery() {
 
       {loading ? (
         <div className="flex justify-center py-24"><Spinner /></div>
-      ) : clinics.length === 0 ? (
+      ) : visibleClinics.length === 0 ? (
         <EmptyState icon={Handshake} title="No providers available" message="Partner clinics and service providers will appear here once merchants set up their services." />
       ) : (
         <div className="space-y-8">
-          {clinics.map((clinic) => {
+          {visibleClinics.map((clinic) => {
             const services = clinic.services || []
             if (services.length === 0) return null
             return (
