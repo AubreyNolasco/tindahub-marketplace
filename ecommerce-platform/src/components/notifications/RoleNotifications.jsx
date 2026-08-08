@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Bell, CalendarClock, Heart, LifeBuoy, Megaphone, MessageCircle, PackageCheck, ShieldAlert, ShoppingBag, Ticket, WalletCards, X } from 'lucide-react'
+import { Bell, CalendarClock, Heart, LifeBuoy, Megaphone, MessageCircle, PackageCheck, ShieldAlert, ShoppingBag, Star, Ticket, WalletCards, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { formatDate, peso } from '../../utils/format'
 
 const LOW_BALANCE_LIMIT = 500
+const CATEGORY_ICONS = { voucher: Ticket, follow: Heart, review: Star }
 
 export default function RoleNotifications() {
   const { user, role } = useAuth()
@@ -50,7 +51,7 @@ export default function RoleNotifications() {
     // feed to derive from (unlike orders/withdrawals above), so they're read
     // straight from public.notifications instead.
     const { data: storedNotifications } = await supabase.from('notifications').select('id,category,title,body,link,created_at').eq('owner_id',user.id).is('read_at',null).order('created_at',{ascending:false}).limit(15)
-    storedNotifications?.forEach(row=>items.unshift({id:`notif:${row.id}`,notificationId:row.id,title:row.title,message:row.body||'',to:row.link||`/${role}/campaigns`,action:'View',icon:row.category==='voucher'?Ticket:row.category==='follow'?Heart:Megaphone,tone:'teal'}))
+    storedNotifications?.forEach(row=>items.unshift({id:`notif:${row.id}`,notificationId:row.id,title:row.title,message:row.body||'',to:row.link||`/${role}/campaigns`,action:'View',icon:CATEGORY_ICONS[row.category]||Megaphone,tone:'teal'}))
 
     if (role === 'merchant') {
       const [{ data: orders }, { data: subscription }] = await Promise.all([
