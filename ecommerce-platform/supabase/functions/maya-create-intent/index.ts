@@ -1,7 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { getAdapter } from '../_shared/payments/registry.ts'
 
-const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info' }
+const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info, x-jomhub-device-id' }
 
 // Reseller/Merchant-invoked from TopupModal.jsx's "Pay with Maya" option.
 // Mirrors paymongo-create-intent/index.ts exactly (same topup_requests +

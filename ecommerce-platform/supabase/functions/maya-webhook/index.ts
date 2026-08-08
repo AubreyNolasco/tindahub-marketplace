@@ -1,7 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { getAdapter } from '../_shared/payments/registry.ts'
 
-const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'content-type' }
+const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'content-type, x-jomhub-device-id' }
 
 // Public endpoint Maya calls with checkout payment status updates.
 // Mirrors paymongo-webhook/index.ts's shape, with one deliberate difference:

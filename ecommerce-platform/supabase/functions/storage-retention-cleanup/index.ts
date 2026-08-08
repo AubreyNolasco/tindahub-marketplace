@@ -1,6 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-cron-secret' }
+const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-cron-secret, x-jomhub-device-id' }
 
 // Scheduled weekly by pg_cron (see 20260728000300_storage_and_log_retention.sql
 // for the read-only orphan-detection query this relies on). Only ever invoked

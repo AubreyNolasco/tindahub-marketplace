@@ -6,6 +6,10 @@ Master tracker for "lahat" (all) the integrations discussed. Every item follows 
 
 Pattern proven twice already (PayMongo, Google Vision) — every remaining item is a mechanical repeat of: one `_shared/<category>/adapters/<code>.ts` file implementing that category's existing contract, registered in that category's `registry.ts`, gated by `is_integration_enabled()`/`get_integration_credentials()`, one setup `.md` doc.
 
+## ⚠️ Critical fix, 2026-08-08: every user-invoked Edge Function was CORS-broken in real browsers
+
+Found live while testing TASK8.md's shipping-estimate feature (see that file for the full root-cause writeup): `src/lib/supabase.js` attaches a global `x-jomhub-device-id` header to every Supabase client request, but no Edge Function's CORS `Access-Control-Allow-Headers` allow-listed it — so the browser's own CORS preflight silently blocked every real call, surfacing only as a generic "Failed to send a request to the Edge Function" error. This affected **all 21 functions**, including every payment `-create-intent` function below (PayMongo/Maya/Stripe/PayPal) and the Lalamove delivery-quote button. `curl`-based "smoke tests" recorded elsewhere in this file never caught it (no browser CORS enforcement over `curl`). Fixed by adding the header to all 21 functions' CORS config and redeploying each with its original JWT-verification setting preserved. Live-confirmed fixed via a real click-through (TASK8.md's feature). **If you're reading this before ever having clicked a "Pay Online"/"Pay with X" button in a real browser on this project, that first click is the one that actually proves this stays fixed — do it before assuming any of the payment buttons below still work.**
+
 ## ✅ Done
 
 - [x] **Integration scaffolding** (`integration_configs`, `integration_event_logs`, `notifications`, `_shared/payments|sms|ai` folders, Admin → Integrations page) — `20260804000100_integration_scaffolding.sql`
