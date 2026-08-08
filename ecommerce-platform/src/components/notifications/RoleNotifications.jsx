@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Bell, CalendarClock, Heart, LifeBuoy, Megaphone, MessageCircle, PackageCheck, ShieldAlert, ShoppingBag, Star, Ticket, WalletCards, X } from 'lucide-react'
+import { Bell, BadgeCheck, CalendarClock, Heart, LifeBuoy, Megaphone, MessageCircle, PackageCheck, ShieldAlert, ShoppingBag, Star, Ticket, WalletCards, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { formatDate, peso } from '../../utils/format'
 
 const LOW_BALANCE_LIMIT = 500
-const CATEGORY_ICONS = { voucher: Ticket, follow: Heart, review: Star }
+const CATEGORY_ICONS = { voucher: Ticket, follow: Heart, review: Star, id_verification: BadgeCheck }
 
 export default function RoleNotifications() {
   const { user, role } = useAuth()
