@@ -128,8 +128,8 @@ export default function Navbar() {
                     <Link to={dashLink} onClick={() => setAccountMenuOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/70 transition hover:bg-teal-50 hover:text-teal-700 dark:hover:bg-slate-800">
                       {['admin', 'staff'].includes(role) ? <ShieldCheck size={17} /> : <LayoutDashboard size={17} />} {dashLabel}
                     </Link>
-                    <Link to="/catalog" onClick={() => setAccountMenuOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/70 transition hover:bg-teal-50 hover:text-teal-700 dark:hover:bg-slate-800"><Package size={17} /> Products</Link>
-                    <Link to="/clinics" onClick={() => setAccountMenuOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/70 transition hover:bg-teal-50 hover:text-teal-700 dark:hover:bg-slate-800"><Handshake size={17} /> Services</Link>
+                    <Link to="/marketplace" onClick={() => setAccountMenuOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/70 transition hover:bg-teal-50 hover:text-teal-700 dark:hover:bg-slate-800"><Package size={17} /> Marketplace</Link>
+                    <Link to="/" onClick={() => setAccountMenuOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/70 transition hover:bg-teal-50 hover:text-teal-700 dark:hover:bg-slate-800"><House size={17} /> About Business</Link>
                     {(role === 'reseller' || role === 'merchant') && (
                       <>
                         <Link to={`/${role}/account`} onClick={() => setAccountMenuOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/70 transition hover:bg-teal-50 hover:text-teal-700 dark:hover:bg-slate-800"><UserRound size={17} /> Profile &amp; Settings</Link>
@@ -169,8 +169,8 @@ export default function Navbar() {
                 <Link to={dashLink} onClick={() => setMenuOpen(false)} className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600">
                   {['admin', 'staff'].includes(role) ? <ShieldCheck size={17} /> : <LayoutDashboard size={17} />} {dashLabel}
                 </Link>
-                <Link to="/catalog" onClick={() => setMenuOpen(false)} className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600"><Package size={17} /> Products</Link>
-                <Link to="/clinics" onClick={() => setMenuOpen(false)} className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600"><Handshake size={17} /> Services</Link>
+                <Link to="/marketplace" onClick={() => setMenuOpen(false)} className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600"><Package size={17} /> Marketplace</Link>
+                <Link to="/" onClick={() => setMenuOpen(false)} className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600"><House size={17} /> About Business</Link>
                 {(role === 'reseller' || role === 'merchant') && (
                   <>
                     <Link to={`/${role}/account`} onClick={() => setMenuOpen(false)} className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600"><UserRound size={17} /> Profile &amp; Settings</Link>

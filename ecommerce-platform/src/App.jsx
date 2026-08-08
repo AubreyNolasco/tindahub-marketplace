@@ -25,6 +25,7 @@ import Spinner from './components/ui/Spinner'
 const Home = lazy(() => import('./pages/Home'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 const Catalog = lazy(() => import('./pages/Catalog'))
+const Marketplace = lazy(() => import('./pages/Marketplace'))
 const ProductDetail = lazy(() => import('./pages/ProductDetail'))
 const MerchantStore = lazy(() => import('./pages/MerchantStore'))
 const Policy = lazy(() => import('./pages/Policy'))
@@ -160,6 +161,7 @@ export default function App() {
               <Routes>
 <Route path="/" element={<Home />} />
                 <Route path="/catalog" element={<ProtectedRoute allowedRoles={['reseller','merchant','admin','staff']}><Catalog /></ProtectedRoute>} />
+                <Route path="/marketplace" element={<ProtectedRoute allowedRoles={['reseller','merchant','admin','staff']}><Marketplace /></ProtectedRoute>} />
                 <Route path="/product/:id" element={<ProtectedRoute allowedRoles={['reseller','merchant','admin','staff']}><ProductDetail /></ProtectedRoute>} />
                 <Route path="/merchant-store/:id" element={<ProtectedRoute allowedRoles={['reseller','merchant','admin','staff']}><MerchantStore /></ProtectedRoute>} />
                 <Route path="/reseller-store/:id" element={<ResellerStorefront />} />
