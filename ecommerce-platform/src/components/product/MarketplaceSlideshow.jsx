@@ -40,17 +40,25 @@ export default function MarketplaceSlideshow({ campaignSlide, customSlides }) {
           </div>
         </div>
       ) : (
-        <div className={`grid items-center gap-4 p-6 sm:p-8 ${slide.image_url ? 'sm:grid-cols-[1fr_240px]' : ''}`} style={{ background: slide.background || '#0B4D30', color: slide.text_color || '#FFFFFF' }}>
-          <div>
+        <div className="relative flex min-h-[220px] flex-col justify-center p-6 sm:min-h-[300px] sm:p-8" style={{ background: slide.background || '#0B4D30' }}>
+          {/* Image fills the whole slide, not a small side box — a dark
+              gradient sits over it so the title/button stay readable
+              regardless of what the admin's photo looks like. */}
+          {slide.image_url && (
+            <>
+              <img src={slide.image_url} alt="" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: 'center 30%' }} />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/45 to-black/10" />
+            </>
+          )}
+          <div className="relative max-w-md" style={{ color: slide.text_color || '#FFFFFF' }}>
             <p className="font-display text-2xl font-extrabold leading-tight sm:text-3xl">{slide.title}</p>
-            {slide.text && <p className="mt-2 max-w-md text-sm leading-6 opacity-80">{slide.text}</p>}
+            {slide.text && <p className="mt-2 text-sm leading-6 opacity-90">{slide.text}</p>}
             {slide.button_label && (
               <Link to={slide.button_link || '/marketplace'} className="mt-4 inline-flex items-center rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-ink hover:opacity-90">
                 {slide.button_label}
               </Link>
             )}
           </div>
-          {slide.image_url && <img src={slide.image_url} alt="" className="aspect-square w-full rounded-xl object-cover sm:aspect-[4/3]" />}
         </div>
       )}
 
