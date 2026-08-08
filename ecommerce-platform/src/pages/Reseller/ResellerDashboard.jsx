@@ -34,6 +34,24 @@ function buildDailyTrend(orders, days = 14) {
   }))
 }
 
+// Same display-only 30-day-vs-previous-30-day comparison as
+// MerchantDashboard.jsx's periodDelta — feeds the "+18% vs last month"
+// chip StatCard already supports. Returns null (not a misleading
+// +100%/-100%) when there's no prior-period data yet.
+function periodDelta(orders, days = 30) {
+  const now = Date.now()
+  const dayMs = 86400000
+  let current = 0, previous = 0
+  for (const order of orders) {
+    if (!order.created_at || order.status === 'cancelled') continue
+    const age = (now - new Date(order.created_at).getTime()) / dayMs
+    if (age <= days) current += Number(order.total || 0)
+    else if (age <= days * 2) previous += Number(order.total || 0)
+  }
+  if (previous <= 0) return null
+  return Math.round(((current - previous) / previous) * 100)
+}
+
 function buildTopMerchants(orders, limit = 5) {
   const byMerchant = new Map()
   for (const order of orders) {
@@ -49,7 +67,7 @@ function buildTopMerchants(orders, limit = 5) {
 
 export default function ResellerDashboard() {
   const { user, profile } = useAuth()
-  const [stats, setStats] = useState({ orders: 0, active: 0, spent: 0, customers: 0, wallet: 0 })
+  const [stats, setStats] = useState({ orders: 0, active: 0, spent: 0, customers: 0, wallet: 0, spentDelta: null })
   const [orders, setOrders] = useState([])
   const [lalamove, setLalamove] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -64,7 +82,7 @@ export default function ResellerDashboard() {
     const error = [ordersRes, customers, wallet].find((result) => result.error)?.error
     if (error) toast.error(error.message)
     const orderRows = ordersRes.data || []
-    setStats({ orders: orderRows.length, active: orderRows.filter((o) => !['completed', 'cancelled'].includes(o.status)).length, spent: orderRows.filter((o) => o.status !== 'cancelled').reduce((sum, order) => sum + Number(order.total), 0), customers: customers.count || 0, wallet: wallet.data?.balance || 0 })
+    setStats({ orders: orderRows.length, active: orderRows.filter((o) => !['completed', 'cancelled'].includes(o.status)).length, spent: orderRows.filter((o) => o.status !== 'cancelled').reduce((sum, order) => sum + Number(order.total), 0), customers: customers.count || 0, wallet: wallet.data?.balance || 0, spentDelta: periodDelta(orderRows) })
     setOrders(orderRows)
     if (!lalamoveRes.error) setLalamove(lalamoveRes.data)
     setLoading(false)
@@ -77,7 +95,7 @@ export default function ResellerDashboard() {
 
   const cards = [
     { label: 'Wallet balance', value: peso(stats.wallet), detail: 'Available purchasing funds', icon: Wallet, to: '/reseller/wallet', tone: 'mango', loading },
-    { label: 'Total purchases', value: peso(stats.spent), detail: `${stats.orders} lifetime orders`, icon: BarChart3, to: '/reseller/reports/sales', tone: 'teal', loading },
+    { label: 'Total purchases', value: peso(stats.spent), detail: `${stats.orders} lifetime orders`, icon: BarChart3, to: '/reseller/reports/sales', tone: 'teal', loading, delta: stats.spentDelta ?? undefined, trend: activityTrend.length > 1 ? activityTrend : undefined },
     { label: 'Active orders', value: stats.active, detail: 'Currently being fulfilled', icon: ClipboardList, to: '/reseller/orders', tone: 'coral', loading },
     { label: 'Customers', value: stats.customers, detail: 'Saved customer records', icon: Users, to: '/reseller/customers', tone: 'teal', loading }
   ]

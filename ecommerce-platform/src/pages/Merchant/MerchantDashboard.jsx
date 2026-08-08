@@ -36,10 +36,29 @@ function buildDailyTrend(orders, days = 14) {
   }))
 }
 
+// This 30-day-vs-previous-30-day comparison is display-only (the "+18%
+// vs last month" chip StatCard already supports but nothing was passing
+// it) — never used for anything money-moving. Returns null rather than
+// a misleading +100%/-100% when there's no prior-period data yet to
+// compare against.
+function periodDelta(orders, days = 30) {
+  const now = Date.now()
+  const dayMs = 86400000
+  let current = 0, previous = 0
+  for (const order of orders) {
+    if (!order.created_at || order.status === 'cancelled') continue
+    const age = (now - new Date(order.created_at).getTime()) / dayMs
+    if (age <= days) current += Number(order.total || 0)
+    else if (age <= days * 2) previous += Number(order.total || 0)
+  }
+  if (previous <= 0) return null
+  return Math.round(((current - previous) / previous) * 100)
+}
+
 export default function MerchantDashboard() {
   const { user, profile } = useAuth()
   const merchant = profile?.merchant_profiles
-  const [stats, setStats] = useState({ products: 0, lowStock: 0, orders: 0, pending: 0, sales: 0, wallet: 0 })
+  const [stats, setStats] = useState({ products: 0, lowStock: 0, orders: 0, pending: 0, sales: 0, wallet: 0, salesDelta: null })
   const [salesTrend, setSalesTrend] = useState([])
   const [incomingOrders, setIncomingOrders] = useState([])
   const [loading, setLoading] = useState(true)
@@ -53,7 +72,7 @@ export default function MerchantDashboard() {
     ])
     const error = [products, orders, wallet, incoming].find((result) => result.error)?.error
     if (error) toast.error(error.message)
-    setStats({ products: products.data?.length || 0, lowStock: products.data?.filter((p) => p.stock_quantity <= 5).length || 0, orders: orders.data?.length || 0, pending: orders.data?.filter((o) => ['pending_payment', 'payment_review'].includes(o.status)).length || 0, sales: orders.data?.filter((o) => o.status !== 'cancelled').reduce((sum, order) => sum + Number(order.total), 0) || 0, wallet: wallet.data?.balance || 0 })
+    setStats({ products: products.data?.length || 0, lowStock: products.data?.filter((p) => p.stock_quantity <= 5).length || 0, orders: orders.data?.length || 0, pending: orders.data?.filter((o) => ['pending_payment', 'payment_review'].includes(o.status)).length || 0, sales: orders.data?.filter((o) => o.status !== 'cancelled').reduce((sum, order) => sum + Number(order.total), 0) || 0, wallet: wallet.data?.balance || 0, salesDelta: periodDelta(orders.data || []) })
     setSalesTrend(buildDailyTrend(orders.data || []))
     setIncomingOrders(incoming.data || [])
     setLoading(false)
@@ -61,7 +80,7 @@ export default function MerchantDashboard() {
 
   useEffect(() => { load() }, [load])
   const cards = [
-    { label: 'Gross sales', value: peso(stats.sales), detail: `${stats.orders} total orders`, icon: BarChart3, to: '/merchant/reports/sales', tone: 'teal', loading },
+    { label: 'Gross sales', value: peso(stats.sales), detail: `${stats.orders} total orders`, icon: BarChart3, to: '/merchant/reports/sales', tone: 'teal', loading, delta: stats.salesDelta ?? undefined, trend: salesTrend.length > 1 ? salesTrend : undefined },
     { label: 'Wallet balance', value: peso(stats.wallet), detail: 'Available merchant funds', icon: Wallet, to: '/merchant/wallet', tone: 'mango', loading },
     { label: 'Products', value: stats.products, detail: `${stats.lowStock} low or out of stock`, icon: Package, to: '/merchant/products', tone: 'coral', loading },
     { label: 'Orders to review', value: stats.pending, detail: 'Payment and pending orders', icon: ClipboardList, to: '/merchant/orders', tone: 'teal', loading }
