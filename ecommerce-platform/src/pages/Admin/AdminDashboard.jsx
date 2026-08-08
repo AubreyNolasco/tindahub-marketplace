@@ -20,7 +20,7 @@ import Card from '../../components/ui/Card'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 
-const initialStats = { merchants: 0, approvedMerchants: 0, pendingMerchants: 0, resellers: 0, orders: 0, gmv: 0, pendingTopups: 0, pendingWithdrawals: 0, pendingSubscriptions: 0, pendingRegistrations: 0, platformWallet: 0 }
+const initialStats = { merchants: 0, approvedMerchants: 0, pendingMerchants: 0, resellers: 0, orders: 0, gmv: 0, gmvDelta: null, pendingTopups: 0, pendingWithdrawals: 0, pendingSubscriptions: 0, pendingRegistrations: 0, platformWallet: 0 }
 
 // Buckets real order totals into a 14-day trend for the revenue chart —
 // derived from the same non-cancelled-orders query the GMV stat already
@@ -42,6 +42,25 @@ function buildDailyTrend(orders, days = 14) {
     label: new Date(key).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }),
     value: Math.round(value)
   }))
+}
+
+// Same display-only 30-day-vs-previous-30-day comparison as the
+// Merchant/Reseller dashboards' periodDelta — feeds the "+18% vs last
+// month" chip StatCard already supports but this page wasn't passing.
+// Returns null (chip stays hidden) rather than a misleading
+// +100%/-100% when there's no prior-period data yet.
+function periodDelta(orders, days = 30) {
+  const now = Date.now()
+  const dayMs = 86400000
+  let current = 0, previous = 0
+  for (const order of orders) {
+    if (!order.created_at) continue
+    const age = (now - new Date(order.created_at).getTime()) / dayMs
+    if (age <= days) current += Number(order.total || 0)
+    else if (age <= days * 2) previous += Number(order.total || 0)
+  }
+  if (previous <= 0) return null
+  return Math.round(((current - previous) / previous) * 100)
 }
 
 export default function AdminDashboard() {
@@ -88,6 +107,7 @@ export default function AdminDashboard() {
       pendingMerchants: pending.count || 0, resellers: resellers.count || 0,
       orders: orders.data?.length || 0,
       gmv: orders.data?.reduce((sum, order) => sum + Number(order.total), 0) || 0,
+      gmvDelta: periodDelta(orders.data || []),
       pendingTopups: topups.count || 0, pendingWithdrawals: withdrawals.count || 0,
       pendingSubscriptions: subscriptions.count || 0, pendingRegistrations: registrations.count || 0, platformWallet: wallet.data?.balance || 0
     })
@@ -121,7 +141,7 @@ export default function AdminDashboard() {
 
   const actionCount = stats.pendingMerchants + stats.pendingTopups + stats.pendingWithdrawals + stats.pendingSubscriptions + stats.pendingRegistrations
   const metrics = [
-    { label: 'Gross marketplace value', value: peso(stats.gmv), detail: `${stats.orders} non-cancelled orders`, icon: TrendingUp, tone: 'teal', to: '/admin/reports/sales', loading },
+    { label: 'Gross marketplace value', value: peso(stats.gmv), detail: `${stats.orders} non-cancelled orders`, icon: TrendingUp, tone: 'teal', to: '/admin/reports/sales', loading, delta: stats.gmvDelta ?? undefined, trend: revenueTrend.length > 1 ? revenueTrend : undefined },
     { label: 'Platform wallet', value: peso(stats.platformWallet), detail: 'Recorded platform revenue', icon: Wallet, tone: 'mango', to: '/admin/wallet', loading },
     { label: 'Active merchants', value: stats.approvedMerchants, detail: `${stats.merchants} total merchant accounts`, icon: Building2, tone: 'teal', to: '/admin/merchants', loading },
     { label: 'Registered resellers', value: stats.resellers, detail: 'Marketplace buyer network', icon: Users, tone: 'coral', to: '/admin', loading }
