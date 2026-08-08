@@ -75,13 +75,19 @@ export default function Navbar() {
           <img src={theme === 'dark' ? '/rmhub-logo-dark.svg' : '/rmhub-logo.svg'} alt="JOM HUB" className="h-9 w-auto sm:h-12" />
         </Link>
 
-        <nav className="hidden items-center gap-0.5 rounded-full border border-black/[0.05] bg-white/70 p-1.5 text-sm font-semibold text-ink/70 shadow-sm xl:flex dark:border-white/10 dark:bg-slate-900/70 dark:text-slate-200">
-          {NAV_LINKS.map(({ id, label, icon: Icon }) => (
-            <a key={id} href={`/#${id}`} onClick={goToSection(id)} className="flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-2 transition hover:bg-surface hover:text-teal-700 hover:shadow-sm dark:hover:bg-slate-800">
-              <Icon size={15} /> {label}
-            </a>
-          ))}
-        </nav>
+        {/* Marketing anchor links only make sense for a logged-out visitor
+            on the landing page — an already-registered user browsing the
+            app doesn't need "How It Works"/"For Merchants" pitched at them
+            again on every page. */}
+        {!user && (
+          <nav className="hidden items-center gap-0.5 rounded-full border border-black/[0.05] bg-white/70 p-1.5 text-sm font-semibold text-ink/70 shadow-sm xl:flex dark:border-white/10 dark:bg-slate-900/70 dark:text-slate-200">
+            {NAV_LINKS.map(({ id, label, icon: Icon }) => (
+              <a key={id} href={`/#${id}`} onClick={goToSection(id)} className="flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-2 transition hover:bg-surface hover:text-teal-700 hover:shadow-sm dark:hover:bg-slate-800">
+                <Icon size={15} /> {label}
+              </a>
+            ))}
+          </nav>
+        )}
 
         <div className="flex items-center gap-1 sm:gap-3">
           <button
@@ -157,7 +163,7 @@ export default function Navbar() {
 
       {menuOpen && (
         <nav className="max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-black/5 bg-surface px-3 py-3 text-sm font-medium text-ink/70 shadow-lg xl:hidden dark:border-white/10 dark:bg-slate-900 sm:px-6">
-          {NAV_LINKS.map(({ id, label, icon: Icon }) => (
+          {!user && NAV_LINKS.map(({ id, label, icon: Icon }) => (
             <a key={id} href={`/#${id}`} onClick={goToSection(id)} className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600">
               <Icon size={17} /> {label}
             </a>
