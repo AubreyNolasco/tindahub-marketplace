@@ -1,12 +1,22 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Baby, Car, ChevronDown, Cookie, Dumbbell, Filter, Gem, Gift, Hammer, Home as HomeIcon, LayoutGrid, PackageSearch, Pill, Search, Shirt, SlidersHorizontal, Smartphone, Sparkles, Store, Tag, X } from 'lucide-react'
+import { Baby, BadgeCheck, Car, ChevronDown, Cookie, Dumbbell, Filter, Gem, Gift, Hammer, Home as HomeIcon, LayoutGrid, PackageSearch, Pill, Search, ShieldCheck, Shirt, SlidersHorizontal, Smartphone, Sparkles, Store, Tag, Truck, X, Zap } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 import ProductCard from '../components/product/ProductCard'
+import CampaignCountdown from '../components/product/CampaignCountdown'
 import EmptyState from '../components/ui/EmptyState'
 import Spinner from '../components/ui/Spinner'
 import { applyCampaignDiscount, getActiveCampaignDiscounts, getActiveCampaignProducts } from '../utils/campaigns'
 import { isStoreOpen } from '../utils/storeHours'
+
+// Honest to what this platform actually guarantees — not a copy of a
+// generic marketplace's trust-badge copy ("Free Shipping" isn't a JOM
+// HUB promise; shipping is receiver-pays or reseller-arranged).
+const TRUST_BADGES = [
+  { icon: ShieldCheck, title: 'Wallet-Protected Payments', text: 'Escrow-style checkout, held safely until delivery' },
+  { icon: BadgeCheck, title: 'Verified Merchants', text: 'Every store is approved before it can list' },
+  { icon: Truck, title: 'Real-Time Order Tracking', text: 'Follow every order from packed to delivered' },
+]
 
 // Keyword -> icon for the Shopee/Lazada-style category row. Purely
 // presentational (no schema change — `categories` has no icon column),
@@ -128,6 +138,13 @@ export default function Catalog() {
   const activeMerchantName = useMemo(() => merchants.find((merchant) => merchant.id === activeMerchant)?.business_name, [merchants, activeMerchant])
   const clearFilters = () => { setActiveCategory(null); setActiveMerchant(null); setMinPrice(''); setMaxPrice(''); setCategorySearch(''); setStoreSearch('') }
   const filterProps = { categories, merchants, activeCategory, setActiveCategory, activeMerchant, setActiveMerchant, categorySearch, setCategorySearch, storeSearch, setStoreSearch, minPrice, setMinPrice, maxPrice, setMaxPrice, clearFilters }
+  const showPromo = !activeCategory && !activeMerchant && !debouncedSearch
+  const discountedProducts = useMemo(() => products.filter((p) => p.campaign_discount_percent > 0), [products])
+  const topDiscount = useMemo(() => discountedProducts.reduce((max, p) => Math.max(max, p.campaign_discount_percent), 0), [discountedProducts])
+  // Only per-product campaigns carry an end date (applyCampaignDiscount
+  // only sets campaign_ends_at for those, not whole-store join
+  // discounts) — soonest one wins for the countdown, if any exist.
+  const soonestEndsAt = useMemo(() => discountedProducts.map((p) => p.campaign_ends_at).filter(Boolean).sort()[0], [discountedProducts])
 
   return <div className="min-h-screen bg-bg">
     <section className="relative overflow-hidden border-b border-teal-900/10 bg-gradient-to-br from-teal-950 via-teal-900 to-teal-700 text-white"><div className="pointer-events-none absolute -right-24 -top-32 h-80 w-80 rounded-full border-[55px] border-white/[0.04]" /><div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12"><div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-teal-100"><Store size={13} /> JOM HUB Marketplace</div><h1 className="mt-4 max-w-2xl font-display text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">Everything your business needs.</h1><p className="mt-3 max-w-xl text-sm leading-6 text-white/70 sm:text-base">Discover products from verified stores. Browse everything or use the filters to find the right match.</p><label className="relative mt-7 block max-w-3xl"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-teal-900/45" size={20} /><input className="w-full rounded-2xl border border-white/20 bg-surface py-4 pl-12 pr-12 text-sm text-ink shadow-xl shadow-black/10 outline-none transition placeholder:text-ink/35 focus:ring-4 focus:ring-white/20 sm:text-base" placeholder="Search products, stores, categories or SKU..." value={search} onChange={(e) => setSearch(e.target.value)} />{search && <button type="button" onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-ink/35 hover:bg-black/5"><X size={17} /></button>}</label></div></section>
@@ -151,12 +168,39 @@ export default function Catalog() {
         </div>
       </section>
     )}
-    {!activeCategory && !activeMerchant && !debouncedSearch && products.some((p) => p.campaign_discount_percent > 0) && (
+    {showPromo && (
+      <section className="border-b border-black/[0.06] bg-surface">
+        <div className="mx-auto grid max-w-7xl gap-4 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_auto]">
+          {topDiscount > 0 && (
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-coral-700 via-coral-600 to-mango-600 p-6 text-white shadow-card sm:p-8">
+              <div className="pointer-events-none absolute -right-10 -top-10 h-48 w-48 rounded-full border-[40px] border-white/10" />
+              <div className="relative">
+                <p className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em]"><Zap size={13} />Mega Sale</p>
+                <p className="mt-3 font-display text-2xl font-extrabold leading-tight sm:text-3xl">Up to {Math.round(topDiscount)}% OFF on selected items!</p>
+                {soonestEndsAt && <CampaignCountdown endsAt={soonestEndsAt} className="mt-3 text-sm text-white/85" />}
+              </div>
+            </div>
+          )}
+          <div className={`grid gap-3 ${topDiscount > 0 ? 'grid-cols-1 sm:grid-cols-3 lg:w-72 lg:grid-cols-1' : 'sm:grid-cols-3'}`}>
+            {TRUST_BADGES.map(({ icon: Icon, title, text }) => (
+              <div key={title} className="flex items-center gap-3 rounded-xl border border-black/[0.06] bg-surface-inset px-3.5 py-3">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-teal-50 text-teal-700"><Icon size={18} /></span>
+                <div className="min-w-0"><p className="truncate text-xs font-bold text-ink">{title}</p><p className="truncate text-[11px] text-ink/50">{text}</p></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+    {showPromo && discountedProducts.length > 0 && (
       <section className="border-b border-black/[0.06] bg-gradient-to-br from-mango-50 to-white dark:from-mango-500/5 dark:to-transparent">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
-          <div className="mb-4 flex items-center gap-2"><span className="grid h-9 w-9 place-items-center rounded-xl bg-mango-500 text-white shadow-sm"><Tag size={18} /></span><div><h2 className="font-display text-lg font-bold text-ink">On campaign right now</h2><p className="text-xs text-ink/50">Limited-time marketplace discounts, updated automatically.</p></div></div>
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2"><span className="grid h-9 w-9 place-items-center rounded-xl bg-mango-500 text-white shadow-sm"><Zap size={18} /></span><div><h2 className="font-display text-lg font-bold text-ink">Flash Sale</h2><p className="text-xs text-ink/50">Limited-time marketplace discounts, updated automatically.</p></div></div>
+            {soonestEndsAt && <CampaignCountdown endsAt={soonestEndsAt} className="hidden text-sm text-mango-700 sm:inline-flex" />}
+          </div>
           <div className="flex gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:overflow-visible lg:grid-cols-5">
-            {products.filter((p) => p.campaign_discount_percent > 0).slice(0, 10).map((product) => <div key={product.id} className="w-36 shrink-0 sm:w-auto"><ProductCard product={product} /></div>)}
+            {discountedProducts.slice(0, 10).map((product) => <div key={product.id} className="w-36 shrink-0 sm:w-auto"><ProductCard product={product} /></div>)}
           </div>
         </div>
       </section>
