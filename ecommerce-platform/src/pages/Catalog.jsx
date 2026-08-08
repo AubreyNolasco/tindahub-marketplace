@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Baby, BadgeCheck, Car, ChevronDown, Cookie, Dumbbell, Filter, Gem, Gift, Hammer, Home as HomeIcon, LayoutGrid, PackageSearch, Pill, Search, ShieldCheck, Shirt, SlidersHorizontal, Smartphone, Sparkles, Store, Tag, Truck, X, Zap } from 'lucide-react'
+import { BadgeCheck, ChevronDown, Filter, PackageSearch, Search, ShieldCheck, SlidersHorizontal, Store, Truck, X, Zap } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 import ProductCard from '../components/product/ProductCard'
@@ -20,27 +20,6 @@ const TRUST_BADGES = [
   { icon: BadgeCheck, title: 'Verified Merchants', text: 'Every store is approved before it can list' },
   { icon: Truck, title: 'Real-Time Order Tracking', text: 'Follow every order from packed to delivered' },
 ]
-
-// Keyword -> icon for the Shopee/Lazada-style category row. Purely
-// presentational (no schema change — `categories` has no icon column),
-// falls back to a generic grid icon for anything unmatched.
-const CATEGORY_ICON_RULES = [
-  [/electronic|gadget|phone|mobile|computer/i, Smartphone],
-  [/fashion|cloth|apparel|shoe|bag/i, Shirt],
-  [/beauty|cosmetic|skin|personal care/i, Sparkles],
-  [/health|wellness|vitamin|medicine|pharma/i, Pill],
-  [/home|furniture|kitchen|appliance/i, HomeIcon],
-  [/food|grocery|snack|beverage/i, Cookie],
-  [/baby|kid|toy/i, Baby],
-  [/sport|fitness|outdoor|gym/i, Dumbbell],
-  [/auto|motor|vehicle|car/i, Car],
-  [/tool|hardware|construction/i, Hammer],
-  [/jewel|watch|accessor/i, Gem],
-  [/gift|occasion|party/i, Gift],
-]
-function getCategoryIcon(name = '') {
-  return CATEGORY_ICON_RULES.find(([pattern]) => pattern.test(name))?.[1] || Tag
-}
 
 function FilterPanel({ categories, merchants, activeCategory, setActiveCategory, activeMerchant, setActiveMerchant, categorySearch, setCategorySearch, storeSearch, setStoreSearch, minPrice, setMinPrice, maxPrice, setMaxPrice, minRating, setMinRating, clearFilters, onClose }) {
   const [expanded, setExpanded] = useState({})
@@ -206,26 +185,6 @@ export default function Catalog() {
   const soonestEndsAt = useMemo(() => discountedProducts.map((p) => p.campaign_ends_at).filter(Boolean).sort()[0], [discountedProducts])
 
   return <div className="min-h-screen bg-bg">
-    {categories.length > 0 && (
-      <section className="border-b border-black/[0.06] bg-surface">
-        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-5">
-          <div className="flex gap-4 overflow-x-auto pb-1 sm:flex-wrap sm:justify-center sm:gap-6">
-            <button type="button" onClick={() => setActiveCategory(null)} className="flex shrink-0 flex-col items-center gap-1.5 text-center">
-              <span className={`grid h-12 w-12 place-items-center rounded-full transition sm:h-14 sm:w-14 ${!activeCategory ? 'bg-teal-600 text-white shadow-sm' : 'bg-teal-50 text-teal-700 hover:bg-teal-100'}`}><LayoutGrid size={20} /></span>
-              <span className={`text-[10px] font-semibold sm:text-xs ${!activeCategory ? 'text-teal-700' : 'text-ink/55'}`}>All</span>
-            </button>
-            {categories.filter((category) => !category.parent_id).map((category) => {
-              const Icon = getCategoryIcon(category.name)
-              const active = activeCategory === category.id
-              return <button key={category.id} type="button" onClick={() => setActiveCategory(category.id)} className="flex shrink-0 flex-col items-center gap-1.5 text-center">
-                <span className={`grid h-12 w-12 place-items-center rounded-full transition sm:h-14 sm:w-14 ${active ? 'bg-teal-600 text-white shadow-sm' : 'bg-teal-50 text-teal-700 hover:bg-teal-100'}`}><Icon size={20} /></span>
-                <span className={`max-w-[4.5rem] truncate text-[10px] font-semibold sm:max-w-[5.5rem] sm:text-xs ${active ? 'text-teal-700' : 'text-ink/55'}`}>{category.name}</span>
-              </button>
-            })}
-          </div>
-        </div>
-      </section>
-    )}
     {showPromo && (
       <section className="border-b border-black/[0.06] bg-surface">
         <div className="mx-auto grid max-w-7xl gap-4 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_auto]">
