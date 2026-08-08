@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { ShoppingCart, House, Route, Store, UsersRound, Handshake, Star, HelpCircle, LogOut, ChevronDown, LayoutDashboard, Package, ShieldCheck, Menu, X, Sun, Moon } from 'lucide-react'
+import { ShoppingCart, House, Route, Store, UsersRound, Handshake, Star, HelpCircle, LogOut, ChevronDown, LayoutDashboard, Package, ShieldCheck, Menu, X, Sun, Moon, UserRound, LifeBuoy } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useCart } from '../../contexts/CartContext'
 import { getAdminHomePath } from '../../config/adminPermissions'
@@ -130,6 +130,12 @@ export default function Navbar() {
                     </Link>
                     <Link to="/catalog" onClick={() => setAccountMenuOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/70 transition hover:bg-teal-50 hover:text-teal-700 dark:hover:bg-slate-800"><Package size={17} /> Products</Link>
                     <Link to="/clinics" onClick={() => setAccountMenuOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/70 transition hover:bg-teal-50 hover:text-teal-700 dark:hover:bg-slate-800"><Handshake size={17} /> Services</Link>
+                    {(role === 'reseller' || role === 'merchant') && (
+                      <>
+                        <Link to={`/${role}/account`} onClick={() => setAccountMenuOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/70 transition hover:bg-teal-50 hover:text-teal-700 dark:hover:bg-slate-800"><UserRound size={17} /> Profile &amp; Settings</Link>
+                        <Link to={`/${role}/support`} onClick={() => setAccountMenuOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold text-ink/70 transition hover:bg-teal-50 hover:text-teal-700 dark:hover:bg-slate-800"><LifeBuoy size={17} /> Support</Link>
+                      </>
+                    )}
                   </div>
                   <div className="border-t border-black/5 p-1.5 dark:border-white/10">
                     <button type="button" onClick={handleSignOut} className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold text-coral-600 transition hover:bg-coral-50"><LogOut size={17} /> Sign out</button>
@@ -165,6 +171,12 @@ export default function Navbar() {
                 </Link>
                 <Link to="/catalog" onClick={() => setMenuOpen(false)} className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600"><Package size={17} /> Products</Link>
                 <Link to="/clinics" onClick={() => setMenuOpen(false)} className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600"><Handshake size={17} /> Services</Link>
+                {(role === 'reseller' || role === 'merchant') && (
+                  <>
+                    <Link to={`/${role}/account`} onClick={() => setMenuOpen(false)} className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600"><UserRound size={17} /> Profile &amp; Settings</Link>
+                    <Link to={`/${role}/support`} onClick={() => setMenuOpen(false)} className="flex min-h-11 items-center gap-3 rounded-xl px-3 hover:bg-teal-50 hover:text-teal-600"><LifeBuoy size={17} /> Support</Link>
+                  </>
+                )}
               </div>
               <div className="mt-2 flex items-center justify-between border-t border-black/5 pt-2">
                 <span className="flex items-center gap-1.5 text-sm text-ink/70 dark:text-slate-200">
