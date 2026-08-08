@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Bell, CalendarClock, Heart, LifeBuoy, Megaphone, PackageCheck, ShieldAlert, ShoppingBag, Ticket, WalletCards, X } from 'lucide-react'
+import { Bell, CalendarClock, Heart, LifeBuoy, Megaphone, MessageCircle, PackageCheck, ShieldAlert, ShoppingBag, Ticket, WalletCards, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
@@ -28,6 +28,22 @@ export default function RoleNotifications() {
 
     const { data: supportMessages } = await supabase.from('support_messages').select('id,message,created_at').eq('user_id',user.id).eq('is_read',false).in('sender_role',['admin','staff']).order('created_at',{ascending:false}).limit(10)
     supportMessages?.forEach(row=>items.unshift({id:`support:${row.id}`,title:'New message from Admin',message:row.message,to:`/${role}/support`,action:'Open Chat Support',icon:LifeBuoy,tone:'teal'}))
+
+    // chat_messages (merchant<->reseller direct chat) has the same
+    // shape as support_messages above -- a natural unread-row source --
+    // but was never wired into this feed, so a new chat message only
+    // ever showed up as an unread badge on Merchant/Reseller Chats.jsx's
+    // own thread list, never in the global "needs your attention" bell.
+    // Counterpart name resolved the same way those two pages already do
+    // (profiles is locked to id = auth.uid(), so a merchant can't read a
+    // reseller's name directly -- only via the embedded join through
+    // chat_messages' own FK, same as Merchant/Chats.jsx; a reseller CAN
+    // read merchant_profiles directly since it's public-read, same as
+    // Reseller/Chats.jsx).
+    const counterpartColumn = role === 'merchant' ? 'reseller_id' : 'merchant_id'
+    const counterpartSelect = role === 'merchant' ? 'profiles!chat_messages_reseller_id_fkey(full_name)' : 'merchant_profiles(business_name)'
+    const { data: chatMessages } = await supabase.from('chat_messages').select(`id,message,created_at,${counterpartColumn},${counterpartSelect}`).eq(role === 'merchant' ? 'merchant_id' : 'reseller_id', user.id).eq('is_read', false).neq('sender_id', user.id).order('created_at', { ascending: false }).limit(10)
+    chatMessages?.forEach(row => items.unshift({ id: `chat:${row.id}`, title: `New message from ${role === 'merchant' ? (row.profiles?.full_name || 'a reseller') : (row.merchant_profiles?.business_name || 'a merchant')}`, message: row.message, to: `/${role}/chats/${row[counterpartColumn]}`, action: 'Open chat', icon: MessageCircle, tone: 'teal' }))
 
     // Phase 12: campaign/voucher events written by review_campaign_submission(),
     // run_campaign_scheduler(), and place_order() have no natural source-row
@@ -65,6 +81,7 @@ export default function RoleNotifications() {
       .on('postgres_changes',{event:'*',schema:'public',table:'order_cases'},load)
       .on('postgres_changes',{event:'*',schema:'public',table:'support_messages',filter:`user_id=eq.${user.id}`},load)
       .on('postgres_changes',{event:'*',schema:'public',table:'notifications',filter:`owner_id=eq.${user.id}`},load)
+      .on('postgres_changes',{event:'*',schema:'public',table:'chat_messages',filter:`${role === 'merchant' ? 'merchant_id' : 'reseller_id'}=eq.${user.id}`},load)
     if (role === 'merchant') channel.on('postgres_changes', { event:'*', schema:'public', table:'subscriptions', filter:`owner_id=eq.${user.id}` }, load)
     channel.subscribe()
     return () => { supabase.removeChannel(channel) }
