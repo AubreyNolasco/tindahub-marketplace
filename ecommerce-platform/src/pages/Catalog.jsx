@@ -5,6 +5,7 @@ import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 import ProductCard from '../components/product/ProductCard'
 import CampaignCountdown from '../components/product/CampaignCountdown'
+import MarketplaceSlideshow from '../components/product/MarketplaceSlideshow'
 import StarRating from '../components/product/StarRating'
 import EmptyState from '../components/ui/EmptyState'
 import Spinner from '../components/ui/Spinner'
@@ -103,8 +104,13 @@ export default function Catalog() {
   const [sort, setSort] = useState('newest')
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [marketplaceSlides, setMarketplaceSlides] = useState([])
 
   useEffect(() => { Promise.all([supabase.from('categories').select('*').order('name'), supabase.from('merchant_profiles').select('id,business_name').eq('status', 'approved').order('business_name')]).then(([categoryResult, merchantResult]) => { if (categoryResult.error || merchantResult.error) toast.error(categoryResult.error?.message || merchantResult.error?.message); setCategories(categoryResult.data || []); setMerchants(merchantResult.data || []) }) }, [])
+  // Admin-editable slideshow content (Admin/MarketplaceEditor.jsx),
+  // same site_settings key/value pattern the Landing page's own
+  // Homepage Designer already uses — just a different key.
+  useEffect(() => { supabase.from('site_settings').select('value').eq('key', 'marketplace').maybeSingle().then(({ data }) => setMarketplaceSlides(data?.value?.slides || [])) }, [])
   useEffect(() => { setSearch(searchParams.get('q') || '') }, [searchParams])
   useEffect(() => { const timer = setTimeout(() => setDebouncedSearch(search.trim()), 300); return () => clearTimeout(timer) }, [search])
   const loadProducts = useCallback(async () => {
@@ -212,17 +218,11 @@ export default function Catalog() {
     {showPromo && (
       <section className="border-b border-black/[0.06] bg-surface">
         <div className="mx-auto grid max-w-7xl gap-4 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_auto]">
-          {topDiscount > 0 && (
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-coral-700 via-coral-600 to-mango-600 p-6 text-white shadow-card sm:p-8">
-              <div className="pointer-events-none absolute -right-10 -top-10 h-48 w-48 rounded-full border-[40px] border-white/10" />
-              <div className="relative">
-                <p className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em]"><Zap size={13} />Mega Sale</p>
-                <p className="mt-3 font-display text-2xl font-extrabold leading-tight sm:text-3xl">Up to {Math.round(topDiscount)}% OFF on selected items!</p>
-                {soonestEndsAt && <CampaignCountdown endsAt={soonestEndsAt} className="mt-3 text-sm text-white/85" />}
-              </div>
-            </div>
-          )}
-          <div className={`grid gap-3 ${topDiscount > 0 ? 'grid-cols-1 sm:grid-cols-3 lg:w-72 lg:grid-cols-1' : 'sm:grid-cols-3'}`}>
+          <MarketplaceSlideshow
+            campaignSlide={topDiscount > 0 ? { kind: 'campaign', title: `Up to ${Math.round(topDiscount)}% OFF on selected items!`, countdown: soonestEndsAt ? <CampaignCountdown endsAt={soonestEndsAt} className="mt-3 text-sm text-white/85" /> : null } : null}
+            customSlides={marketplaceSlides}
+          />
+          <div className={`grid gap-3 ${topDiscount > 0 || marketplaceSlides.length > 0 ? 'grid-cols-1 sm:grid-cols-3 lg:w-72 lg:grid-cols-1' : 'sm:grid-cols-3'}`}>
             {TRUST_BADGES.map(({ icon: Icon, title, text }) => (
               <div key={title} className="flex items-center gap-3 rounded-xl border border-black/[0.06] bg-surface-inset px-3.5 py-3">
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-teal-50 text-teal-700"><Icon size={18} /></span>

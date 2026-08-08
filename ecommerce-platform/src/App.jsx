@@ -93,6 +93,7 @@ const ChatHistoryDetail = lazy(() => import('./pages/Admin/ChatHistoryDetail'))
 const Categories = lazy(() => import('./pages/Admin/Categories'))
 const Subscriptions = lazy(() => import('./pages/Admin/Subscriptions'))
 const HomepageEditor = lazy(() => import('./pages/Admin/HomepageEditor'))
+const MarketplaceEditor = lazy(() => import('./pages/Admin/MarketplaceEditor'))
 const ProcessPresentation = lazy(() => import('./pages/Admin/ProcessPresentation'))
 const AdminWallet = lazy(() => import('./pages/Admin/Wallet'))
 const Sales = lazy(() => import('./pages/Admin/Sales'))
@@ -266,6 +267,7 @@ export default function App() {
                   <Route path="categories" element={<AdminPermissionRoute permission="categories"><Categories /></AdminPermissionRoute>} />
                   <Route path="subscriptions" element={<AdminPermissionRoute permission="subscriptions"><Subscriptions /></AdminPermissionRoute>} />
                   <Route path="homepage" element={<AdminPermissionRoute permission="homepage"><HomepageEditor /></AdminPermissionRoute>} />
+                  <Route path="marketplace-editor" element={<AdminPermissionRoute permission="homepage"><MarketplaceEditor /></AdminPermissionRoute>} />
                   <Route path="wallet" element={<AdminPermissionRoute permission="wallet"><AdminWallet /></AdminPermissionRoute>} />
                   <Route path="sales" element={<AdminPermissionRoute permission="sales"><Sales /></AdminPermissionRoute>} />
                   <Route path="reports/sales" element={<AdminPermissionRoute permission="reports"><AdminSalesReport /></AdminPermissionRoute>} />
