@@ -47,32 +47,19 @@ function SubscriptionModal({ profile, onClose, onSaved }) {
     e.preventDefault()
     setSaving(true)
     const expiresAt = calculateExpiry()
-    const payload = {
-      status,
-      expires_at: expiresAt.toISOString(),
-      is_free: false,
-      updated_at: new Date().toISOString()
-    }
-    const { error } = sub
-      ? await supabase.from('subscriptions').update(payload).eq('id', sub.id)
-      : await supabase.from('subscriptions').insert({ owner_id: profile.id, started_at: new Date().toISOString(), ...payload })
-    if (error) {
-      setSaving(false)
-      toast.error(error.message)
-      return
-    }
-    if (profile.role === 'merchant') {
-      const { error: merchantError } = await supabase.from('merchant_profiles').update({
-        subscription_active: status === 'active',
-        subscription_expires_at: expiresAt.toISOString()
-      }).eq('id', profile.id)
-      if (merchantError) {
-        setSaving(false)
-        toast.error(merchantError.message)
-        return
-      }
-    }
+    // admin_grant_subscription() upserts subscriptions and (for merchants)
+    // syncs merchant_profiles.subscription_active/subscription_expires_at
+    // in one transaction -- doing these as two separate REST calls risked
+    // the second failing after the first succeeded, leaving the cached
+    // merchant_profiles flag ProtectedRoute reads out of sync with the
+    // subscriptions row that's actually enforced server-side.
+    const { error } = await supabase.rpc('admin_grant_subscription', {
+      p_owner_id: profile.id,
+      p_status: status,
+      p_expires_at: expiresAt.toISOString()
+    })
     setSaving(false)
+    if (error) return toast.error(error.message)
     toast.success(`${selectedPlan.label} subscription applied until ${formatDate(expiresAt)}.`)
     onSaved()
     onClose()
