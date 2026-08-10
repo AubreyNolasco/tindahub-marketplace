@@ -117,8 +117,13 @@ export default function Catalog() {
     }
     // "Items" = everything that isn't Food, including products with no
     // category at all — a plain .neq() would silently drop null-category
-    // rows too, since SQL's `null != x` is null, not true.
-    if (excludeCategory) query = query.or(`category_id.is.null,category_id.neq.${excludeCategory}`)
+    // rows too, since SQL's `null != x` is null, not true. excludeCategory
+    // is only ever set to a hardcoded id by this app's own nav link, but
+    // it's still a raw URL param — validated as a UUID (like the search
+    // term below is stripped to safe characters) before it's interpolated
+    // into the .or() filter string, rather than trusting it as-is.
+    const isUuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
+    if (excludeCategory && isUuid(excludeCategory)) query = query.or(`category_id.is.null,category_id.neq.${excludeCategory}`)
     if (activeMerchant) query = query.eq('merchant_id', activeMerchant)
     if (debouncedSearch) {
       const searchTerm = debouncedSearch.replace(/[^\p{L}\p{N}\s-]/gu, ' ').replace(/\s+/g, ' ').trim().slice(0, 100)
