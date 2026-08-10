@@ -40,11 +40,11 @@ export default function MarketplaceSlideshow() {
 
   const slide = SLIDES[index]
   const Icon = slide.icon
-  const image = '/assets/backgrounds/marketplace-slide-dark.jpg'
 
   return (
     <section className="relative aspect-[16/8] min-h-[300px] overflow-hidden rounded-2xl border border-line shadow-2xl sm:aspect-[16/7] lg:aspect-[16/6]" aria-roledescription="carousel" aria-label="Marketplace highlights">
-      <img src={image} alt="" className="absolute inset-0 h-full w-full object-cover object-center" />
+      <img src="/assets/backgrounds/marketplace-slide-light.jpg" alt="" className="absolute inset-0 h-full w-full object-cover object-center dark:hidden" />
+      <img src="/assets/backgrounds/marketplace-slide-dark.jpg" alt="" className="absolute inset-0 hidden h-full w-full object-cover object-center dark:block" />
       <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/80 to-white/5 dark:from-[#00130c]/95 dark:via-[#002518]/72 dark:to-transparent" />
       <div key={index} className="relative flex h-full max-w-[65%] flex-col justify-center px-6 py-8 animate-fade-in sm:max-w-[58%] sm:px-9 lg:max-w-[52%] lg:px-12">
         <span className="inline-flex w-fit items-center gap-2 rounded-full border border-teal-600/15 bg-teal-600/10 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[.16em] text-teal-700 dark:text-emerald-300"><Icon size={13} /> {slide.eyebrow}</span>
