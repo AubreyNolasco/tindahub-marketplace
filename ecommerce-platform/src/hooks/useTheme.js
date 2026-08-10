@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 
 const STORAGE_KEY = 'jomhub-theme'
+const THEME_EVENT = 'jomhub:theme-change'
 
-// public/theme-init.js already set the .dark class on <html> before first
-// paint (avoiding a flash) — read that as the initial state instead of
-// recomputing the system-preference check here.
 function getInitialTheme() {
   if (typeof document === 'undefined') return 'light'
   return document.documentElement.classList.contains('dark') ? 'dark' : 'light'
@@ -15,10 +13,28 @@ export function useTheme() {
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark')
-    try { localStorage.setItem(STORAGE_KEY, theme) } catch { /* private mode etc — non-fatal */ }
+    try { localStorage.setItem(STORAGE_KEY, theme) } catch { /* restricted storage */ }
+    window.dispatchEvent(new CustomEvent(THEME_EVENT, { detail: theme }))
   }, [theme])
 
-  const toggleTheme = useCallback(() => setTheme((t) => (t === 'dark' ? 'light' : 'dark')), [])
+  useEffect(() => {
+    const syncTheme = (event) => {
+      const nextTheme = event.detail
+      if ((nextTheme === 'light' || nextTheme === 'dark') && nextTheme !== theme) setTheme(nextTheme)
+    }
+    const syncStoredTheme = (event) => {
+      if (event.key !== STORAGE_KEY) return
+      if (event.newValue === 'light' || event.newValue === 'dark') setTheme(event.newValue)
+    }
+    window.addEventListener(THEME_EVENT, syncTheme)
+    window.addEventListener('storage', syncStoredTheme)
+    return () => {
+      window.removeEventListener(THEME_EVENT, syncTheme)
+      window.removeEventListener('storage', syncStoredTheme)
+    }
+  }, [theme])
+
+  const toggleTheme = useCallback(() => setTheme((current) => current === 'dark' ? 'light' : 'dark'), [])
 
   return { theme, toggleTheme }
 }
