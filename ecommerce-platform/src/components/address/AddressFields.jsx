@@ -90,6 +90,18 @@ export default function AddressFields({ value, onChange, required = false, withC
     const query = [value.street, value.barangay, value.city, value.province, value.postalCode].filter(Boolean).join(', ')
     if (!value.street?.trim() || !value.city?.trim() || !value.province?.trim()) return
     if (automaticGeocodeRef.current === query) return
+    // Pages like ProfileAddress.jsx mount this with empty fields and fill
+    // in the real saved address (pin included) once the profile loads
+    // asynchronously — so the very first time this effect ever sees a
+    // non-empty address, it may already have a real, user-confirmed pin
+    // that has nothing to do with a fresh edit. Adopt that pin as already
+    // pinned instead of re-geocoding and silently overwriting it; only
+    // genuine edits after this point (which change the composed query)
+    // should trigger a new auto-geocode.
+    if (automaticGeocodeRef.current === null && value.latitude != null) {
+      automaticGeocodeRef.current = query
+      return
+    }
     const timer = setTimeout(() => {
       const controller = new AbortController()
       abortRef.current?.abort()
@@ -101,7 +113,13 @@ export default function AddressFields({ value, onChange, required = false, withC
       }).catch((error) => { if (error.name !== 'AbortError') console.error('Address geocoding failed:', error) })
     }, 1200)
     return () => clearTimeout(timer)
-  }, [value.street, value.barangay, value.city, value.province, value.postalCode, withCoordinates, onChange])
+    // value.latitude is read (the already-pinned bail-out above) but
+    // deliberately included as a dependency rather than closed over stale:
+    // when latitude changes on its own (map drag/pick, no text edit), this
+    // re-runs, recomputes the same query, and the automaticGeocodeRef
+    // match immediately short-circuits it -- pickMapLocation always seeds
+    // the ref before its own onChange, so this can't loop or re-fetch.
+  }, [value.street, value.barangay, value.city, value.province, value.postalCode, value.latitude, withCoordinates, onChange])
 
   useEffect(() => {
     const onClickAway = (event) => { if (wrapperRef.current && !wrapperRef.current.contains(event.target)) setOpen(false) }
