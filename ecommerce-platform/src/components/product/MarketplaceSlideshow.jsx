@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, ShoppingBag, Store, Tags } from 'lucide-react'
-import { useTheme } from '../../hooks/useTheme'
 
 const ROTATE_MS = 6000
 const SLIDES = [
@@ -33,7 +32,6 @@ const SLIDES = [
 
 export default function MarketplaceSlideshow() {
   const [index, setIndex] = useState(0)
-  const { theme } = useTheme()
 
   useEffect(() => {
     const timer = setInterval(() => setIndex((current) => (current + 1) % SLIDES.length), ROTATE_MS)
@@ -42,7 +40,7 @@ export default function MarketplaceSlideshow() {
 
   const slide = SLIDES[index]
   const Icon = slide.icon
-  const image = theme === 'dark' ? '/assets/backgrounds/marketplace-slide-dark.jpg' : '/assets/backgrounds/marketplace-slide-light.jpg'
+  const image = '/assets/backgrounds/marketplace-slide-dark.jpg'
 
   return (
     <section className="relative aspect-[16/8] min-h-[300px] overflow-hidden rounded-2xl border border-line shadow-2xl sm:aspect-[16/7] lg:aspect-[16/6]" aria-roledescription="carousel" aria-label="Marketplace highlights">

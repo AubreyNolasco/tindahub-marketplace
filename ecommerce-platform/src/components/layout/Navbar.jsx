@@ -78,7 +78,7 @@ export default function Navbar() {
   if (customerStorefront) return null
 
   return (
-    <header className={`sticky top-0 z-40 transition-all duration-300 ${isScrolled ? 'border-b border-black/[0.05] bg-[#f7faf7]/90 shadow-[0_8px_30px_rgba(7,59,37,0.05)] backdrop-blur-xl dark:border-white/10 dark:bg-[#07120d]/90' : 'border-b border-transparent bg-transparent'}`}>
+    <header className={`sticky top-0 z-40 transition-all duration-300 ${isMarketplace ? 'marketplace-global-nav border-b' : isScrolled ? 'border-b border-black/[0.05] bg-[#f7faf7]/90 shadow-[0_8px_30px_rgba(7,59,37,0.05)] backdrop-blur-xl dark:border-white/10 dark:bg-[#07120d]/90' : 'border-b border-transparent bg-transparent'}`}>
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-3 sm:px-6">
         <Link to="/" className="block shrink-0" onClick={() => setMenuOpen(false)} aria-label="JOM HUB home">
           <img src={theme === 'dark' ? '/rmhub-logo-dark.svg' : '/rmhub-logo.svg'} alt="JOM HUB" className="h-9 w-auto sm:h-12" />
