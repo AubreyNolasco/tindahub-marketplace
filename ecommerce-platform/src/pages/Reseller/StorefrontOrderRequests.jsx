@@ -14,6 +14,7 @@ import Modal from '../../components/ui/Modal'
 import AddressFields from '../../components/address/AddressFields'
 import { composeAddress, emptyAddressParts, isCompleteAddress, partsFromLegacyAddress } from '../../utils/address'
 import { markPendingConversion } from '../../utils/storefrontRequestConversion'
+import { cleanText } from '../../utils/security'
 
 const STATUS_STYLES = {
   pending: 'bg-mango-100 text-mango-600 dark:bg-mango-500/15 dark:text-mango-300',
@@ -120,9 +121,26 @@ export default function StorefrontOrderRequests() {
     setSavingAddress(true)
     try {
       const { request } = addressPrompt
+      // Same structured columns + coordinates Customers.jsx's own add-
+      // customer form saves -- this modal renders the identical
+      // AddressFields(withCoordinates) form, so the reseller may have
+      // just pinned this customer's exact location; discarding that (as
+      // this insert used to, saving only the composed text) would silently
+      // leave the new customer without a pin, breaking shipping-fee/route
+      // estimation for them later.
       const { data: created, error: createError } = await supabase
         .from('customers')
-        .insert({ reseller_id: user.id, name: request.customer_name, phone: request.customer_phone, address: composedAddress, notes: request.customer_notes })
+        .insert({
+          reseller_id: user.id, name: request.customer_name, phone: request.customer_phone, notes: request.customer_notes,
+          address: composedAddress,
+          street: cleanText(addressParts.street, 200) || null,
+          barangay: cleanText(addressParts.barangay, 120) || null,
+          city: cleanText(addressParts.city, 120) || null,
+          province: cleanText(addressParts.province, 120) || null,
+          postal_code: cleanText(addressParts.postalCode, 10) || null,
+          latitude: addressParts.latitude,
+          longitude: addressParts.longitude,
+        })
         .select()
         .single()
       if (createError) throw createError
@@ -236,7 +254,7 @@ export default function StorefrontOrderRequests() {
             : 'This customer didn’t include a delivery address. Add one to save them to your customer list.'}
         </p>
         <form onSubmit={confirmAddressAndConvert} className="mt-4 space-y-4">
-          <AddressFields value={addressParts} onChange={setAddressParts} required />
+          <AddressFields value={addressParts} onChange={setAddressParts} required withCoordinates />
           <button type="submit" disabled={savingAddress || !isCompleteAddress(composeAddress(addressParts))} className="btn-primary w-full">
             {savingAddress ? 'Saving…' : 'Save customer & add to cart'}
           </button>
