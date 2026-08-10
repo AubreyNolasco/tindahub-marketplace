@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { BadgeCheck, ChevronDown, Filter, PackageSearch, Search, ShieldCheck, SlidersHorizontal, Store, Truck, X, Zap } from 'lucide-react'
+import { BadgeCheck, ChevronDown, Filter, Grid2X2, PackageSearch, Search, ShieldCheck, SlidersHorizontal, Store, Tags, Truck, X, Zap } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 import ProductCard from '../components/product/ProductCard'
@@ -205,7 +205,7 @@ export default function Catalog() {
   // discounts) — soonest one wins for the countdown, if any exist.
   const soonestEndsAt = useMemo(() => discountedProducts.map((p) => p.campaign_ends_at).filter(Boolean).sort()[0], [discountedProducts])
 
-  return <div className="min-h-screen bg-bg">
+  return <div className="marketplace-luxe min-h-screen bg-bg">
     {showPromo && (
       <section className="border-b border-black/[0.06] bg-surface">
         <div className="mx-auto grid max-w-7xl gap-4 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_auto]">
@@ -224,6 +224,18 @@ export default function Catalog() {
         </div>
       </section>
     )}
+    <nav className="marketplace-category-rail border-b border-line" aria-label="Marketplace categories">
+      <div className="mx-auto flex max-w-7xl gap-3 overflow-x-auto px-4 py-5 sm:justify-center sm:px-6">
+        <button type="button" onClick={() => setActiveCategory(null)} className={`marketplace-category-pill ${!activeCategory ? 'is-active' : ''}`}>
+          <span><Grid2X2 size={19} /></span><strong>All Categories</strong>
+        </button>
+        {categories.filter((category) => !category.parent_id).slice(0, 7).map((category) => (
+          <button type="button" key={category.id} onClick={() => setActiveCategory(category.id)} className={`marketplace-category-pill ${activeCategory === category.id ? 'is-active' : ''}`}>
+            <span>{category.name.toLowerCase().includes('sale') ? <Tags size={19} /> : <PackageSearch size={19} />}</span><strong>{category.name}</strong>
+          </button>
+        ))}
+      </div>
+    </nav>
     {showPromo && discountedProducts.length > 0 && (
       <section className="border-b border-black/[0.06] bg-gradient-to-br from-mango-50 to-white dark:from-mango-500/5 dark:to-transparent">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
@@ -242,7 +254,7 @@ export default function Catalog() {
     <div className={hideSidebar ? 'mx-auto max-w-7xl px-2 py-6 sm:px-6 lg:py-8' : 'mx-auto grid max-w-7xl gap-5 px-2 py-6 sm:px-6 md:grid-cols-[240px_minmax(0,1fr)] lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-7 lg:py-8'}>
       {!hideSidebar && <aside className="hidden overflow-hidden rounded-2xl border border-black/[0.06] bg-surface shadow-card md:sticky md:top-24 md:block md:h-[calc(100vh-7rem)]"><FilterPanel {...filterProps} /></aside>}
       <main className="min-w-0"><div className="mb-5 flex flex-col gap-3 px-2 sm:flex-row sm:items-center sm:justify-between sm:px-0"><div><h2 className="font-display text-xl font-bold text-ink">{activeMerchantName ? `${activeMerchantName} Products` : activeCategoryName ? `${activeCategoryName} Products` : excludeCategory ? 'Items' : campaignOnly ? 'Campaign Products' : discountOnly ? 'Discounted Products' : 'All Products'}</h2><p className="mt-1 text-sm text-ink/50">{loading ? 'Loading products...' : `${visibleProducts.length} product${visibleProducts.length === 1 ? '' : 's'} found`}</p><div className="mt-2 flex flex-wrap gap-1.5">{activeCategoryName && <span className="badge bg-teal-50 text-teal-700">Category: {activeCategoryName}</span>}{activeMerchantName && <span className="badge bg-teal-50 text-teal-700">Store: {activeMerchantName}</span>}{(minPrice || maxPrice) && <span className="badge bg-teal-50 text-teal-700">Price: ₱{minPrice || '0'} – ₱{maxPrice || 'Any'}</span>}{minRating > 0 && <span className="badge bg-teal-50 text-teal-700">Rating: {minRating}★ & up</span>}</div></div><label className="relative"><select value={sort} onChange={(e) => setSort(e.target.value)} className="input-field appearance-none py-2 pl-3 pr-9 text-sm"><option value="newest">Newest first</option><option value="price_low">Price: low to high</option><option value="price_high">Price: high to low</option><option value="name">Product name</option></select><ChevronDown size={15} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink/40" /></label></div>
-        {loading ? <div className="flex justify-center py-24"><Spinner /></div> : visibleProducts.length === 0 ? <div className="rounded-2xl border border-black/[0.06] bg-surface"><EmptyState icon={PackageSearch} title="No products found" message="Try another product name, store, category, or price range." action={!hideSidebar ? <button onClick={clearFilters} className="btn-primary">Clear filters</button> : null} /></div> : <div className="grid grid-cols-2 gap-2 min-[360px]:grid-cols-4 sm:grid-cols-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">{visibleProducts.map((product) => <ProductCard key={product.id} product={product} />)}</div>}
+        {loading ? <div className="flex justify-center py-24"><Spinner /></div> : visibleProducts.length === 0 ? <div className="rounded-2xl border border-black/[0.06] bg-surface"><EmptyState icon={PackageSearch} title="No products found" message="Try another product name, store, category, or price range." action={!hideSidebar ? <button onClick={clearFilters} className="btn-primary">Clear filters</button> : null} /></div> : <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">{visibleProducts.map((product) => <ProductCard key={product.id} product={product} />)}</div>}
       </main>
     </div>
 

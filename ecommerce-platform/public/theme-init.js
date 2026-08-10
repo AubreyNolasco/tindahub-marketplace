@@ -4,7 +4,9 @@
 (function () {
   try {
     var stored = localStorage.getItem('jomhub-theme')
-    var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches
+    // JOM HUB's marketplace identity is dark emerald by default. A stored
+    // preference always wins, so light mode remains a first-class option.
+    var dark = stored ? stored === 'dark' : true
     document.documentElement.classList.toggle('dark', dark)
   } catch (_e) { /* localStorage may be unavailable, e.g. private browsing */ }
 })()

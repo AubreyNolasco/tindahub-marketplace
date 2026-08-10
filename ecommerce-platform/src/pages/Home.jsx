@@ -80,7 +80,7 @@ export default function Home() {
 
   const heroRadius = content.hero_border === 'square' ? 'rounded-none' : content.hero_border === 'soft' ? 'rounded-xl' : 'rounded-[1.75rem]'
 
-  return <div className="overflow-hidden bg-bg">
+  return <div className="marketplace-luxe overflow-hidden bg-bg">
     <Modal open={subscriptionPopup} onClose={closeSubscriptionPopup} size="md" hideHeader bodyClassName="" ariaLabel="Join JOM HUB">
         <div className="relative overflow-hidden bg-gradient-to-br from-teal-950 via-teal-800 to-teal-600 px-4 py-5 text-white sm:px-7 sm:py-6">
           <div className="absolute -right-12 -top-16 h-52 w-52 rounded-full bg-mango-400/20 blur-2xl" />
