@@ -74,7 +74,11 @@ export default function ResellerDashboard() {
   const load = useCallback(async () => {
     setLoading(true)
     const [ordersRes, customers, wallet, lalamoveRes] = await Promise.all([
-      supabase.from('orders').select('id,order_number,total,status,created_at,merchant_id,delivery_provider,tracking_number,merchant_profiles(business_name)').eq('reseller_id', user.id).order('created_at', { ascending: false }),
+      // admin_seed_sample_catalog() plants real orders (notes=
+      // 'SAMPLE_CATALOG_SEED') under the demo account acting as its own
+      // reseller too -- excluded so purchases/spend reflect real orders
+      // only.
+      supabase.from('orders').select('id,order_number,total,status,created_at,merchant_id,delivery_provider,tracking_number,merchant_profiles(business_name)').eq('reseller_id', user.id).or('notes.is.null,notes.neq.SAMPLE_CATALOG_SEED').order('created_at', { ascending: false }),
       supabase.from('customers').select('*', { count: 'exact', head: true }).eq('reseller_id', user.id),
       supabase.from('wallets').select('balance').eq('owner_id', user.id).maybeSingle(),
       supabase.rpc('get_lalamove_settings')
