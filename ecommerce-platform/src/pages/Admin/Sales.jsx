@@ -39,7 +39,11 @@ export default function Sales() {
       .lt('created_at', nextDateStart(rangeEnd))
       .order('created_at', { ascending: false })
     if (error) toast.error(error.message)
-    setOrders(data || [])
+    // admin_seed_sample_catalog() plants real 'completed' orders (notes=
+    // 'SAMPLE_CATALOG_SEED') so the demo catalog shows a sold count --
+    // excluded here so this dashboard's GMV/fee totals reflect real
+    // transactions only.
+    setOrders((data || []).filter((order) => order.notes !== 'SAMPLE_CATALOG_SEED'))
     if (!error) setAppliedRange({ start: rangeStart, end: rangeEnd })
     setLoading(false)
     // eslint-disable-next-line react-hooks/exhaustive-deps -- startDate/endDate are only defaults for the initial mount call; onApply always passes explicit dates

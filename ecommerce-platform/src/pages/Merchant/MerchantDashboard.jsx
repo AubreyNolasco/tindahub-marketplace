@@ -66,7 +66,10 @@ export default function MerchantDashboard() {
     setLoading(true)
     const [products, orders, wallet, incoming] = await Promise.all([
       supabase.from('products').select('stock_quantity').eq('merchant_id', user.id),
-      supabase.from('orders').select('total,status,created_at').eq('merchant_id', user.id),
+      // admin_seed_sample_catalog() plants real 'completed' orders (notes=
+      // 'SAMPLE_CATALOG_SEED') so the demo catalog shows a sold count --
+      // excluded so gross sales reflects real orders only.
+      supabase.from('orders').select('total,status,created_at').eq('merchant_id', user.id).or('notes.is.null,notes.neq.SAMPLE_CATALOG_SEED'),
       supabase.from('wallets').select('balance').eq('owner_id', user.id).maybeSingle(),
       supabase.from('orders').select('id,order_number,status,total,created_at').eq('merchant_id', user.id).in('status', ['pending_payment', 'payment_review', 'confirmed', 'processing']).order('created_at', { ascending: false }).limit(6)
     ])

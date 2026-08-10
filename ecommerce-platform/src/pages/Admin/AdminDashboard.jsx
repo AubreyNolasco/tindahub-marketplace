@@ -92,7 +92,13 @@ export default function AdminDashboard() {
       supabase.from('merchant_profiles').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
       supabase.from('merchant_profiles').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
       supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'reseller'),
-      supabase.from('orders').select('total, created_at').neq('status', 'cancelled'),
+      // admin_seed_sample_catalog() plants real 'completed' rows in orders
+      // (notes='SAMPLE_CATALOG_SEED') so the demo catalog shows a sold
+      // count -- excluded here so GMV reflects real transactions only. A
+      // plain .neq('notes', ...) would also silently drop every order
+      // with no notes at all (SQL's `null <> x` is null, not true), so
+      // this has to explicitly keep the null-notes rows too.
+      supabase.from('orders').select('total, created_at').neq('status', 'cancelled').or('notes.is.null,notes.neq.SAMPLE_CATALOG_SEED'),
       supabase.from('topup_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
       supabase.from('withdrawal_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
       supabase.from('subscription_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
