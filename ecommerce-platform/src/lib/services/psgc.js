@@ -40,3 +40,31 @@ export async function resolvePsgcCodes(provinceName, cityName) {
   const { data: city } = await supabase.from('psgc_cities').select('code').eq('province_code', province.code).ilike('name', cityName).maybeSingle()
   return { provinceCode: province.code, cityCode: city?.code || null }
 }
+
+const normalizePlace = (value = '') => value.toLocaleLowerCase()
+  .replace(/\b(city of|province of|municipality of|city|municipality|province|brgy|barangay)\b/g, '')
+  .replace(/[^a-z0-9]/g, '')
+
+const findPlace = (rows, ...candidates) => {
+  const names = candidates.filter(Boolean).map(normalizePlace)
+  return rows.find((row) => names.includes(normalizePlace(row.name))) || null
+}
+
+export async function resolveGeocodedPsgc(parts = {}) {
+  const provinces = await listProvinces()
+  const provinceAliases = /metro manila|national capital region|\bncr\b/i.test(parts.province || '')
+    ? ['Metro Manila', 'National Capital Region', parts.province]
+    : [parts.province]
+  const province = findPlace(provinces, ...provinceAliases)
+  if (!province) return {}
+  const cities = await listCities(province.code)
+  const city = findPlace(cities, parts.city)
+  if (!city) return { province: province.name, provinceCode: province.code }
+  const barangays = await listBarangays(city.code)
+  const barangay = findPlace(barangays, parts.barangay)
+  return {
+    province: province.name, provinceCode: province.code,
+    city: city.name, cityCode: city.code,
+    ...(barangay ? { barangay: barangay.name } : {}),
+  }
+}

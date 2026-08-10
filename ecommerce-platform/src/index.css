@@ -24,6 +24,8 @@
   --shadow-1: 0 1px 2px rgba(22, 33, 30, 0.04);
   --shadow-2: 0 4px 16px rgba(22, 33, 30, 0.08);
   --shadow-3: 0 12px 40px rgba(22, 33, 30, 0.14);
+  --auth-overlay: rgba(247, 250, 247, 0.76);
+  --workspace-overlay: rgba(247, 250, 247, 0.94);
 }
 
 .dark {
@@ -37,6 +39,8 @@
   --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-2: 0 4px 16px rgba(0, 0, 0, 0.4);
   --shadow-3: 0 12px 40px rgba(0, 0, 0, 0.55);
+  --auth-overlay: rgba(6, 17, 13, 0.82);
+  --workspace-overlay: rgba(6, 17, 13, 0.95);
 }
 
 /* ===== Base ===== */
@@ -113,6 +117,31 @@ button, a, input, select, textarea {
   -webkit-tap-highlight-color: rgba(22, 121, 75, 0.2);
 }
 
+select, input, textarea { color-scheme: light; }
+.dark select, .dark input, .dark textarea { color-scheme: dark; }
+
+.auth-shell-bg {
+  background-color: rgb(var(--bg));
+  background-image: linear-gradient(115deg, var(--auth-overlay), var(--auth-overlay)), url('/assets/backgrounds/auth-marketplace-bg.jpg');
+  background-position: center;
+  background-size: cover;
+}
+.auth-visual-panel {
+  background: linear-gradient(145deg, rgba(3, 44, 32, .94), rgba(12, 103, 70, .82));
+  backdrop-filter: blur(2px);
+}
+.auth-form-pane {
+  background: linear-gradient(135deg, rgb(var(--bg) / .72), rgb(var(--surface) / .48));
+  backdrop-filter: blur(10px);
+}
+.workspace-background {
+  background-color: rgb(var(--bg));
+  background-image: linear-gradient(var(--workspace-overlay), var(--workspace-overlay)), url('/assets/backgrounds/dashboard-texture-bg.jpg');
+  background-position: center top;
+  background-size: cover;
+  background-attachment: fixed;
+}
+
 /* ===== Tailwind Component Classes ===== */
 @layer components {
   .btn-primary {
@@ -142,6 +171,12 @@ button, a, input, select, textarea {
     background: rgb(var(--surface));
     border-color: var(--line);
   }
+  .interactive-card {
+    @apply card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg;
+  }
+  .page-shell {
+    @apply mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8;
+  }
   .dark .card {
     box-shadow: var(--shadow-2);
   }
@@ -169,6 +204,13 @@ button, a, input, select, textarea {
   .legal-content a {
     @apply font-semibold text-teal-700 underline;
   }
+  .dark .legal-content h2 { @apply text-teal-200; }
+}
+
+[data-guide-main] > * { animation: page-enter .24s ease-out both; }
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ===== Skeleton Loading ===== */

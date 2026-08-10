@@ -21,7 +21,12 @@ const ERROR_MESSAGES = {
   BELOW_MIN_ORDER_QTY: 'An item does not meet the minimum order quantity.',
   PRODUCT_UNAVAILABLE: 'An item is no longer available. Please refresh your cart.',
   EMPTY_CART: 'There are no items in this cart.',
-  NO_WALLET: 'No wallet was found for your account. Refresh the page or contact support.'
+  NO_WALLET: 'No wallet was found for your account. Refresh the page or contact support.',
+  ACCOUNT_NOT_APPROVED: 'Your account must be approved before you can place an order.',
+  ORDER_ROLE_NOT_ALLOWED: 'This account role cannot place marketplace orders.',
+  DUPLICATE_CART_ITEM: 'Your cart contains a duplicate product. Remove it and add the product again.',
+  INVALID_ORDER_ITEM: 'One or more cart items are invalid. Refresh your cart and try again.',
+  MERCHANT_UNAVAILABLE: 'This Merchant is not currently available for orders.'
 }
 
 // Voucher error codes returned by resolve_voucher() -- surfaced next to
@@ -194,7 +199,8 @@ export default function Checkout() {
       toast.success('Order placed! Product and system fees were charged to your wallet. Shipping will be paid upon delivery.')
       navigate(role === 'merchant' ? '/merchant/purchases' : '/reseller/orders')
     } catch (err) {
-      toast.error(ERROR_MESSAGES[err.message] || VOUCHER_ERROR_MESSAGES[err.message] || err.message || 'An error occurred during checkout.')
+      console.error('Checkout failed:', err)
+      toast.error(ERROR_MESSAGES[err.message] || VOUCHER_ERROR_MESSAGES[err.message] || 'We could not place this order. Please refresh and try again.')
     } finally {
       setSubmitting(false)
     }

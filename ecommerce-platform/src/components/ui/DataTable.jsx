@@ -125,7 +125,7 @@ export default function DataTable({
       )}
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-2xl border border-line bg-surface shadow-sm">
+      <div className="overflow-x-auto overscroll-x-contain rounded-2xl border border-line bg-surface shadow-sm" role="region" aria-label="Scrollable data table" tabIndex={0}>
         <table className="w-full min-w-[600px] text-left text-sm">
           <thead>
             <tr className="border-b border-line bg-surface-inset/80">

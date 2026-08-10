@@ -37,7 +37,11 @@ export default function ProtectedRoute({ children, allowedRoles }) {
     return <Navigate to="/subscription-locked" replace />
   }
 
-  if (allowedRoles && !allowedRoles.includes(role) && role !== 'admin') {
+  // A route's allow-list is authoritative. Admin pages that need a shared
+  // screen already include `admin` explicitly; silently bypassing every
+  // allow-list let an Admin enter Merchant/Reseller workspaces by editing
+  // the URL, which also made role-specific queries run under the wrong role.
+  if (allowedRoles && !allowedRoles.includes(role)) {
     return <Navigate to="/" replace />
   }
 

@@ -179,7 +179,7 @@ export default function App() {
                 <Route path="/subscription-locked" element={<SubscriptionLocked />} />
                 <Route path="/choose-subscription" element={<ChooseSubscription />} />
                 <Route path="/merchant-permit" element={<ProtectedRoute allowedRoles={['merchant']}><BusinessPermit /></ProtectedRoute>} />
-                <Route path="/verify-id" element={<IdVerification />} />
+                <Route path="/verify-id" element={<ProtectedRoute allowedRoles={['reseller']}><IdVerification /></ProtectedRoute>} />
                 <Route path="/clinics" element={<ProtectedRoute allowedRoles={['reseller','merchant','admin']}><ClinicDiscovery /></ProtectedRoute>} />
 
                 {/* Reseller */}

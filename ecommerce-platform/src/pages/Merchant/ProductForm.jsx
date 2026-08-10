@@ -89,6 +89,10 @@ export default function ProductForm({ admin = false }) {
     if (isEdit) loadProduct()
   }, [admin, isEdit, loadCategories, loadMerchants, loadProduct])
 
+  useEffect(() => () => {
+    if (imagePreview) URL.revokeObjectURL(imagePreview)
+  }, [imagePreview])
+
   const update = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
   const toggle = (key) => (e) => setForm((current) => ({ ...current, [key]: e.target.checked }))
   const addTier = () => setForm((current) => ({ ...current, discount_tiers: [...current.discount_tiers, { min_qty: '', discount_percent: '' }] }))
@@ -111,6 +115,28 @@ export default function ProductForm({ admin = false }) {
     if (!safetyConfirmed) return toast.error('Confirm the product safety and posting rules before saving.')
     const safetyViolation = findProductSafetyViolation(form)
     if (safetyViolation) return toast.error(`This listing contains prohibited content: “${safetyViolation}”. Remove it or contact Admin for review.`)
+    // Validate before uploading so an invalid form cannot leave an orphaned
+    // product image in Storage.
+    const retailPrice = Number(form.price)
+    const wholesalePrice = form.wholesale_price === '' ? null : Number(form.wholesale_price)
+    const resellerBasePrice = wholesalePrice ?? retailPrice
+    const suggestedRetailPrice = Number(form.suggested_retail_price || form.price)
+    const stockQuantity = Number(form.stock_quantity)
+    const minimumOrderQuantity = Number(form.min_order_qty)
+    const packageValues = [form.packed_weight_kg, form.packed_length_cm, form.packed_width_cm, form.packed_height_cm].map(Number)
+    if (!Number.isFinite(retailPrice) || retailPrice <= 0) return toast.error('Retail price must be greater than zero.')
+    if (wholesalePrice != null && (!Number.isFinite(wholesalePrice) || wholesalePrice <= 0 || wholesalePrice > retailPrice)) return toast.error('Wholesale price must be greater than zero and cannot exceed the retail price.')
+    if (!Number.isInteger(stockQuantity) || stockQuantity < 0) return toast.error('Stock must be a whole number of zero or more.')
+    if (!Number.isInteger(minimumOrderQuantity) || minimumOrderQuantity < 1) return toast.error('Minimum order quantity must be a whole number of at least one.')
+    if (packageValues.some((value) => !Number.isFinite(value) || value <= 0)) return toast.error('Packed weight and dimensions must all be greater than zero.')
+    if (!Number.isFinite(suggestedRetailPrice) || suggestedRetailPrice <= resellerBasePrice) return toast.error('Suggested retail price must be higher than the reseller buying price.')
+    if (((suggestedRetailPrice - resellerBasePrice) / suggestedRetailPrice) * 100 < 15) return toast.error('The reseller offer must leave at least 15% projected gross margin.')
+    const discountTiers = form.discount_tiers.map((tier) => {
+      const discountPercent = Number(tier.discount_percent)
+      return { min_qty: Number(tier.min_qty), discount_percent: discountPercent, price: Number((resellerBasePrice * (1 - discountPercent / 100)).toFixed(2)) }
+    }).sort((a, b) => a.min_qty - b.min_qty)
+    if (discountTiers.some((tier) => !Number.isInteger(tier.min_qty) || tier.min_qty < 2 || !Number.isFinite(tier.discount_percent) || tier.discount_percent <= 0 || tier.discount_percent >= 100 || tier.price <= 0)) return toast.error('Quantity must be at least 2 and discount must be between 1% and 99%.')
+    if (new Set(discountTiers.map((tier) => tier.min_qty)).size !== discountTiers.length) return toast.error('Each discount quantity must be unique.')
     setSaving(true)
     try {
       let images = existingImage ? [existingImage] : []
@@ -136,27 +162,17 @@ export default function ProductForm({ admin = false }) {
         }
       }
 
-      const resellerBasePrice = Number(form.wholesale_price || form.price)
-      const suggestedRetailPrice = Number(form.suggested_retail_price || form.price)
-      if (resellerBasePrice <= 0 || suggestedRetailPrice <= resellerBasePrice) throw new Error('Suggested retail price must be higher than the reseller buying price.')
-      if (((suggestedRetailPrice - resellerBasePrice) / suggestedRetailPrice) * 100 < 15) throw new Error('The reseller offer must leave at least 15% projected gross margin.')
-      const discountTiers = form.discount_tiers.map((tier) => {
-        const discountPercent = Number(tier.discount_percent)
-        return { min_qty: Number(tier.min_qty), discount_percent: discountPercent, price: Number((resellerBasePrice * (1 - discountPercent / 100)).toFixed(2)) }
-      }).sort((a, b) => a.min_qty - b.min_qty)
-      if (discountTiers.some((tier) => !Number.isInteger(tier.min_qty) || tier.min_qty < 2 || tier.discount_percent <= 0 || tier.discount_percent >= 100 || tier.price <= 0)) throw new Error('Quantity must be at least 2 and discount must be between 1% and 99%.')
-      if (new Set(discountTiers.map((tier) => tier.min_qty)).size !== discountTiers.length) throw new Error('Each discount quantity must be unique.')
       const payload = {
         merchant_id: admin ? merchantId : user.id,
         name: cleanText(form.name, 200),
         description: cleanText(form.description, 5000),
         sku: cleanText(form.sku, 100),
         category_id: form.category_id || null,
-        price: Number(form.price),
-        wholesale_price: form.wholesale_price ? Number(form.wholesale_price) : null,
-        suggested_retail_price: form.suggested_retail_price ? Number(form.suggested_retail_price) : Number(form.price),
-        stock_quantity: Number(form.stock_quantity),
-        min_order_qty: Number(form.min_order_qty) || 1,
+        price: retailPrice,
+        wholesale_price: wholesalePrice,
+        suggested_retail_price: suggestedRetailPrice,
+        stock_quantity: stockQuantity,
+        min_order_qty: minimumOrderQuantity,
         discount_tiers: discountTiers,
         packed_weight_kg: Number(form.packed_weight_kg), packed_length_cm: Number(form.packed_length_cm),
         packed_width_cm: Number(form.packed_width_cm), packed_height_cm: Number(form.packed_height_cm),
@@ -175,7 +191,8 @@ export default function ProductForm({ admin = false }) {
       }
       navigate(admin ? '/admin/products' : '/merchant/products')
     } catch (err) {
-      toast.error(err.message)
+      console.error('Product save failed:', err)
+      toast.error('Unable to save this product. Check the form and try again.')
     } finally {
       setSaving(false)
     }

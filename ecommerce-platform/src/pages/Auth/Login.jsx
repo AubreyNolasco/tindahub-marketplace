@@ -95,7 +95,7 @@ export default function Login() {
   ]
 
   const mainCard = (
-    <div className="rounded-3xl border border-black/[0.06] bg-surface p-6 shadow-xl shadow-teal-900/[0.06] sm:p-8">
+    <div className="rounded-3xl border border-line bg-surface/95 p-6 shadow-2xl shadow-teal-950/10 backdrop-blur-xl sm:p-8">
       <span className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-teal-700">
         <ShieldCheck size={14} /> Secure email OTP
       </span>
@@ -105,7 +105,9 @@ export default function Login() {
       </p>
       {otpSent ? (
         <form onSubmit={submitOtp} className="mt-7 space-y-3">
+          <label htmlFor="login-otp" className="sr-only">Six-digit verification code</label>
           <input
+            id="login-otp"
             inputMode="numeric"
             autoComplete="one-time-code"
             required
@@ -127,7 +129,9 @@ export default function Login() {
         </form>
       ) : (
         <form onSubmit={submitEmailLogin} className="mt-7 space-y-3">
+          <label htmlFor="login-email" className="text-sm font-semibold text-fg">Email address</label>
           <input
+            id="login-email"
             type="email"
             required
             value={testEmail}
@@ -145,8 +149,8 @@ export default function Login() {
       )}
       {!otpSent ? (
         <>
-          <div className="my-5 flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.14em] text-ink/35">
-            <span className="h-px flex-1 bg-black/[0.06]" />or<span className="h-px flex-1 bg-black/[0.06]" />
+          <div className="my-5 flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.14em] text-fg-muted">
+            <span className="h-px flex-1 bg-line" />or<span className="h-px flex-1 bg-line" />
           </div>
           <button type="button" onClick={startGoogleSignIn} disabled={googleBusy} className="btn-secondary flex w-full items-center justify-center gap-2 disabled:opacity-50">
             {googleBusy ? <Loader2 size={18} className="animate-spin" /> : <GoogleIcon />}

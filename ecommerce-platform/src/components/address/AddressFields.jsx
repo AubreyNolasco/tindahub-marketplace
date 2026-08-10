@@ -2,8 +2,9 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Crosshair, Loader2, MapPin, MapPinOff, Search } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { isLocationIqConfigured, searchAddress } from '../../lib/locationiq'
+import { geocodeOpenStreetMap, reverseOpenStreetMap } from '../../lib/openstreetmap'
 import { isMapsEnabled } from '../../lib/services/maps'
-import { listCities, listProvinces, listBarangays } from '../../lib/services/psgc'
+import { listCities, listProvinces, listBarangays, resolveGeocodedPsgc } from '../../lib/services/psgc'
 import SearchableSelect from './SearchableSelect'
 
 // Leaflet + its CSS is ~55KB — same "don't pay for it until it's actually
@@ -34,6 +35,9 @@ export default function AddressFields({ value, onChange, required = false, withC
   const [locating, setLocating] = useState(false)
   const wrapperRef = useRef(null)
   const abortRef = useRef(null)
+  const automaticGeocodeRef = useRef(null)
+  const valueRef = useRef(value)
+  valueRef.current = value
 
   const [provinces, setProvinces] = useState([])
   const [cities, setCities] = useState([])
@@ -82,6 +86,24 @@ export default function AddressFields({ value, onChange, required = false, withC
   }, [searchQuery, locationIqAvailable])
 
   useEffect(() => {
+    if (!withCoordinates) return
+    const query = [value.street, value.barangay, value.city, value.province, value.postalCode].filter(Boolean).join(', ')
+    if (!value.street?.trim() || !value.city?.trim() || !value.province?.trim()) return
+    if (automaticGeocodeRef.current === query) return
+    const timer = setTimeout(() => {
+      const controller = new AbortController()
+      abortRef.current?.abort()
+      abortRef.current = controller
+      geocodeOpenStreetMap(query, controller.signal).then((result) => {
+        if (!result || result.latitude == null || result.longitude == null) return
+        automaticGeocodeRef.current = query
+        onChange({ ...valueRef.current, latitude: result.latitude, longitude: result.longitude })
+      }).catch((error) => { if (error.name !== 'AbortError') console.error('Address geocoding failed:', error) })
+    }, 1200)
+    return () => clearTimeout(timer)
+  }, [value.street, value.barangay, value.city, value.province, value.postalCode, withCoordinates, onChange])
+
+  useEffect(() => {
     const onClickAway = (event) => { if (wrapperRef.current && !wrapperRef.current.contains(event.target)) setOpen(false) }
     document.addEventListener('mousedown', onClickAway)
     return () => document.removeEventListener('mousedown', onClickAway)
@@ -110,7 +132,22 @@ export default function AddressFields({ value, onChange, required = false, withC
   const selectCity = (option) => onChange({ ...value, city: option.name, cityCode: option.code, barangay: '' })
   const selectBarangay = (option) => onChange({ ...value, barangay: option.name })
 
-  const pickMapLocation = (lat, lng) => onChange({ ...value, latitude: lat, longitude: lng })
+  const pickMapLocation = async (lat, lng) => {
+    onChange({ ...valueRef.current, latitude: lat, longitude: lng })
+    const controller = new AbortController()
+    abortRef.current?.abort()
+    abortRef.current = controller
+    try {
+      const result = await reverseOpenStreetMap(lat, lng, controller.signal)
+      if (!result) return
+      const psgc = await resolveGeocodedPsgc(result)
+      const next = { ...valueRef.current, street: result.street || valueRef.current.street, postalCode: result.postalCode || valueRef.current.postalCode, ...psgc, latitude: lat, longitude: lng }
+      automaticGeocodeRef.current = [next.street, next.barangay, next.city, next.province, next.postalCode].filter(Boolean).join(', ')
+      onChange(next)
+    } catch (error) {
+      if (error.name !== 'AbortError') toast.error('The pin was saved, but its address could not be filled automatically.')
+    }
+  }
   const clearMapLocation = () => onChange({ ...value, latitude: null, longitude: null })
 
   const useCurrentLocation = () => {

@@ -16,6 +16,7 @@ export default function Products({ admin = false }) {
   const [merchants, setMerchants] = useState([])
   const [sampleMerchantId, setSampleMerchantId] = useState('')
   const [seeding, setSeeding] = useState(false)
+  const [changingId, setChangingId] = useState(null)
 
   const loadMerchants = useCallback(async () => {
     const { data, error } = await supabase.rpc('get_admin_merchant_profiles')
@@ -66,15 +67,20 @@ export default function Products({ admin = false }) {
   }, [admin, load, loadMerchants])
 
   const toggleActive = async (product) => {
-    await supabase.from('products').update({ is_active: !product.is_active }).eq('id', product.id)
-    load()
+    setChangingId(product.id)
+    const { error } = await supabase.from('products').update({ is_active: !product.is_active }).eq('id', product.id)
+    setChangingId(null)
+    if (error) return toast.error('Unable to update this product. Please try again.')
+    setProducts((current) => current.map((item) => item.id === product.id ? { ...item, is_active: !item.is_active } : item))
+    toast.success(product.is_active ? 'Product hidden.' : 'Product is now visible.')
   }
 
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this product?')) return
     const { error } = await supabase.from('products').delete().eq('id', id)
     if (error) {
-      toast.error(error.message)
+      console.error('Product delete failed:', error)
+      toast.error('Unable to delete this product. It may already be referenced by an order; hide it instead.')
       return
     }
     toast.success('Product deleted successfully.')
@@ -126,8 +132,8 @@ export default function Products({ admin = false }) {
                   <Link to={admin ? `/admin/products/${p.id}/edit` : `/merchant/products/${p.id}/edit`} className="btn-secondary text-xs px-3 py-1.5 flex items-center gap-1">
                     <Pencil size={13} /> Edit
                   </Link>
-                  <button onClick={() => toggleActive(p)} className="btn-secondary text-xs px-3 py-1.5">
-                    {p.is_active ? 'Itago' : 'Ipakita'}
+                  <button disabled={changingId === p.id} onClick={() => toggleActive(p)} className="btn-secondary text-xs px-3 py-1.5 disabled:opacity-50">
+                    {changingId === p.id ? 'Saving...' : p.is_active ? 'Hide' : 'Show'}
                   </button>
                   <button onClick={() => handleDelete(p.id)} className="p-1.5 text-ink/40 hover:text-coral-500 ml-auto" aria-label={`Delete ${p.name}`}>
                     <Trash2 size={15} />

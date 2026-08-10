@@ -134,7 +134,7 @@ export default function AdminLayout() {
   return (
     <div className="min-h-[calc(100vh-4rem)] lg:flex">
       <Sidebar open={menuOpen} collapsed={collapsed} onClose={() => setMenuOpen(false)} onToggleCollapse={() => setCollapsed((value) => !value)} visibleSections={visibleSections} currentPath={location.pathname} theme={theme} />
-      <section className="min-w-0 flex-1 bg-bg">
+      <section className="workspace-background min-w-0 flex-1">
         <div className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-line bg-surface/90 px-3 backdrop-blur sm:px-5 lg:px-8">
           <button onClick={() => setMenuOpen(true)} className="flex shrink-0 items-center gap-2 rounded-xl px-2 py-2 text-sm font-semibold text-teal-700 hover:bg-teal-50 dark:text-teal-300 dark:hover:bg-teal-500/10 lg:hidden"><Menu size={19} /><span className="hidden sm:inline">Menu</span></button>
           <div className="hidden min-w-0 flex-1 lg:block"><p className="truncate text-sm font-semibold text-fg">{currentItem?.label || 'Admin'}</p><p className="text-[11px] text-fg-muted">Admin Center</p></div>

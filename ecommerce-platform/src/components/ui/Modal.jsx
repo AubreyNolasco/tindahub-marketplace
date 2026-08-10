@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 
 const SIZES = { sm: 'max-w-sm', md: 'max-w-lg', lg: 'max-w-2xl', xl: 'max-w-4xl' }
@@ -19,24 +19,33 @@ const ICON_TONES = {
 // resolves to the same --fg token (see tailwind.config.js) — text and
 // surface flip together everywhere, not just in migrated components.
 export default function Modal({ open, onClose, title, subtitle, icon: Icon, iconTone = 'teal', size = 'md', footer, children, hideHeader = false, bodyClassName = 'px-6 py-5', ariaLabel }) {
+  const dialogRef = useRef(null)
   useEffect(() => {
     if (!open) return
+    const previousFocus = document.activeElement
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    requestAnimationFrame(() => dialogRef.current?.focus())
     const onKey = (e) => { if (e.key === 'Escape') onClose?.() }
     document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = previousOverflow
+      previousFocus?.focus?.()
+    }
   }, [open, onClose])
 
   if (!open) return null
 
   return (
     <div
-      className="fixed inset-0 z-[100] grid place-items-center bg-scrim/65 p-3 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-[100] grid place-items-center overflow-y-auto bg-scrim/65 p-3 backdrop-blur-sm animate-fade-in sm:p-5"
       role="dialog"
       aria-modal="true"
       aria-label={hideHeader ? ariaLabel : undefined}
       onMouseDown={(e) => { if (e.target === e.currentTarget) onClose?.() }}
     >
-      <div className={`max-h-[92vh] w-full ${SIZES[size] || SIZES.md} overflow-y-auto rounded-3xl bg-surface shadow-2xl animate-scale-in`}>
+      <div ref={dialogRef} tabIndex={-1} className={`max-h-[92dvh] w-full ${SIZES[size] || SIZES.md} overflow-y-auto rounded-3xl border border-line bg-surface shadow-2xl outline-none animate-scale-in`}>
         {!hideHeader && (title || onClose) && (
           <div className="sticky top-0 z-10 flex items-start justify-between gap-4 rounded-t-3xl border-b border-line bg-surface px-6 pb-4 pt-5">
             <div className="flex min-w-0 items-center gap-3">

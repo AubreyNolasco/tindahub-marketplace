@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext(null)
@@ -12,7 +12,7 @@ const FRIENDLY_PROFILE_ERRORS = {
   DEVICE_APPROVAL_REQUIRED: "We're verifying this device against your account's security settings. If this takes more than a few seconds, sign in again.",
   MFA_VERIFICATION_REQUIRED: 'Extra verification is required for this account. Please sign in again.',
 }
-const friendlyProfileError = (message) => FRIENDLY_PROFILE_ERRORS[message] || message
+const friendlyProfileError = (message) => FRIENDLY_PROFILE_ERRORS[message] || 'We could not load your account profile. Please refresh or sign in again.'
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
@@ -20,8 +20,12 @@ export function AuthProvider({ children }) {
   const [profileError, setProfileError] = useState(null)
   const [deviceAccessStatus, setDeviceAccessStatus] = useState('signed_out')
   const [loading, setLoading] = useState(true)
+  const activeUserIdRef = useRef(null)
+  const profileRequestRef = useRef(0)
 
   const loadProfile = useCallback(async (userId, _userEmail = '', provider = '', isRetry = false) => {
+    const requestId = ++profileRequestRef.current
+    const isCurrentRequest = () => activeUserIdRef.current === userId && profileRequestRef.current === requestId
     setProfileError(null)
     if (!userId) {
       setProfile(null)
@@ -46,6 +50,7 @@ export function AuthProvider({ children }) {
           if (currentSession?.user?.id !== userId) return
           return loadProfile(userId, _userEmail, provider, true)
         }
+        if (!isCurrentRequest()) return
         setProfile(null)
         setProfileError(friendlyProfileError(syncError.message))
         return
@@ -56,6 +61,7 @@ export function AuthProvider({ children }) {
       .select('*')
       .eq('id', userId)
       .maybeSingle()
+    if (!isCurrentRequest()) return
     if (error) {
       console.error('Failed to load profile:', error.message)
       setProfile(null)
@@ -72,15 +78,15 @@ export function AuthProvider({ children }) {
       if (data?.role === 'staff') {
         const { data: staffAccess, error: staffError } = await supabase.from('staff_access').select('permissions, active').eq('user_id', userId).maybeSingle()
         if (staffError) console.error('Failed to load staff permissions:', staffError.message)
-        setProfile({ ...data, staff_access: staffAccess || { permissions: [], active: false } })
+        if (isCurrentRequest()) setProfile({ ...data, staff_access: staffAccess || { permissions: [], active: false } })
         return
       }
       if (data?.role === 'merchant') {
         const { data: merchantProfile, error: merchantError } = await supabase.rpc('get_my_merchant_profile')
         if (merchantError) console.error('Failed to load merchant profile:', merchantError.message)
-        setProfile({ ...data, merchant_profiles: merchantProfile || null })
+        if (isCurrentRequest()) setProfile({ ...data, merchant_profiles: merchantProfile || null })
       } else {
-        setProfile(data)
+        if (isCurrentRequest()) setProfile(data)
       }
     }
   }, [])
@@ -89,6 +95,7 @@ export function AuthProvider({ children }) {
     supabase.auth.getSession().then(async ({ data: { session }, error }) => {
       if (error) setProfileError(error.message)
       setSession(session)
+      activeUserIdRef.current = session?.user?.id || null
       if (session?.user) {
         setDeviceAccessStatus('checking')
         await loadProfile(session.user.id, session.user.email, session.user.app_metadata?.provider)
@@ -102,6 +109,7 @@ export function AuthProvider({ children }) {
 
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session)
+      activeUserIdRef.current = session?.user?.id || null
       if (session?.user) {
         if (event === 'SIGNED_IN') setDeviceAccessStatus('checking')
         setTimeout(() => loadProfile(session.user.id, session.user.email, session.user.app_metadata?.provider), 0)
@@ -147,6 +155,8 @@ export function AuthProvider({ children }) {
 
   const signOut = async () => {
     await supabase.auth.signOut({ scope: 'global' })
+    activeUserIdRef.current = null
+    profileRequestRef.current += 1
     setSession(null)
     setProfile(null)
     setProfileError(null)
@@ -154,6 +164,7 @@ export function AuthProvider({ children }) {
   }
   const signOutLocal = useCallback(async () => {
     await supabase.auth.signOut({ scope: 'local' })
+    activeUserIdRef.current = null; profileRequestRef.current += 1
     setSession(null); setProfile(null); setProfileError(null); setDeviceAccessStatus('signed_out')
   }, [])
 

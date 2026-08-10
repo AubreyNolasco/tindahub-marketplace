@@ -7,6 +7,7 @@ import Spinner from '../../components/ui/Spinner'
 import DataTable from '../../components/ui/DataTable'
 import Badge from '../../components/ui/Badge'
 import Modal from '../../components/ui/Modal'
+import { sanitizePolicyHtml } from '../../utils/sanitizeHtml'
 
 const types = {
   terms: 'Terms of Service',
@@ -206,7 +207,7 @@ export default function LegalSettings() {
               </div>
               <button onClick={() => setPreview(null)} aria-label="Close"><X /></button>
             </div>
-            <article className="legal-content mt-7" dangerouslySetInnerHTML={{ __html: preview.content }} />
+            <article className="legal-content mt-7" dangerouslySetInnerHTML={{ __html: sanitizePolicyHtml(preview.content) }} />
           </>
         )}
       </Modal>
