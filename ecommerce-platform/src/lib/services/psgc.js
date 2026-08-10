@@ -50,15 +50,49 @@ const findPlace = (rows, ...candidates) => {
   return rows.find((row) => names.includes(normalizePlace(row.name))) || null
 }
 
+let allCitiesPromise
+const listAllCities = async () => {
+  if (!allCitiesPromise) {
+    allCitiesPromise = (async () => {
+      const rows = []
+      const pageSize = 1000
+      for (let from = 0; ; from += pageSize) {
+        const { data, error } = await supabase.from('psgc_cities').select('code, name, province_code').order('name').range(from, from + pageSize - 1)
+        if (error) throw error
+        rows.push(...(data || []))
+        if (!data || data.length < pageSize) return rows
+      }
+    })()
+      .catch((error) => {
+        allCitiesPromise = null
+        throw error
+      })
+  }
+  return allCitiesPromise
+}
+
 export async function resolveGeocodedPsgc(parts = {}) {
   const provinces = await listProvinces()
   const provinceAliases = /metro manila|national capital region|\bncr\b/i.test(parts.province || '')
     ? ['Metro Manila', 'National Capital Region', parts.province]
     : [parts.province]
-  const province = findPlace(provinces, ...provinceAliases)
+  let province = findPlace(provinces, ...provinceAliases)
+  let city = null
+
+  if (province) {
+    city = findPlace(await listCities(province.code), parts.city)
+  } else if (parts.city) {
+    // Nominatim often returns only a broad region for Philippine places
+    // (for example Central Visayas for Cebu City). Use an unambiguous
+    // official city/municipality match to recover its real province.
+    const cityMatches = (await listAllCities()).filter((row) => normalizePlace(row.name) === normalizePlace(parts.city))
+    if (cityMatches.length === 1) {
+      city = cityMatches[0]
+      province = provinces.find((row) => row.code === city.province_code) || null
+    }
+  }
+
   if (!province) return {}
-  const cities = await listCities(province.code)
-  const city = findPlace(cities, parts.city)
   if (!city) return { province: province.name, provinceCode: province.code }
   const barangays = await listBarangays(city.code)
   const barangay = findPlace(barangays, parts.barangay)

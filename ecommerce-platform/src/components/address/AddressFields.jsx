@@ -34,10 +34,15 @@ export default function AddressFields({ value, onChange, required = false, withC
   const [showMap, setShowMap] = useState(false)
   const [locating, setLocating] = useState(false)
   const wrapperRef = useRef(null)
-  const abortRef = useRef(null)
+  const searchAbortRef = useRef(null)
+  const geocodeAbortRef = useRef(null)
+  const reverseAbortRef = useRef(null)
   const automaticGeocodeRef = useRef(null)
   const valueRef = useRef(value)
+  const onChangeRef = useRef(onChange)
   valueRef.current = value
+  onChangeRef.current = onChange
+  const [geocoding, setGeocoding] = useState(false)
 
   const [provinces, setProvinces] = useState([])
   const [cities, setCities] = useState([])
@@ -73,14 +78,14 @@ export default function AddressFields({ value, onChange, required = false, withC
   useEffect(() => {
     if (!locationIqAvailable || searchQuery.trim().length < 3) { setSuggestions([]); return }
     const timer = setTimeout(() => {
-      abortRef.current?.abort()
+      searchAbortRef.current?.abort()
       const controller = new AbortController()
-      abortRef.current = controller
+      searchAbortRef.current = controller
       setSearching(true)
       searchAddress(searchQuery, controller.signal)
         .then((results) => { setSuggestions(results); setOpen(true) })
         .catch((error) => { if (error.name !== 'AbortError') setSuggestions([]) })
-        .finally(() => setSearching(false))
+        .finally(() => { if (searchAbortRef.current === controller) setSearching(false) })
     }, 350)
     return () => clearTimeout(timer)
   }, [searchQuery, locationIqAvailable])
@@ -104,13 +109,15 @@ export default function AddressFields({ value, onChange, required = false, withC
     }
     const timer = setTimeout(() => {
       const controller = new AbortController()
-      abortRef.current?.abort()
-      abortRef.current = controller
+      geocodeAbortRef.current?.abort()
+      geocodeAbortRef.current = controller
+      setGeocoding(true)
       geocodeOpenStreetMap(query, controller.signal).then((result) => {
         if (!result || result.latitude == null || result.longitude == null) return
         automaticGeocodeRef.current = query
-        onChange({ ...valueRef.current, latitude: result.latitude, longitude: result.longitude })
+        onChangeRef.current({ ...valueRef.current, latitude: result.latitude, longitude: result.longitude })
       }).catch((error) => { if (error.name !== 'AbortError') console.error('Address geocoding failed:', error) })
+        .finally(() => { if (geocodeAbortRef.current === controller) setGeocoding(false) })
     }, 1200)
     return () => clearTimeout(timer)
     // value.latitude is read (the already-pinned bail-out above) but
@@ -119,7 +126,13 @@ export default function AddressFields({ value, onChange, required = false, withC
     // re-runs, recomputes the same query, and the automaticGeocodeRef
     // match immediately short-circuits it -- pickMapLocation always seeds
     // the ref before its own onChange, so this can't loop or re-fetch.
-  }, [value.street, value.barangay, value.city, value.province, value.postalCode, value.latitude, withCoordinates, onChange])
+  }, [value.street, value.barangay, value.city, value.province, value.postalCode, value.latitude, withCoordinates])
+
+  useEffect(() => () => {
+    searchAbortRef.current?.abort()
+    geocodeAbortRef.current?.abort()
+    reverseAbortRef.current?.abort()
+  }, [])
 
   useEffect(() => {
     const onClickAway = (event) => { if (wrapperRef.current && !wrapperRef.current.contains(event.target)) setOpen(false) }
@@ -128,33 +141,37 @@ export default function AddressFields({ value, onChange, required = false, withC
   }, [])
 
   const pickSearchResult = (result) => {
-    onChange({ ...value, street: result.street, ...(withCoordinates ? { latitude: result.latitude, longitude: result.longitude } : {}) })
+    const next = { ...value, street: result.street, ...(withCoordinates ? { latitude: result.latitude, longitude: result.longitude } : {}) }
+    if (withCoordinates) automaticGeocodeRef.current = [next.street, next.barangay, next.city, next.province, next.postalCode].filter(Boolean).join(', ')
+    onChange(next)
     setSearchQuery('')
     setSuggestions([])
     setOpen(false)
   }
 
-  // Coordinates used to get silently wiped out any time the Street text
-  // changed (even a one-character typo fix), on the theory that a pin
-  // picked from a search result no longer matches once the text drifts
-  // from it. In practice that just threw away a real, user-confirmed pin
-  // — including one dropped directly on the map, which has nothing to do
-  // with the Street text at all — so a merchant/reseller who fixed a
-  // typo after pinning their location lost the pin with no warning and
-  // no indication anything happened. The pin is kept as-is now; the user
-  // clears or moves it explicitly via the map instead.
-  const setStreet = (event) => onChange({ ...value, street: event.target.value })
-  const setPostalCode = (event) => onChange({ ...value, postalCode: event.target.value })
+  // A manual address edit invalidates the previous coordinates first.
+  // The debounced effect above then resolves a fresh pin. This prevents
+  // a newly saved Cebu address, for example, from retaining coordinates
+  // from the user's previous Manila address while geocoding is pending.
+  const addressEdit = (changes) => {
+    geocodeAbortRef.current?.abort()
+    automaticGeocodeRef.current = null
+    onChange({ ...value, ...changes, ...(withCoordinates ? { latitude: null, longitude: null } : {}) })
+  }
+  const setStreet = (event) => addressEdit({ street: event.target.value })
+  const setPostalCode = (event) => addressEdit({ postalCode: event.target.value })
 
-  const selectProvince = (option) => onChange({ ...value, province: option.name, provinceCode: option.code, city: '', cityCode: null, barangay: '' })
-  const selectCity = (option) => onChange({ ...value, city: option.name, cityCode: option.code, barangay: '' })
-  const selectBarangay = (option) => onChange({ ...value, barangay: option.name })
+  const selectProvince = (option) => addressEdit({ province: option.name, provinceCode: option.code, city: '', cityCode: null, barangay: '' })
+  const selectCity = (option) => addressEdit({ city: option.name, cityCode: option.code, barangay: '' })
+  const selectBarangay = (option) => addressEdit({ barangay: option.name })
 
   const pickMapLocation = async (lat, lng) => {
+    geocodeAbortRef.current?.abort()
+    automaticGeocodeRef.current = [valueRef.current.street, valueRef.current.barangay, valueRef.current.city, valueRef.current.province, valueRef.current.postalCode].filter(Boolean).join(', ')
     onChange({ ...valueRef.current, latitude: lat, longitude: lng })
     const controller = new AbortController()
-    abortRef.current?.abort()
-    abortRef.current = controller
+    reverseAbortRef.current?.abort()
+    reverseAbortRef.current = controller
     try {
       const result = await reverseOpenStreetMap(lat, lng, controller.signal)
       if (!result) return
@@ -247,7 +264,9 @@ export default function AddressFields({ value, onChange, required = false, withC
         <div className="rounded-xl border border-black/[0.06] bg-black/[0.015] p-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="flex items-center gap-1.5 text-[11px] font-semibold text-ink/55">
-              {value.latitude != null ? (
+              {geocoding ? (
+                <span className="flex items-center gap-1 text-teal-700"><Loader2 size={13} className="animate-spin" /> Updating pin from address…</span>
+              ) : value.latitude != null && value.longitude != null ? (
                 <span className="flex items-center gap-1 text-teal-700"><MapPin size={13} /> Pinned at {Number(value.latitude).toFixed(6)}, {Number(value.longitude).toFixed(6)}</span>
               ) : (
                 <span className="flex items-center gap-1 text-ink/45"><MapPinOff size={13} /> No exact location pinned yet</span>
