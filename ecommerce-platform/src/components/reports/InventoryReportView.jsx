@@ -132,6 +132,12 @@ function ResellerInventory({ user }) {
       .select('id, created_at, merchant_profiles(business_name), order_items(product_name, quantity, line_total)')
       .eq('reseller_id', user.id)
       .neq('status', 'cancelled')
+      // admin_seed_sample_catalog() plants real orders (notes=
+      // 'SAMPLE_CATALOG_SEED') under the demo account acting as its own
+      // reseller too -- excluded so this report's quantities reflect real
+      // orders only. Keeps null-notes rows explicitly since SQL's
+      // `null <> x` would otherwise silently drop every real order.
+      .or('notes.is.null,notes.neq.SAMPLE_CATALOG_SEED')
       .gte('created_at', dateStart(rangeStart))
       .lt('created_at', nextDateStart(rangeEnd))
     if (error) toast.error(error.message)

@@ -57,7 +57,11 @@ export default function SalesReportView({ role }) {
     if (role !== 'admin') query = query.eq(role === 'merchant' ? 'merchant_id' : 'reseller_id', user.id)
     const { data, error } = await query
     if (error) toast.error(error.message)
-    setOrders(data || [])
+    // admin_seed_sample_catalog() plants real 'completed' orders (notes=
+    // 'SAMPLE_CATALOG_SEED') so the demo catalog shows a sold count --
+    // excluded here so this report's totals reflect real transactions
+    // only (same fix as Admin/Sales.jsx, AdminDashboard.jsx, etc).
+    setOrders((data || []).filter((order) => order.notes !== 'SAMPLE_CATALOG_SEED'))
     if (!error) setAppliedRange({ start: rangeStart, end: rangeEnd })
     setLoading(false)
     // eslint-disable-next-line react-hooks/exhaustive-deps -- startDate/endDate are only defaults for the initial mount call; onApply always passes explicit dates
