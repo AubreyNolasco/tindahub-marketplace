@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Crosshair, Loader2, MapPin, MapPinOff, Search } from 'lucide-react'
+import toast from 'react-hot-toast'
 import { isLocationIqConfigured, searchAddress } from '../../lib/locationiq'
 import { isMapsEnabled } from '../../lib/services/maps'
 import { listCities, listProvinces, listBarangays } from '../../lib/services/psgc'
@@ -113,12 +114,17 @@ export default function AddressFields({ value, onChange, required = false, withC
   const clearMapLocation = () => onChange({ ...value, latitude: null, longitude: null })
 
   const useCurrentLocation = () => {
-    if (!navigator.geolocation) return
+    if (!navigator.geolocation) return toast.error('Your browser does not support location access.')
     setLocating(true)
     setShowMap(true)
     navigator.geolocation.getCurrentPosition(
       (position) => { pickMapLocation(position.coords.latitude, position.coords.longitude); setLocating(false) },
-      () => setLocating(false),
+      (error) => {
+        setLocating(false)
+        toast.error(error.code === error.PERMISSION_DENIED
+          ? 'Location access was denied. Allow it in your browser settings, or drag the pin manually.'
+          : 'Could not get your current location. You can still drag the pin manually.')
+      },
       { enableHighAccuracy: true, timeout: 10000 }
     )
   }
