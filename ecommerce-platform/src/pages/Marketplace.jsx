@@ -23,7 +23,7 @@ const NAV_ICONS = [
   { key: 'grocery', label: 'Grocery & Food', icon: UtensilsCrossed, params: { tab: 'products', category: CATEGORY_IDS.grocery, sidebar: '0' } },
   { key: 'home', label: 'Home & Living', icon: House, params: { tab: 'products', category: CATEGORY_IDS.home, sidebar: '0' } },
   { key: 'electronics', label: 'Electronics', icon: Cpu, params: { tab: 'products', category: CATEGORY_IDS.electronics, sidebar: '0' } },
-  { key: 'fashion', label: 'Fashion', icon: Shirt, params: { tab: 'products', category: CATEGORY_IDS.fashion } },
+  { key: 'fashion', label: 'Fashion', icon: Shirt, params: { tab: 'products', category: CATEGORY_IDS.fashion, sidebar: '0' } },
   { key: 'services', label: 'Business Services', icon: Handshake, params: { tab: 'services' } },
   { key: 'stores', label: 'Verified Stores', icon: Store, params: { tab: 'stores' } },
   { key: 'discount', label: 'Product Deals', icon: Percent, params: { tab: 'products', discount: '1' } },
