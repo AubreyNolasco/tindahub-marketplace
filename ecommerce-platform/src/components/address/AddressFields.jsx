@@ -1,9 +1,13 @@
-import { useEffect, useRef, useState } from 'react'
-import { Loader2, MapPin, Search } from 'lucide-react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { Crosshair, Loader2, MapPin, MapPinOff, Search } from 'lucide-react'
 import { isLocationIqConfigured, searchAddress } from '../../lib/locationiq'
 import { isMapsEnabled } from '../../lib/services/maps'
 import { listCities, listProvinces, listBarangays } from '../../lib/services/psgc'
 import SearchableSelect from './SearchableSelect'
+
+// Leaflet + its CSS is ~55KB — same "don't pay for it until it's actually
+// opened" reasoning ShippingFeeModal.jsx already applies to RouteMap.
+const LocationPickerMap = lazy(() => import('./LocationPickerMap'))
 
 // Split address fill-up used everywhere in the system. Province, City,
 // and Barangay are picked from the official PSGC list (cascading — the
@@ -25,6 +29,8 @@ export default function AddressFields({ value, onChange, required = false, withC
   const [searching, setSearching] = useState(false)
   const [open, setOpen] = useState(false)
   const [locationIqAvailable, setLocationIqAvailable] = useState(false)
+  const [showMap, setShowMap] = useState(false)
+  const [locating, setLocating] = useState(false)
   const wrapperRef = useRef(null)
   const abortRef = useRef(null)
 
@@ -87,16 +93,35 @@ export default function AddressFields({ value, onChange, required = false, withC
     setOpen(false)
   }
 
-  const setStreet = (event) => {
-    const next = { ...value, street: event.target.value }
-    if (withCoordinates && value.latitude != null) { next.latitude = null; next.longitude = null }
-    onChange(next)
-  }
+  // Coordinates used to get silently wiped out any time the Street text
+  // changed (even a one-character typo fix), on the theory that a pin
+  // picked from a search result no longer matches once the text drifts
+  // from it. In practice that just threw away a real, user-confirmed pin
+  // — including one dropped directly on the map, which has nothing to do
+  // with the Street text at all — so a merchant/reseller who fixed a
+  // typo after pinning their location lost the pin with no warning and
+  // no indication anything happened. The pin is kept as-is now; the user
+  // clears or moves it explicitly via the map instead.
+  const setStreet = (event) => onChange({ ...value, street: event.target.value })
   const setPostalCode = (event) => onChange({ ...value, postalCode: event.target.value })
 
   const selectProvince = (option) => onChange({ ...value, province: option.name, provinceCode: option.code, city: '', cityCode: null, barangay: '' })
   const selectCity = (option) => onChange({ ...value, city: option.name, cityCode: option.code, barangay: '' })
   const selectBarangay = (option) => onChange({ ...value, barangay: option.name })
+
+  const pickMapLocation = (lat, lng) => onChange({ ...value, latitude: lat, longitude: lng })
+  const clearMapLocation = () => onChange({ ...value, latitude: null, longitude: null })
+
+  const useCurrentLocation = () => {
+    if (!navigator.geolocation) return
+    setLocating(true)
+    setShowMap(true)
+    navigator.geolocation.getCurrentPosition(
+      (position) => { pickMapLocation(position.coords.latitude, position.coords.longitude); setLocating(false) },
+      () => setLocating(false),
+      { enableHighAccuracy: true, timeout: 10000 }
+    )
+  }
 
   return (
     <div className="space-y-2">
@@ -157,8 +182,35 @@ export default function AddressFields({ value, onChange, required = false, withC
         />
       </div>
       <input className="input-field w-full sm:w-1/3" placeholder="Postal Code" value={value.postalCode} onChange={setPostalCode} maxLength={10} />
-      {withCoordinates && value.latitude != null && (
-        <p className="flex items-center gap-1 text-[11px] font-medium text-teal-700"><MapPin size={11} /> Location pinned from search</p>
+      {withCoordinates && (
+        <div className="rounded-xl border border-black/[0.06] bg-black/[0.015] p-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="flex items-center gap-1.5 text-[11px] font-semibold text-ink/55">
+              {value.latitude != null ? (
+                <span className="flex items-center gap-1 text-teal-700"><MapPin size={13} /> Pinned at {Number(value.latitude).toFixed(6)}, {Number(value.longitude).toFixed(6)}</span>
+              ) : (
+                <span className="flex items-center gap-1 text-ink/45"><MapPinOff size={13} /> No exact location pinned yet</span>
+              )}
+            </p>
+            <div className="flex items-center gap-2">
+              <button type="button" onClick={useCurrentLocation} disabled={locating} className="flex items-center gap-1.5 text-xs font-semibold text-teal-700 hover:text-teal-800 disabled:opacity-50">
+                {locating ? <Loader2 size={13} className="animate-spin" /> : <Crosshair size={13} />} Use my current location
+              </button>
+              <button type="button" onClick={() => setShowMap((v) => !v)} className="text-xs font-semibold text-teal-700 hover:text-teal-800">
+                {showMap ? 'Hide map' : value.latitude != null ? 'Adjust on map' : 'Pin on map'}
+              </button>
+              {value.latitude != null && <button type="button" onClick={clearMapLocation} className="text-xs font-semibold text-ink/40 hover:text-ink/60">Clear</button>}
+            </div>
+          </div>
+          {showMap && (
+            <div className="mt-3">
+              <Suspense fallback={<div className="flex h-[260px] items-center justify-center rounded-xl border border-black/10 bg-surface"><Loader2 size={20} className="animate-spin text-ink/30" /></div>}>
+                <LocationPickerMap latitude={value.latitude} longitude={value.longitude} onPick={pickMapLocation} />
+              </Suspense>
+              <p className="mt-1.5 text-[11px] text-ink/40">Tap or drag the pin to your exact location.</p>
+            </div>
+          )}
+        </div>
       )}
     </div>
   )

@@ -1,44 +1,45 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { LayoutGrid, UtensilsCrossed, Package, Handshake, Building2, Stethoscope, Store, Percent, Zap } from 'lucide-react'
+import { LayoutGrid, UtensilsCrossed, Package, Handshake, Store, Percent, Zap } from 'lucide-react'
 import Catalog from './Catalog'
 import ClinicDiscovery from './Reseller/ClinicDiscovery'
+import StoreDirectory from './StoreDirectory'
 
 // Grocery & Food category id from the live `categories` table (same
 // one src/config/sampleProducts.js already hardcodes for the same
 // reason: this file already targets one specific database).
 const GROCERY_FOOD_CATEGORY_ID = '923f9b66-1850-4e50-b255-d76b8ac35587'
 
-// Replaces both the old Products/Services tab pair and Catalog.jsx's
-// own category-icon row with the mockup's single icon row. Every icon
-// drives a real filter, not a decorative link to nowhere:
-// Food/Discount/Stores/Flash Sale filter Catalog.jsx (via the same
-// ?category=/?discount=1/?filters=1/?scrollTo= URL params it already
-// reads), Real Estate/Clinic filter ClinicDiscovery.jsx via
-// ?serviceType= (merchant_profiles.service_type is a real field).
+// Real Estate and Clinic used to be their own top-level icons here --
+// moved inside Services (Reseller/ClinicDiscovery.jsx) as sub-filters
+// per the owner's explicit request, since they're really two flavors
+// of the same "Services" content, not separate marketplace sections.
 const NAV_ICONS = [
   { key: 'all', label: 'All Categories', icon: LayoutGrid, params: {} },
-  { key: 'food', label: 'Food', icon: UtensilsCrossed, params: { tab: 'products', category: GROCERY_FOOD_CATEGORY_ID } },
-  { key: 'items', label: 'Items', icon: Package, params: { tab: 'products' } },
+  { key: 'food', label: 'Food', icon: UtensilsCrossed, params: { tab: 'products', category: GROCERY_FOOD_CATEGORY_ID, sidebar: '0' } },
+  { key: 'items', label: 'Items', icon: Package, params: { tab: 'products', excludeCategory: GROCERY_FOOD_CATEGORY_ID, sidebar: '0' } },
   { key: 'services', label: 'Services', icon: Handshake, params: { tab: 'services' } },
-  { key: 'real_estate', label: 'Real Estate', icon: Building2, params: { tab: 'services', serviceType: 'real_estate' } },
-  { key: 'clinic', label: 'Clinic', icon: Stethoscope, params: { tab: 'services', serviceType: 'clinic' } },
-  { key: 'stores', label: 'Stores', icon: Store, params: { tab: 'products', filters: '1' } },
+  { key: 'stores', label: 'Stores', icon: Store, params: { tab: 'stores' } },
   { key: 'discount', label: 'Discount', icon: Percent, params: { tab: 'products', discount: '1' } },
-  { key: 'flash_sale', label: 'Flash Sale', icon: Zap, params: { tab: 'products', scrollTo: 'flash-sale' } },
+  { key: 'campaign', label: 'Campaign', icon: Zap, params: { tab: 'products', campaign: '1' } },
 ]
 
 export default function Marketplace() {
   const navigate = useNavigate()
   const location = useLocation()
   const searchParams = new URLSearchParams(location.search)
-  const tab = searchParams.get('tab') === 'services' ? 'services' : 'products'
+  const tab = ['services', 'stores'].includes(searchParams.get('tab')) ? searchParams.get('tab') : 'products'
   const category = searchParams.get('category')
-  const serviceType = searchParams.get('serviceType')
+  const excludeCategory = searchParams.get('excludeCategory')
   const discountOnly = searchParams.get('discount') === '1'
+  const campaignOnly = searchParams.get('campaign') === '1'
 
-  const activeKey = tab === 'services'
-    ? (serviceType === 'real_estate' ? 'real_estate' : serviceType === 'clinic' ? 'clinic' : 'services')
-    : discountOnly ? 'discount' : category === GROCERY_FOOD_CATEGORY_ID ? 'food' : 'all'
+  const activeKey = tab === 'services' ? 'services'
+    : tab === 'stores' ? 'stores'
+    : campaignOnly ? 'campaign'
+    : discountOnly ? 'discount'
+    : excludeCategory === GROCERY_FOOD_CATEGORY_ID ? 'items'
+    : category === GROCERY_FOOD_CATEGORY_ID ? 'food'
+    : 'all'
 
   const goTo = (params) => {
     const next = new URLSearchParams()
@@ -63,7 +64,7 @@ export default function Marketplace() {
           })}
         </div>
       </div>
-      {tab === 'products' ? <Catalog /> : <ClinicDiscovery />}
+      {tab === 'services' ? <ClinicDiscovery /> : tab === 'stores' ? <StoreDirectory /> : <Catalog />}
     </div>
   )
 }

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Handshake, Building2, UserRound, Clock, DollarSign, Send, X, Loader2 } from 'lucide-react'
+import { Handshake, Building2, UserRound, Clock, DollarSign, Send, X, Loader2, Home as HomeIcon, Stethoscope, SlidersHorizontal } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
@@ -11,16 +11,27 @@ import Modal from '../../components/ui/Modal'
 import { cleanText } from '../../utils/security'
 
 const SERVICE_TYPE_LABEL = { clinic: 'Clinic', real_estate: 'Real Estate' }
+const SERVICE_TYPE_FILTERS = [
+  { value: '', label: 'All Services', icon: Handshake },
+  { value: 'real_estate', label: 'Real Estate', icon: HomeIcon },
+  { value: 'clinic', label: 'Clinic', icon: Stethoscope },
+]
+const SORT_OPTIONS = [
+  { value: 'referral_desc', label: 'Referral fee: high to low' },
+  { value: 'service_desc', label: 'Service fee: high to low' },
+  { value: 'service_asc', label: 'Service fee: low to high' },
+  { value: 'name', label: 'Name A-Z' },
+]
 
 export default function ClinicDiscovery() {
   const { user } = useAuth()
-  // Marketplace.jsx's "Clinic"/"Real Estate" nav icons drive this via
-  // the URL, same pattern the header search box already uses --
-  // merchant_profiles.service_type is a real field ('clinic',
-  // 'real_estate', or 'both'), not a decorative filter with nothing
-  // behind it.
-  const [searchParams] = useSearchParams()
+  // Real Estate/Clinic moved inside this page as clickable sub-filters
+  // instead of separate top-level Marketplace icons -- still driven by
+  // the URL (same pattern the header search box uses), just navigated
+  // from here now instead of Marketplace.jsx's nav row.
+  const [searchParams, setSearchParams] = useSearchParams()
   const serviceType = searchParams.get('serviceType')
+  const [sort, setSort] = useState('referral_desc')
   const [clinics, setClinics] = useState([])
   const [customers, setCustomers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -30,6 +41,12 @@ export default function ClinicDiscovery() {
   const [manualPhone, setManualPhone] = useState('')
   const [manualAddress, setManualAddress] = useState('')
   const [sending, setSending] = useState(false)
+
+  const setServiceType = (value) => {
+    const next = new URLSearchParams(searchParams)
+    if (value) next.set('serviceType', value); else next.delete('serviceType')
+    setSearchParams(next)
+  }
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -77,11 +94,24 @@ export default function ClinicDiscovery() {
 
   // A "both" merchant offers either kind of service, so it should
   // still show up under either specific filter, not just under
-  // "Services" with no filter at all.
-  const visibleClinics = useMemo(() => clinics.filter((clinic) => !serviceType || clinic.service_type === serviceType || clinic.service_type === 'both'), [clinics, serviceType])
+  // "Services" with no filter at all. Sort is applied per-merchant to
+  // that merchant's own service list, not across merchants -- the
+  // grouped-by-provider layout stays intact either way.
+  const sortServices = useCallback((services) => {
+    const list = [...services]
+    if (sort === 'referral_desc') list.sort((a, b) => b.referral_fee - a.referral_fee)
+    else if (sort === 'service_desc') list.sort((a, b) => b.service_fee - a.service_fee)
+    else if (sort === 'service_asc') list.sort((a, b) => a.service_fee - b.service_fee)
+    else if (sort === 'name') list.sort((a, b) => a.name.localeCompare(b.name))
+    return list
+  }, [sort])
+  const visibleClinics = useMemo(() => clinics
+    .filter((clinic) => !serviceType || clinic.service_type === serviceType || clinic.service_type === 'both')
+    .map((clinic) => ({ ...clinic, services: sortServices(clinic.services || []) })),
+  [clinics, serviceType, sortServices])
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6">
         <p className="text-xs font-bold uppercase tracking-[0.16em] text-teal-600">Referral opportunities</p>
         <h1 className="mt-1 font-display text-2xl font-bold text-ink">{serviceType ? `${SERVICE_TYPE_LABEL[serviceType] || 'Service'} Providers` : 'Services & Providers'}</h1>
@@ -90,52 +120,72 @@ export default function ClinicDiscovery() {
         </p>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center py-24"><Spinner /></div>
-      ) : visibleClinics.length === 0 ? (
-        <EmptyState icon={Handshake} title="No providers available" message="Partner clinics and service providers will appear here once merchants set up their services." />
-      ) : (
-        <div className="space-y-8">
-          {visibleClinics.map((clinic) => {
-            const services = clinic.services || []
-            if (services.length === 0) return null
-            return (
-              <section key={clinic.merchant_id} className="card overflow-hidden">
-                <div className="bg-gradient-to-r from-teal-900 to-teal-700 px-6 py-5 text-white">
-                  <div className="flex items-center gap-4">
-                    <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-white/15">
-                      {clinic.avatar_url ? <img src={clinic.avatar_url} alt="" className="h-full w-full rounded-full object-cover" /> : <Building2 size={24} />}
-                    </div>
-                    <div>
-                      <h2 className="font-display text-xl font-bold">{clinic.business_name}</h2>
-                      {clinic.business_address && <p className="mt-1 text-sm text-white/60">{clinic.business_address}</p>}
-                    </div>
-                  </div>
-                  {clinic.business_description && <p className="mt-3 max-w-2xl text-sm leading-6 text-white/70">{clinic.business_description}</p>}
-                </div>
-                <div className="divide-y divide-black/[0.04]">
-                  {services.map((service) => (
-                    <div key={service.id} className="flex flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="min-w-0 flex-1">
-                        <h3 className="font-semibold text-ink">{service.name}</h3>
-                        {service.description && <p className="mt-0.5 text-sm text-ink/50">{service.description}</p>}
-                        <div className="mt-2 flex flex-wrap items-center gap-4 text-sm">
-                          <span className="flex items-center gap-1.5 text-teal-700 font-bold"><DollarSign size={14} /> {peso(service.service_fee)}</span>
-                          <span className="flex items-center gap-1.5 text-mango-600 font-semibold"><Send size={14} /> Your fee: {peso(service.referral_fee)}</span>
-                          {service.estimated_duration_minutes > 0 && <span className="flex items-center gap-1.5 text-ink/40 text-xs"><Clock size={13} /> ~{service.estimated_duration_minutes} min</span>}
+      <div className="grid gap-6 md:grid-cols-[220px_minmax(0,1fr)]">
+        <aside className="h-fit rounded-2xl border border-black/[0.06] bg-surface p-4 shadow-card md:sticky md:top-24">
+          <div className="mb-3 hidden items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-ink/45 md:flex"><SlidersHorizontal size={14} /> Sort &amp; filter</div>
+          <p className="mb-2 hidden text-[11px] font-bold uppercase tracking-[0.12em] text-ink/40 md:block">Service type</p>
+          <div className="flex gap-2 overflow-x-auto pb-1 md:block md:space-y-1 md:overflow-visible md:pb-0">
+            {SERVICE_TYPE_FILTERS.map(({ value, label, icon: Icon }) => (
+              <button key={value || 'all'} onClick={() => setServiceType(value)} className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-left text-sm md:w-full ${serviceType === value || (!serviceType && !value) ? 'bg-teal-50 font-semibold text-teal-800' : 'bg-black/[0.03] text-ink/60 hover:bg-black/[0.06] md:bg-transparent'}`}>
+                <Icon size={15} /> {label}
+              </button>
+            ))}
+          </div>
+          <p className="mb-2 mt-4 text-[11px] font-bold uppercase tracking-[0.12em] text-ink/40">Sort by</p>
+          <select value={sort} onChange={(e) => setSort(e.target.value)} className="input-field text-sm">
+            {SORT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+          </select>
+        </aside>
+
+        <div className="min-w-0">
+          {loading ? (
+            <div className="flex justify-center py-24"><Spinner /></div>
+          ) : visibleClinics.length === 0 ? (
+            <EmptyState icon={Handshake} title="No providers available" message="Partner clinics and service providers will appear here once merchants set up their services." />
+          ) : (
+            <div className="space-y-8">
+              {visibleClinics.map((clinic) => {
+                const services = clinic.services || []
+                if (services.length === 0) return null
+                return (
+                  <section key={clinic.merchant_id} className="card overflow-hidden">
+                    <div className="bg-gradient-to-r from-teal-900 to-teal-700 px-6 py-5 text-white">
+                      <div className="flex items-center gap-4">
+                        <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-white/15">
+                          {clinic.avatar_url ? <img src={clinic.avatar_url} alt="" className="h-full w-full rounded-full object-cover" /> : <Building2 size={24} />}
+                        </div>
+                        <div>
+                          <h2 className="font-display text-xl font-bold">{clinic.business_name}</h2>
+                          {clinic.business_address && <p className="mt-1 text-sm text-white/60">{clinic.business_address}</p>}
                         </div>
                       </div>
-                      <button onClick={() => openRefer(clinic.merchant_id, service)} className="btn-primary shrink-0 flex items-center gap-1.5 text-sm">
-                        <UserRound size={15} /> Refer Customer
-                      </button>
+                      {clinic.business_description && <p className="mt-3 max-w-2xl text-sm leading-6 text-white/70">{clinic.business_description}</p>}
                     </div>
-                  ))}
-                </div>
-              </section>
-            )
-          })}
+                    <div className="divide-y divide-black/[0.04]">
+                      {services.map((service) => (
+                        <div key={service.id} className="flex flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-semibold text-ink">{service.name}</h3>
+                            {service.description && <p className="mt-0.5 text-sm text-ink/50">{service.description}</p>}
+                            <div className="mt-2 flex flex-wrap items-center gap-4 text-sm">
+                              <span className="flex items-center gap-1.5 text-teal-700 font-bold"><DollarSign size={14} /> {peso(service.service_fee)}</span>
+                              <span className="flex items-center gap-1.5 text-mango-600 font-semibold"><Send size={14} /> Your fee: {peso(service.referral_fee)}</span>
+                              {service.estimated_duration_minutes > 0 && <span className="flex items-center gap-1.5 text-ink/40 text-xs"><Clock size={13} /> ~{service.estimated_duration_minutes} min</span>}
+                            </div>
+                          </div>
+                          <button onClick={() => openRefer(clinic.merchant_id, service)} className="btn-primary shrink-0 flex items-center gap-1.5 text-sm">
+                            <UserRound size={15} /> Refer Customer
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )
+              })}
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Referral Modal */}
       {showRefer && (

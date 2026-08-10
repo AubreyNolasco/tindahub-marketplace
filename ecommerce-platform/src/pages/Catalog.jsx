@@ -85,6 +85,12 @@ export default function Catalog() {
   const [loading, setLoading] = useState(true)
   const [marketplaceSlides, setMarketplaceSlides] = useState([])
   const discountOnly = searchParams.get('discount') === '1'
+  const campaignOnly = searchParams.get('campaign') === '1'
+  const excludeCategory = searchParams.get('excludeCategory')
+  // "Items" (everything that isn't Food) and "Food" both hide the
+  // sidebar entirely per the owner's explicit request — a single-
+  // purpose filtered view, not another place to keep filtering.
+  const hideSidebar = searchParams.get('sidebar') === '0'
 
   useEffect(() => { Promise.all([supabase.from('categories').select('*').order('name'), supabase.from('merchant_profiles').select('id,business_name').eq('status', 'approved').order('business_name')]).then(([categoryResult, merchantResult]) => { if (categoryResult.error || merchantResult.error) toast.error(categoryResult.error?.message || merchantResult.error?.message); setCategories(categoryResult.data || []); setMerchants(merchantResult.data || []) }) }, [])
   // Marketplace.jsx's nav icons drive category/discount/filters-open
@@ -109,6 +115,10 @@ export default function Catalog() {
       const childIds = categories.filter((c) => c.parent_id === activeCategory).map((c) => c.id)
       query = childIds.length ? query.in('category_id', [activeCategory, ...childIds]) : query.eq('category_id', activeCategory)
     }
+    // "Items" = everything that isn't Food, including products with no
+    // category at all — a plain .neq() would silently drop null-category
+    // rows too, since SQL's `null != x` is null, not true.
+    if (excludeCategory) query = query.or(`category_id.is.null,category_id.neq.${excludeCategory}`)
     if (activeMerchant) query = query.eq('merchant_id', activeMerchant)
     if (debouncedSearch) {
       const searchTerm = debouncedSearch.replace(/[^\p{L}\p{N}\s-]/gu, ' ').replace(/\s+/g, ' ').trim().slice(0, 100)
@@ -161,7 +171,7 @@ export default function Catalog() {
       sold_count: soldByProduct[product.id] || 0,
     })))
     setLoading(false)
-  }, [activeCategory, activeMerchant, debouncedSearch, minPrice, maxPrice, sort, categories])
+  }, [activeCategory, activeMerchant, debouncedSearch, minPrice, maxPrice, sort, categories, excludeCategory])
 
   useEffect(() => { loadProducts() }, [loadProducts])
 
@@ -173,9 +183,15 @@ export default function Catalog() {
   const visibleProducts = useMemo(() => {
     let list = products
     if (minRating > 0) list = list.filter((p) => p.avg_rating >= minRating)
-    if (discountOnly) list = list.filter((p) => p.campaign_discount_percent > 0)
+    // Discount and Campaign are two separate nav icons the owner wants
+    // kept conceptually distinct (price-based vs. campaign-participation-
+    // based), even though campaign_discount_percent is the only signal
+    // this data model has for either right now — same filter, two
+    // honestly-named entry points rather than one icon silently doing
+    // the other's job.
+    if (discountOnly || campaignOnly) list = list.filter((p) => p.campaign_discount_percent > 0)
     return list
-  }, [products, minRating, discountOnly])
+  }, [products, minRating, discountOnly, campaignOnly])
   const showPromo = !activeCategory && !activeMerchant && !debouncedSearch
   const discountedProducts = useMemo(() => products.filter((p) => p.campaign_discount_percent > 0), [products])
   const topDiscount = useMemo(() => discountedProducts.reduce((max, p) => Math.max(max, p.campaign_discount_percent), 0), [discountedProducts])
@@ -216,11 +232,15 @@ export default function Catalog() {
         </div>
       </section>
     )}
-    <div className="mx-auto max-w-7xl px-4 pt-5 sm:px-6 md:hidden"><button type="button" onClick={() => setFiltersOpen(true)} className="btn-secondary flex w-full items-center justify-center gap-2 shadow-sm"><Filter size={17} /> Filter products {activeFilterCount > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-teal-600 px-1 text-[10px] text-white">{activeFilterCount}</span>}</button></div>
+    {!hideSidebar && <div className="mx-auto max-w-7xl px-4 pt-5 sm:px-6 md:hidden"><button type="button" onClick={() => setFiltersOpen(true)} className="btn-secondary flex w-full items-center justify-center gap-2 shadow-sm"><Filter size={17} /> Filter products {activeFilterCount > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-teal-600 px-1 text-[10px] text-white">{activeFilterCount}</span>}</button></div>}
 
-    <div className="mx-auto grid max-w-7xl gap-5 px-2 py-6 sm:px-6 md:grid-cols-[240px_minmax(0,1fr)] lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-7 lg:py-8"><aside className="hidden overflow-hidden rounded-2xl border border-black/[0.06] bg-surface shadow-card md:sticky md:top-24 md:block md:h-[calc(100vh-7rem)]"><FilterPanel {...filterProps} /></aside><main className="min-w-0"><div className="mb-5 flex flex-col gap-3 px-2 sm:flex-row sm:items-center sm:justify-between sm:px-0"><div><h2 className="font-display text-xl font-bold text-ink">{activeMerchantName ? `${activeMerchantName} Products` : activeCategoryName ? `${activeCategoryName} Products` : 'All Products'}</h2><p className="mt-1 text-sm text-ink/50">{loading ? 'Loading products...' : `${visibleProducts.length} product${visibleProducts.length === 1 ? '' : 's'} found`}</p><div className="mt-2 flex flex-wrap gap-1.5">{activeCategoryName && <span className="badge bg-teal-50 text-teal-700">Category: {activeCategoryName}</span>}{activeMerchantName && <span className="badge bg-teal-50 text-teal-700">Store: {activeMerchantName}</span>}{(minPrice || maxPrice) && <span className="badge bg-teal-50 text-teal-700">Price: ₱{minPrice || '0'} – ₱{maxPrice || 'Any'}</span>}{minRating > 0 && <span className="badge bg-teal-50 text-teal-700">Rating: {minRating}★ & up</span>}</div></div><label className="relative"><select value={sort} onChange={(e) => setSort(e.target.value)} className="input-field appearance-none py-2 pl-3 pr-9 text-sm"><option value="newest">Newest first</option><option value="price_low">Price: low to high</option><option value="price_high">Price: high to low</option><option value="name">Product name</option></select><ChevronDown size={15} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink/40" /></label></div>
-      {loading ? <div className="flex justify-center py-24"><Spinner /></div> : visibleProducts.length === 0 ? <div className="rounded-2xl border border-black/[0.06] bg-surface"><EmptyState icon={PackageSearch} title="No products found" message="Try another product name, store, category, or price range." action={<button onClick={clearFilters} className="btn-primary">Clear filters</button>} /></div> : <div className="grid grid-cols-2 gap-2 min-[360px]:grid-cols-4 sm:grid-cols-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">{visibleProducts.map((product) => <ProductCard key={product.id} product={product} />)}</div>}</main></div>
+    <div className={hideSidebar ? 'mx-auto max-w-7xl px-2 py-6 sm:px-6 lg:py-8' : 'mx-auto grid max-w-7xl gap-5 px-2 py-6 sm:px-6 md:grid-cols-[240px_minmax(0,1fr)] lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-7 lg:py-8'}>
+      {!hideSidebar && <aside className="hidden overflow-hidden rounded-2xl border border-black/[0.06] bg-surface shadow-card md:sticky md:top-24 md:block md:h-[calc(100vh-7rem)]"><FilterPanel {...filterProps} /></aside>}
+      <main className="min-w-0"><div className="mb-5 flex flex-col gap-3 px-2 sm:flex-row sm:items-center sm:justify-between sm:px-0"><div><h2 className="font-display text-xl font-bold text-ink">{activeMerchantName ? `${activeMerchantName} Products` : activeCategoryName ? `${activeCategoryName} Products` : excludeCategory ? 'Items' : campaignOnly ? 'Campaign Products' : discountOnly ? 'Discounted Products' : 'All Products'}</h2><p className="mt-1 text-sm text-ink/50">{loading ? 'Loading products...' : `${visibleProducts.length} product${visibleProducts.length === 1 ? '' : 's'} found`}</p><div className="mt-2 flex flex-wrap gap-1.5">{activeCategoryName && <span className="badge bg-teal-50 text-teal-700">Category: {activeCategoryName}</span>}{activeMerchantName && <span className="badge bg-teal-50 text-teal-700">Store: {activeMerchantName}</span>}{(minPrice || maxPrice) && <span className="badge bg-teal-50 text-teal-700">Price: ₱{minPrice || '0'} – ₱{maxPrice || 'Any'}</span>}{minRating > 0 && <span className="badge bg-teal-50 text-teal-700">Rating: {minRating}★ & up</span>}</div></div><label className="relative"><select value={sort} onChange={(e) => setSort(e.target.value)} className="input-field appearance-none py-2 pl-3 pr-9 text-sm"><option value="newest">Newest first</option><option value="price_low">Price: low to high</option><option value="price_high">Price: high to low</option><option value="name">Product name</option></select><ChevronDown size={15} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink/40" /></label></div>
+        {loading ? <div className="flex justify-center py-24"><Spinner /></div> : visibleProducts.length === 0 ? <div className="rounded-2xl border border-black/[0.06] bg-surface"><EmptyState icon={PackageSearch} title="No products found" message="Try another product name, store, category, or price range." action={!hideSidebar ? <button onClick={clearFilters} className="btn-primary">Clear filters</button> : null} /></div> : <div className="grid grid-cols-2 gap-2 min-[360px]:grid-cols-4 sm:grid-cols-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">{visibleProducts.map((product) => <ProductCard key={product.id} product={product} />)}</div>}
+      </main>
+    </div>
 
-    {filtersOpen && <div className="fixed inset-0 z-50 md:hidden"><button onClick={() => setFiltersOpen(false)} className="absolute inset-0 bg-scrim/50 backdrop-blur-sm" aria-label="Close filters" /><aside className="absolute bottom-0 left-0 top-0 w-[min(88vw,340px)] shadow-2xl"><FilterPanel {...filterProps} onClose={() => setFiltersOpen(false)} /></aside></div>}
+    {!hideSidebar && filtersOpen && <div className="fixed inset-0 z-50 md:hidden"><button onClick={() => setFiltersOpen(false)} className="absolute inset-0 bg-scrim/50 backdrop-blur-sm" aria-label="Close filters" /><aside className="absolute bottom-0 left-0 top-0 w-[min(88vw,340px)] shadow-2xl"><FilterPanel {...filterProps} onClose={() => setFiltersOpen(false)} /></aside></div>}
   </div>
 }
