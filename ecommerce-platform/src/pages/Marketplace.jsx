@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { LayoutGrid, UtensilsCrossed, Package, Handshake, Store, Percent, Zap, ShoppingBag, ShoppingCart, Sparkles } from 'lucide-react'
+import { LayoutGrid, UtensilsCrossed, Handshake, Store, Percent, Zap, ShoppingBag, ShoppingCart, Sparkles, House, Cpu, Shirt } from 'lucide-react'
 import Catalog from './Catalog'
 import ClinicDiscovery from './Reseller/ClinicDiscovery'
 import StoreDirectory from './StoreDirectory'
@@ -7,20 +7,27 @@ import StoreDirectory from './StoreDirectory'
 // Grocery & Food category id from the live `categories` table (same
 // one src/config/sampleProducts.js already hardcodes for the same
 // reason: this file already targets one specific database).
-const GROCERY_FOOD_CATEGORY_ID = '923f9b66-1850-4e50-b255-d76b8ac35587'
+const CATEGORY_IDS = {
+  grocery: '923f9b66-1850-4e50-b255-d76b8ac35587',
+  home: 'e0e74645-7975-4ed8-88b3-e2af404b2518',
+  electronics: 'f387cca1-b625-4dc4-9618-e03d9706a977',
+  fashion: 'b6f988c5-4cb5-4d71-9e84-594ac99b4983',
+}
 
 // Real Estate and Clinic used to be their own top-level icons here --
 // moved inside Services (Reseller/ClinicDiscovery.jsx) as sub-filters
 // per the owner's explicit request, since they're really two flavors
 // of the same "Services" content, not separate marketplace sections.
 const NAV_ICONS = [
-  { key: 'all', label: 'All Categories', icon: LayoutGrid, params: {} },
-  { key: 'food', label: 'Food', icon: UtensilsCrossed, params: { tab: 'products', category: GROCERY_FOOD_CATEGORY_ID, sidebar: '0' } },
-  { key: 'items', label: 'Items', icon: Package, params: { tab: 'products', excludeCategory: GROCERY_FOOD_CATEGORY_ID, sidebar: '0' } },
-  { key: 'services', label: 'Services', icon: Handshake, params: { tab: 'services' } },
-  { key: 'stores', label: 'Stores', icon: Store, params: { tab: 'stores' } },
-  { key: 'discount', label: 'Discount', icon: Percent, params: { tab: 'products', discount: '1' } },
-  { key: 'campaign', label: 'Campaign', icon: Zap, params: { tab: 'products', campaign: '1' } },
+  { key: 'all', label: 'All Products', icon: LayoutGrid, params: {} },
+  { key: 'grocery', label: 'Grocery & Food', icon: UtensilsCrossed, params: { tab: 'products', category: CATEGORY_IDS.grocery } },
+  { key: 'home', label: 'Home & Living', icon: House, params: { tab: 'products', category: CATEGORY_IDS.home } },
+  { key: 'electronics', label: 'Electronics', icon: Cpu, params: { tab: 'products', category: CATEGORY_IDS.electronics } },
+  { key: 'fashion', label: 'Fashion', icon: Shirt, params: { tab: 'products', category: CATEGORY_IDS.fashion } },
+  { key: 'services', label: 'Business Services', icon: Handshake, params: { tab: 'services' } },
+  { key: 'stores', label: 'Verified Stores', icon: Store, params: { tab: 'stores' } },
+  { key: 'discount', label: 'Product Deals', icon: Percent, params: { tab: 'products', discount: '1' } },
+  { key: 'campaign', label: 'Live Campaigns', icon: Zap, params: { tab: 'products', campaign: '1' } },
 ]
 
 export default function Marketplace() {
@@ -29,7 +36,6 @@ export default function Marketplace() {
   const searchParams = new URLSearchParams(location.search)
   const tab = ['services', 'stores'].includes(searchParams.get('tab')) ? searchParams.get('tab') : 'products'
   const category = searchParams.get('category')
-  const excludeCategory = searchParams.get('excludeCategory')
   const discountOnly = searchParams.get('discount') === '1'
   const campaignOnly = searchParams.get('campaign') === '1'
 
@@ -37,9 +43,7 @@ export default function Marketplace() {
     : tab === 'stores' ? 'stores'
     : campaignOnly ? 'campaign'
     : discountOnly ? 'discount'
-    : excludeCategory === GROCERY_FOOD_CATEGORY_ID ? 'items'
-    : category === GROCERY_FOOD_CATEGORY_ID ? 'food'
-    : 'all'
+    : Object.entries(CATEGORY_IDS).find(([, id]) => id === category)?.[0] || 'all'
 
   const goTo = (params) => {
     const next = new URLSearchParams()

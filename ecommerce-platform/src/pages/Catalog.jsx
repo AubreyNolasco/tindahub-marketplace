@@ -194,7 +194,8 @@ export default function Catalog() {
     // this data model has for either right now — same filter, two
     // honestly-named entry points rather than one icon silently doing
     // the other's job.
-    if (discountOnly || campaignOnly) list = list.filter((p) => p.campaign_discount_percent > 0)
+    if (campaignOnly) list = list.filter((p) => p.campaign_discount_percent > 0)
+    else if (discountOnly) list = list.filter((p) => p.campaign_discount_percent > 0 || (p.discount_tiers || []).length > 0)
     return list
   }, [products, minRating, discountOnly, campaignOnly])
   const showPromo = !activeCategory && !activeMerchant && !debouncedSearch
