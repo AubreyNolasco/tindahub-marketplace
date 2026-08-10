@@ -173,6 +173,11 @@ select, input, textarea { color-scheme: light; }
   background: rgb(var(--surface) / .82);
   backdrop-filter: blur(18px);
 }
+.marketplace-reference-hero {
+  background:
+    linear-gradient(110deg, rgba(1, 13, 9, .98), rgba(2, 35, 23, .94)),
+    url('/assets/backgrounds/dashboard-texture-bg.jpg') center / cover;
+}
 .marketplace-category-pill {
   display: flex;
   min-width: 5.75rem;

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { BadgeCheck, ChevronDown, Filter, Grid2X2, PackageSearch, Search, ShieldCheck, SlidersHorizontal, Store, Tags, Truck, X, Zap } from 'lucide-react'
+import { BadgeCheck, ChevronDown, Filter, PackageSearch, Search, ShieldCheck, SlidersHorizontal, Store, Truck, X, Zap } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 import ProductCard from '../components/product/ProductCard'
@@ -224,18 +224,6 @@ export default function Catalog() {
         </div>
       </section>
     )}
-    <nav className="marketplace-category-rail border-b border-line" aria-label="Marketplace categories">
-      <div className="mx-auto flex max-w-7xl gap-3 overflow-x-auto px-4 py-5 sm:justify-center sm:px-6">
-        <button type="button" onClick={() => setActiveCategory(null)} className={`marketplace-category-pill ${!activeCategory ? 'is-active' : ''}`}>
-          <span><Grid2X2 size={19} /></span><strong>All Categories</strong>
-        </button>
-        {categories.filter((category) => !category.parent_id).slice(0, 7).map((category) => (
-          <button type="button" key={category.id} onClick={() => setActiveCategory(category.id)} className={`marketplace-category-pill ${activeCategory === category.id ? 'is-active' : ''}`}>
-            <span>{category.name.toLowerCase().includes('sale') ? <Tags size={19} /> : <PackageSearch size={19} />}</span><strong>{category.name}</strong>
-          </button>
-        ))}
-      </div>
-    </nav>
     {showPromo && discountedProducts.length > 0 && (
       <section className="border-b border-black/[0.06] bg-gradient-to-br from-mango-50 to-white dark:from-mango-500/5 dark:to-transparent">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
