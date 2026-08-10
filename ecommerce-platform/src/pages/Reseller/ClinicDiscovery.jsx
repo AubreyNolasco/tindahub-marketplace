@@ -10,17 +10,17 @@ import EmptyState from '../../components/ui/EmptyState'
 import Modal from '../../components/ui/Modal'
 import { cleanText } from '../../utils/security'
 
-const SERVICE_TYPE_LABEL = { clinic: 'Clinic', real_estate: 'Real Estate' }
+const SERVICE_TYPE_LABEL = { clinic: 'Health & Clinic', real_estate: 'Property' }
 const SERVICE_TYPE_FILTERS = [
-  { value: '', label: 'All Services', icon: Handshake },
-  { value: 'real_estate', label: 'Real Estate', icon: HomeIcon },
-  { value: 'clinic', label: 'Clinic', icon: Stethoscope },
+  { value: '', label: 'All Partner Services', icon: Handshake },
+  { value: 'real_estate', label: 'Property Services', icon: HomeIcon },
+  { value: 'clinic', label: 'Health & Clinic', icon: Stethoscope },
 ]
 const SORT_OPTIONS = [
-  { value: 'referral_desc', label: 'Referral fee: high to low' },
-  { value: 'service_desc', label: 'Service fee: high to low' },
-  { value: 'service_asc', label: 'Service fee: low to high' },
-  { value: 'name', label: 'Name A-Z' },
+  { value: 'referral_desc', label: 'Highest earning opportunity' },
+  { value: 'service_asc', label: 'Lowest service price' },
+  { value: 'service_desc', label: 'Highest service price' },
+  { value: 'name', label: 'Provider name A–Z' },
 ]
 
 export default function ClinicDiscovery() {
@@ -92,11 +92,10 @@ export default function ClinicDiscovery() {
     setSending(false)
   }
 
-  // A "both" merchant offers either kind of service, so it should
-  // still show up under either specific filter, not just under
-  // "Services" with no filter at all. Sort is applied per-merchant to
-  // that merchant's own service list, not across merchants -- the
-  // grouped-by-provider layout stays intact either way.
+  // A "both" merchant appears in either provider category. Services are
+  // ordered inside each provider and providers themselves are also sorted
+  // by their best matching fee, so the selected sort has a visible and
+  // truthful effect on the complete result list.
   const sortServices = useCallback((services) => {
     const list = [...services]
     if (sort === 'referral_desc') list.sort((a, b) => b.referral_fee - a.referral_fee)
@@ -105,10 +104,23 @@ export default function ClinicDiscovery() {
     else if (sort === 'name') list.sort((a, b) => a.name.localeCompare(b.name))
     return list
   }, [sort])
-  const visibleClinics = useMemo(() => clinics
-    .filter((clinic) => !serviceType || clinic.service_type === serviceType || clinic.service_type === 'both')
-    .map((clinic) => ({ ...clinic, services: sortServices(clinic.services || []) })),
-  [clinics, serviceType, sortServices])
+  const visibleClinics = useMemo(() => {
+    const providers = clinics
+      .filter((clinic) => !serviceType || clinic.service_type === serviceType || clinic.service_type === 'both')
+      .map((clinic) => ({ ...clinic, services: sortServices(clinic.services || []) }))
+    const metric = (provider, field, mode) => {
+      const values = provider.services.map((service) => Number(service[field]) || 0)
+      if (!values.length) return 0
+      return mode === 'min' ? Math.min(...values) : Math.max(...values)
+    }
+    providers.sort((a, b) => {
+      if (sort === 'name') return a.business_name.localeCompare(b.business_name)
+      if (sort === 'service_asc') return metric(a, 'service_fee', 'min') - metric(b, 'service_fee', 'min')
+      if (sort === 'service_desc') return metric(b, 'service_fee', 'max') - metric(a, 'service_fee', 'max')
+      return metric(b, 'referral_fee', 'max') - metric(a, 'referral_fee', 'max')
+    })
+    return providers
+  }, [clinics, serviceType, sort, sortServices])
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -123,7 +135,7 @@ export default function ClinicDiscovery() {
       <div className="grid gap-6 md:grid-cols-[220px_minmax(0,1fr)]">
         <aside className="h-fit rounded-2xl border border-black/[0.06] bg-surface p-4 shadow-card md:sticky md:top-24">
           <div className="mb-3 hidden items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-ink/45 md:flex"><SlidersHorizontal size={14} /> Sort &amp; filter</div>
-          <p className="mb-2 hidden text-[11px] font-bold uppercase tracking-[0.12em] text-ink/40 md:block">Service type</p>
+          <p className="mb-2 hidden text-[11px] font-bold uppercase tracking-[0.12em] text-ink/40 md:block">Provider category</p>
           <div className="flex gap-2 overflow-x-auto pb-1 md:block md:space-y-1 md:overflow-visible md:pb-0">
             {SERVICE_TYPE_FILTERS.map(({ value, label, icon: Icon }) => (
               <button key={value || 'all'} onClick={() => setServiceType(value)} className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-left text-sm md:w-full ${serviceType === value || (!serviceType && !value) ? 'bg-teal-50 font-semibold text-teal-800' : 'bg-black/[0.03] text-ink/60 hover:bg-black/[0.06] md:bg-transparent'}`}>
@@ -240,4 +252,3 @@ export default function ClinicDiscovery() {
     </div>
   )
 }
-
