@@ -3,6 +3,17 @@ import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext(null)
 
+// The database raises plain technical error codes (they're also matched by
+// exact string elsewhere, e.g. DeviceAccessGuard/MfaGuard), so they can't be
+// reworded at the source. Translate the ones a real user can hit here before
+// they ever reach ProfileLoadError, instead of showing "DEVICE_APPROVAL_
+// REQUIRED" or a raw Postgres message to someone who isn't a developer.
+const FRIENDLY_PROFILE_ERRORS = {
+  DEVICE_APPROVAL_REQUIRED: "We're verifying this device against your account's security settings. If this takes more than a few seconds, sign in again.",
+  MFA_VERIFICATION_REQUIRED: 'Extra verification is required for this account. Please sign in again.',
+}
+const friendlyProfileError = (message) => FRIENDLY_PROFILE_ERRORS[message] || message
+
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
   const [profile, setProfile] = useState(null)
@@ -10,7 +21,7 @@ export function AuthProvider({ children }) {
   const [deviceAccessStatus, setDeviceAccessStatus] = useState('signed_out')
   const [loading, setLoading] = useState(true)
 
-  const loadProfile = useCallback(async (userId, _userEmail = '', provider = '') => {
+  const loadProfile = useCallback(async (userId, _userEmail = '', provider = '', isRetry = false) => {
     setProfileError(null)
     if (!userId) {
       setProfile(null)
@@ -20,8 +31,17 @@ export function AuthProvider({ children }) {
       const { error: syncError } = await supabase.rpc('sync_google_profile')
       if (syncError) {
         console.error('Unable to sync Google profile:', syncError.message)
+        // sync_google_profile's own profile write can race the separate
+        // request_device_access() call DeviceAccessGuard fires on the same
+        // fresh login (see 20260810000100_fresh_login_reclaims_device_on_
+        // mutation.sql) -- one retry after that reclaim has had a moment to
+        // land clears the transient case without showing an error at all.
+        if (syncError.message === 'DEVICE_APPROVAL_REQUIRED' && !isRetry) {
+          await new Promise((resolve) => setTimeout(resolve, 1500))
+          return loadProfile(userId, _userEmail, provider, true)
+        }
         setProfile(null)
-        setProfileError(syncError.message)
+        setProfileError(friendlyProfileError(syncError.message))
         return
       }
     }
@@ -33,7 +53,7 @@ export function AuthProvider({ children }) {
     if (error) {
       console.error('Failed to load profile:', error.message)
       setProfile(null)
-      setProfileError(error.message)
+      setProfileError(friendlyProfileError(error.message))
     } else if (!data) {
       setProfile(null)
       setProfileError('No profile record was found for this account. Apply the Google OAuth database migration, then sign in again.')
