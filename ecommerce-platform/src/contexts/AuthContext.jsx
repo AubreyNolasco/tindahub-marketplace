@@ -38,6 +38,12 @@ export function AuthProvider({ children }) {
         // land clears the transient case without showing an error at all.
         if (syncError.message === 'DEVICE_APPROVAL_REQUIRED' && !isRetry) {
           await new Promise((resolve) => setTimeout(resolve, 1500))
+          // Check the actual current session rather than trusting the
+          // userId this call closed over -- if the user signed out (or
+          // switched accounts) during the wait, the delayed retry must
+          // not resurrect profile/error state for a session that's gone.
+          const { data: { session: currentSession } } = await supabase.auth.getSession()
+          if (currentSession?.user?.id !== userId) return
           return loadProfile(userId, _userEmail, provider, true)
         }
         setProfile(null)
