@@ -51,12 +51,19 @@ export default function Merchants() {
     setLoading(false)
   }
 
-  const updateStatus = async (id, status) => {
-    const { error } = await supabase.from('merchant_profiles').update({ status }).eq('id', id)
+  const updateStatus = async (id, status, fromStatus) => {
+    // Scoped to the status this button was rendered for, same guard
+    // review_reseller_id_verification() already uses — two admins acting
+    // on the same stale list at once (or a double-click) update 0 rows
+    // instead of silently overwriting whatever the other admin just set.
+    let query = supabase.from('merchant_profiles').update({ status }).eq('id', id)
+    if (fromStatus) query = query.eq('status', fromStatus)
+    const { data, error } = await query.select('id')
     if (error) {
       toast.error(error.message.includes('BUSINESS_PERMIT_NOT_APPROVED') ? 'Approve the business permit before approving this merchant.' : error.message)
       return
     }
+    if (!data?.length) { toast.error('This merchant was already reviewed by someone else.'); load(); return }
     toast.success(`Merchant ${status}.`)
     load()
   }
@@ -86,14 +93,19 @@ export default function Merchants() {
     const notes = window.prompt('Reason for rejecting this business permit:', 'Please upload a clearer and valid business permit.')
     if (notes === null) return
     const { data: { user } } = await supabase.auth.getUser()
-    const { error } = await supabase.from('merchant_profiles').update({
+    // Scoped to business_permit_status='pending', same guard
+    // review_reseller_id_verification() uses server-side — two admins
+    // reviewing the same permit at once (or a stale tab) update 0 rows
+    // instead of silently overwriting each other's decision.
+    const { data, error } = await supabase.from('merchant_profiles').update({
       business_permit_status: 'rejected',
       business_permit_notes: notes || '',
       business_permit_reviewed_at: new Date().toISOString(),
       business_permit_reviewed_by: user?.id || null,
       status: 'pending'
-    }).eq('id', merchant.id)
+    }).eq('id', merchant.id).eq('business_permit_status', 'pending').select('id')
     if (error) return toast.error(error.message)
+    if (!data?.length) { toast.error('This permit was already reviewed by someone else.'); load(); return }
     toast.success('Business permit rejected.')
     load()
   }
@@ -105,16 +117,17 @@ export default function Merchants() {
       ? new Date(expiryModal.expires_at).toISOString()
       : null
 
-    const { error } = await supabase.from('merchant_profiles').update({
+    const { data, error } = await supabase.from('merchant_profiles').update({
       business_permit_status: 'approved',
       business_permit_notes: '',
       business_permit_reviewed_at: new Date().toISOString(),
       business_permit_reviewed_by: user?.id || null,
       business_permit_expires_at: expiresAt
-    }).eq('id', expiryModal.id)
+    }).eq('id', expiryModal.id).eq('business_permit_status', 'pending').select('id')
 
     setExpiryModal(null)
     if (error) return toast.error(error.message)
+    if (!data?.length) { toast.error('This permit was already reviewed by someone else.'); load(); return }
     toast.success(expiresAt
       ? `Business permit approved until ${formatDate(expiresAt)}.`
       : 'Business permit approved (no expiry set). You may now approve the merchant.')
@@ -204,16 +217,16 @@ export default function Merchants() {
                       <a href="/admin/approval-center" className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1">
                         <Check size={13} /> Complete activation
                       </a>
-                      <Button onClick={() => updateStatus(m.id, 'rejected')} variant="danger-chip" size="sm" icon={X}>Reject</Button>
+                      <Button onClick={() => updateStatus(m.id, 'rejected', m.status)} variant="danger-chip" size="sm" icon={X}>Reject</Button>
                     </>
                   )}
                   {m.status === 'approved' && (
-                    <button onClick={() => updateStatus(m.id, 'suspended')} className="text-xs px-3 py-1.5 rounded-xl bg-ink/10 text-ink/60 font-semibold flex items-center gap-1">
+                    <button onClick={() => updateStatus(m.id, 'suspended', m.status)} className="text-xs px-3 py-1.5 rounded-xl bg-ink/10 text-ink/60 font-semibold flex items-center gap-1">
                       <Ban size={13} /> Suspend
                     </button>
                   )}
                   {m.status === 'suspended' && m.business_permit_status === 'approved' && (
-                    <button onClick={() => updateStatus(m.id, 'approved')} className="btn-primary text-xs px-3 py-1.5">
+                    <button onClick={() => updateStatus(m.id, 'approved', m.status)} className="btn-primary text-xs px-3 py-1.5">
                       Reinstate
                     </button>
                   )}
