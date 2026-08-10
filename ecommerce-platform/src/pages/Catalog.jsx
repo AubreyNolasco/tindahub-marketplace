@@ -83,7 +83,6 @@ export default function Catalog() {
   const [sort, setSort] = useState('newest')
   const [filtersOpen, setFiltersOpen] = useState(searchParams.get('filters') === '1')
   const [loading, setLoading] = useState(true)
-  const [marketplaceSlides, setMarketplaceSlides] = useState([])
   const discountOnly = searchParams.get('discount') === '1'
   const campaignOnly = searchParams.get('campaign') === '1'
   const excludeCategory = searchParams.get('excludeCategory')
@@ -101,7 +100,6 @@ export default function Catalog() {
   // Admin-editable slideshow content (Admin/MarketplaceEditor.jsx),
   // same site_settings key/value pattern the Landing page's own
   // Homepage Designer already uses — just a different key.
-  useEffect(() => { supabase.from('site_settings').select('value').eq('key', 'marketplace').maybeSingle().then(({ data }) => setMarketplaceSlides(data?.value?.slides || [])) }, [])
   useEffect(() => { setSearch(searchParams.get('q') || '') }, [searchParams])
   useEffect(() => { const timer = setTimeout(() => setDebouncedSearch(search.trim()), 300); return () => clearTimeout(timer) }, [search])
   const loadProducts = useCallback(async () => {
@@ -200,7 +198,6 @@ export default function Catalog() {
   }, [products, minRating, discountOnly, campaignOnly])
   const showPromo = !activeCategory && !activeMerchant && !debouncedSearch
   const discountedProducts = useMemo(() => products.filter((p) => p.campaign_discount_percent > 0), [products])
-  const topDiscount = useMemo(() => discountedProducts.reduce((max, p) => Math.max(max, p.campaign_discount_percent), 0), [discountedProducts])
   // Only per-product campaigns carry an end date (applyCampaignDiscount
   // only sets campaign_ends_at for those, not whole-store join
   // discounts) — soonest one wins for the countdown, if any exist.
@@ -210,11 +207,8 @@ export default function Catalog() {
     {showPromo && (
       <section className="border-b border-black/[0.06] bg-surface">
         <div className="mx-auto grid max-w-7xl gap-4 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_auto]">
-          <MarketplaceSlideshow
-            campaignSlide={topDiscount > 0 ? { kind: 'campaign', title: `Up to ${Math.round(topDiscount)}% OFF on selected items!`, countdown: soonestEndsAt ? <CampaignCountdown endsAt={soonestEndsAt} className="mt-3 text-sm text-white/85" /> : null } : null}
-            customSlides={marketplaceSlides}
-          />
-          <div className={`grid gap-3 ${topDiscount > 0 || marketplaceSlides.length > 0 ? 'grid-cols-1 sm:grid-cols-3 lg:w-72 lg:grid-cols-1' : 'sm:grid-cols-3'}`}>
+          <MarketplaceSlideshow />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:w-72 lg:grid-cols-1">
             {TRUST_BADGES.map(({ icon: Icon, title, text }) => (
               <div key={title} className="flex items-center gap-3 rounded-xl border border-black/[0.06] bg-surface-inset px-3.5 py-3">
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-teal-50 text-teal-700"><Icon size={18} /></span>

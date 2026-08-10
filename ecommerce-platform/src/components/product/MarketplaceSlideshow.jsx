@@ -1,93 +1,65 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Zap } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ShoppingBag, Store, Tags } from 'lucide-react'
+import { useTheme } from '../../hooks/useTheme'
 
 const ROTATE_MS = 6000
+const SLIDES = [
+  {
+    eyebrow: 'Wholesale marketplace',
+    title: 'Everyday essentials, ready for business.',
+    text: 'Source practical products from verified Filipino merchants with transparent stock and quantity pricing.',
+    button: 'Shop products',
+    to: '/marketplace',
+    icon: ShoppingBag,
+  },
+  {
+    eyebrow: 'Product deals',
+    title: 'Buy smarter with real quantity discounts.',
+    text: 'Compare campaign offers and wholesale tiers while keeping your expected reseller margin visible.',
+    button: 'View product deals',
+    to: '/marketplace?tab=products&discount=1',
+    icon: Tags,
+  },
+  {
+    eyebrow: 'Verified partners',
+    title: 'Build reliable supplier relationships.',
+    text: 'Discover admin-reviewed stores and manage every order through one organized marketplace workflow.',
+    button: 'Browse stores',
+    to: '/marketplace?tab=stores',
+    icon: Store,
+  },
+]
 
-// Combines the live campaign-discount card (computed from real data —
-// kept as its own always-first slide, not admin-editable, so the
-// percentage/countdown shown can never drift from what's actually
-// active) with whatever slides the admin configured in
-// Admin/MarketplaceEditor.jsx (site_settings key="marketplace"). If
-// there's only one slide total, it just renders statically — no
-// pagination dots or rotation for a single item.
-export default function MarketplaceSlideshow({ campaignSlide, customSlides }) {
-  const slides = [...(campaignSlide ? [campaignSlide] : []), ...customSlides.filter((slide) => slide.visible !== false)]
+export default function MarketplaceSlideshow() {
   const [index, setIndex] = useState(0)
+  const { theme } = useTheme()
 
   useEffect(() => {
-    if (index >= slides.length) setIndex(0)
-  }, [slides.length, index])
-
-  useEffect(() => {
-    if (slides.length <= 1) return
-    const timer = setInterval(() => setIndex((current) => (current + 1) % slides.length), ROTATE_MS)
+    const timer = setInterval(() => setIndex((current) => (current + 1) % SLIDES.length), ROTATE_MS)
     return () => clearInterval(timer)
-  }, [slides.length])
+  }, [])
 
-  if (slides.length === 0) return null
-  const slide = slides[index]
+  const slide = SLIDES[index]
+  const Icon = slide.icon
+  const image = theme === 'dark' ? '/assets/backgrounds/marketplace-slide-dark.jpg' : '/assets/backgrounds/marketplace-slide-light.jpg'
 
   return (
-    <div className="relative overflow-hidden rounded-2xl shadow-card">
-      {slide.kind === 'campaign' ? (
-        <div className="relative bg-gradient-to-br from-coral-700 via-coral-600 to-mango-600 p-6 text-white sm:p-8">
-          <div className="pointer-events-none absolute -right-10 -top-10 h-48 w-48 rounded-full border-[40px] border-white/10" />
-          <div className="relative">
-            <p className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em]"><Zap size={13} />Mega Sale</p>
-            <p className="mt-3 font-display text-2xl font-extrabold leading-tight sm:text-3xl">{slide.title}</p>
-            {slide.countdown}
-          </div>
-        </div>
-      ) : (
-        <div className="relative flex min-h-[220px] flex-col justify-center p-6 sm:min-h-[300px] sm:p-8" style={{ background: slide.background || '#0B4D30' }}>
-          {/* Image fills the whole slide, not a small side box — a dark
-              gradient sits over it so the title/button stay readable
-              regardless of what the admin's photo looks like. */}
-          {slide.image_url && (
-            <>
-              <img src={slide.image_url} alt="" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: 'center 30%' }} />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/45 to-black/10" />
-            </>
-          )}
-          <div className="relative max-w-md" style={{ color: slide.text_color || '#FFFFFF' }}>
-            <p className="font-display text-2xl font-extrabold leading-tight sm:text-3xl">{slide.title}</p>
-            {slide.text && <p className="mt-2 text-sm leading-6 opacity-90">{slide.text}</p>}
-            {/* Always-white button on a colored/image slide -- text
-                must stay a fixed dark color regardless of site theme,
-                not the theme-aware "ink" token (which turns light in
-                dark mode and disappears against this white
-                background). */}
-            {slide.button_label && (
-              <Link to={slide.button_link || '/marketplace'} className="mt-4 inline-flex items-center rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-teal-900 hover:opacity-90">
-                {slide.button_label}
-              </Link>
-            )}
-          </div>
-        </div>
-      )}
+    <section className="relative aspect-[16/8] min-h-[300px] overflow-hidden rounded-2xl border border-line shadow-2xl sm:aspect-[16/7] lg:aspect-[16/6]" aria-roledescription="carousel" aria-label="Marketplace highlights">
+      <img src={image} alt="" className="absolute inset-0 h-full w-full object-cover object-center" />
+      <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/80 to-white/5 dark:from-[#00130c]/95 dark:via-[#002518]/72 dark:to-transparent" />
+      <div key={index} className="relative flex h-full max-w-[65%] flex-col justify-center px-6 py-8 animate-fade-in sm:max-w-[58%] sm:px-9 lg:max-w-[52%] lg:px-12">
+        <span className="inline-flex w-fit items-center gap-2 rounded-full border border-teal-600/15 bg-teal-600/10 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[.16em] text-teal-700 dark:text-emerald-300"><Icon size={13} /> {slide.eyebrow}</span>
+        <h2 className="mt-4 font-display text-2xl font-extrabold leading-tight text-fg sm:text-3xl lg:text-4xl">{slide.title}</h2>
+        <p className="mt-3 hidden max-w-lg text-sm leading-6 text-fg-muted sm:block">{slide.text}</p>
+        <Link to={slide.to} className="mt-5 inline-flex w-fit items-center rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-teal-900/15 transition hover:-translate-y-0.5 hover:bg-teal-500">{slide.button}</Link>
+      </div>
 
-      {slides.length > 1 && (
-        <>
-          <button type="button" onClick={() => setIndex((current) => (current - 1 + slides.length) % slides.length)} className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/20 p-1.5 text-white transition hover:bg-black/35" aria-label="Previous slide">
-            <ChevronLeft size={18} />
-          </button>
-          <button type="button" onClick={() => setIndex((current) => (current + 1) % slides.length)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/20 p-1.5 text-white transition hover:bg-black/35" aria-label="Next slide">
-            <ChevronRight size={18} />
-          </button>
-          <div className="absolute inset-x-0 bottom-3 flex justify-center gap-1.5">
-            {slides.map((_, dotIndex) => (
-              <button
-                key={dotIndex}
-                type="button"
-                onClick={() => setIndex(dotIndex)}
-                aria-label={`Go to slide ${dotIndex + 1}`}
-                className={`h-2 rounded-full transition-all ${dotIndex === index ? 'w-6 bg-white' : 'w-2 bg-white/50 hover:bg-white/75'}`}
-              />
-            ))}
-          </div>
-        </>
-      )}
-    </div>
+      <button type="button" onClick={() => setIndex((current) => (current - 1 + SLIDES.length) % SLIDES.length)} className="absolute left-2 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-white/10 bg-black/25 text-white backdrop-blur transition hover:bg-black/45" aria-label="Previous slide"><ChevronLeft size={18} /></button>
+      <button type="button" onClick={() => setIndex((current) => (current + 1) % SLIDES.length)} className="absolute right-2 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-white/10 bg-black/25 text-white backdrop-blur transition hover:bg-black/45" aria-label="Next slide"><ChevronRight size={18} /></button>
+      <div className="absolute inset-x-0 bottom-3 flex justify-center gap-1.5">
+        {SLIDES.map((item, dotIndex) => <button key={item.title} type="button" onClick={() => setIndex(dotIndex)} aria-label={`Go to slide ${dotIndex + 1}`} className={`h-2 rounded-full border border-white/30 transition-all ${dotIndex === index ? 'w-7 bg-white' : 'w-2 bg-white/45 hover:bg-white/75'}`} />)}
+      </div>
+    </section>
   )
 }
