@@ -104,8 +104,18 @@ export default function Orders() {
     },
     { header: 'Items', render: (row) => (row.order_items?.length || 0) + ' item(s)' },
     { header: 'Total', accessor: 'total', format: 'currency', sortable: true },
-    { header: 'Status', accessor: 'status', format: 'badge', sortable: true }
+    { header: 'Status', accessor: 'status', format: 'badge', sortable: true },
+    {
+      header: 'Shipping fee',
+      render: (row) => row.status !== 'processing' || !row.shipping_fee_confirmation_status ? <span className="text-ink/30">—</span>
+        : row.shipping_fee_confirmation_status === 'pending' ? <span className="badge bg-mango-100 text-mango-700">Waiting on reseller</span>
+        : row.shipping_fee_confirmation_status === 'declined' ? <span className="badge bg-coral-100 text-coral-700">Needs your action</span>
+        : <span className="badge bg-teal-100 text-teal-700">Accepted</span>
+    }
   ]
+
+  const needsFeeAction = orders.filter((order) => order.status === 'processing' && order.shipping_fee_confirmation_status === 'declined').length
+  const waitingOnReseller = orders.filter((order) => order.status === 'processing' && order.shipping_fee_confirmation_status === 'pending').length
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
@@ -121,6 +131,13 @@ export default function Orders() {
           </button>
         </div>
       </div>
+
+      {(needsFeeAction > 0 || waitingOnReseller > 0) && (
+        <div className="mb-4 flex flex-wrap gap-2">
+          {needsFeeAction > 0 && <span className="badge bg-coral-100 text-coral-700">{needsFeeAction} order{needsFeeAction === 1 ? '' : 's'} declined — resubmit shipping fee</span>}
+          {waitingOnReseller > 0 && <span className="badge bg-mango-100 text-mango-700">{waitingOnReseller} order{waitingOnReseller === 1 ? '' : 's'} waiting on Reseller to confirm shipping fee</span>}
+        </div>
+      )}
 
       <DataTable
         columns={columns}

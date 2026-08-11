@@ -65,8 +65,17 @@ export default function PurchaseHistory() {
     { header: 'Merchant', render: (row) => row.merchant_profiles?.business_name || '—', sortable: true },
     { header: 'Items', render: (row) => (row.order_items?.length || 0) + ' item(s)' },
     { header: 'Total', accessor: 'total', format: 'currency', sortable: true },
-    { header: 'Status', accessor: 'status', format: 'badge', sortable: true }
+    { header: 'Status', accessor: 'status', format: 'badge', sortable: true },
+    {
+      header: 'Shipping fee',
+      render: (row) => row.status !== 'processing' || !row.shipping_fee_confirmation_status ? <span className="text-ink/30">—</span>
+        : row.shipping_fee_confirmation_status === 'pending' ? <span className="badge bg-coral-100 text-coral-700">Needs your decision</span>
+        : row.shipping_fee_confirmation_status === 'declined' ? <span className="badge bg-mango-100 text-mango-700">Waiting on Merchant</span>
+        : <span className="badge bg-teal-100 text-teal-700">Accepted</span>
+    }
   ]
+
+  const needsMyDecision = orders.filter((order) => order.status === 'processing' && order.shipping_fee_confirmation_status === 'pending').length
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
@@ -82,6 +91,12 @@ export default function PurchaseHistory() {
           </button>
         </div>
       </div>
+
+      {needsMyDecision > 0 && (
+        <div className="mb-4">
+          <span className="badge bg-coral-100 text-coral-700">{needsMyDecision} order{needsMyDecision === 1 ? '' : 's'} waiting on you to confirm the shipping fee</span>
+        </div>
+      )}
 
       <DataTable
         columns={columns}
