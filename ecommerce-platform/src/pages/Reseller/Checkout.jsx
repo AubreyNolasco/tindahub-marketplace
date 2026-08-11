@@ -195,9 +195,20 @@ export default function Checkout() {
         // request's status label, not money or stock.
       }
 
+      // Cart items are grouped one order per Merchant, so a cart spanning
+      // several stores still means several separate checkouts -- without
+      // this, placing one order dropped the reseller straight into their
+      // order history with no indication that other Merchants' items were
+      // still sitting unpaid back in the cart.
+      const remainingGroups = Object.keys(groupedOrders).filter((key) => key !== `${merchantId}__${customerId || 'self'}`)
       clearOrderItems(merchantId, customerId)
       toast.success('Order placed! Product and system fees were charged to your wallet. Shipping will be paid upon delivery.')
-      navigate(role === 'merchant' ? '/merchant/purchases' : '/reseller/orders')
+      if (role === 'reseller' && remainingGroups.length > 0) {
+        toast.success(`${remainingGroups.length} more order${remainingGroups.length === 1 ? '' : 's'} from other stores still waiting in your cart.`, { duration: 5000 })
+        navigate('/cart')
+      } else {
+        navigate(role === 'merchant' ? '/merchant/purchases' : '/reseller/orders')
+      }
     } catch (err) {
       console.error('Checkout failed:', err)
       toast.error(ERROR_MESSAGES[err.message] || VOUCHER_ERROR_MESSAGES[err.message] || 'We could not place this order. Please refresh and try again.')

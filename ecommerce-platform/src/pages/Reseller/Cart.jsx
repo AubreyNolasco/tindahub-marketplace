@@ -30,11 +30,13 @@ export default function Cart() {
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
       <h1 className="font-display font-bold text-2xl text-ink mb-1">Cart</h1>
       <p className="text-ink/60 text-sm mb-6">
-        Products from each Merchant are placed in separate orders because each checkout supports one store.
+        {orderKeys.length > 1
+          ? `Products from each Merchant are placed in separate orders. You have ${orderKeys.length} orders below — check out one at a time; you'll be brought back here automatically until all are done.`
+          : 'Products from each Merchant are placed in separate orders because each checkout supports one store.'}
       </p>
 
       <div className="space-y-6">
-        {orderKeys.map((orderKey) => {
+        {orderKeys.map((orderKey, orderIndex) => {
           const group = groupedOrders[orderKey]
           const { merchantId, customerId, items } = group
           const unitPrice = (item) => role === 'reseller' ? getResellerUnitPrice(item, item.quantity) : getUnitPrice(item, item.quantity)
@@ -44,6 +46,7 @@ export default function Cart() {
           const estimatedProfit = customerRevenue - subtotal - systemFee
           return (
             <div key={orderKey} className="card p-4 sm:p-5">
+              {orderKeys.length > 1 && <p className="mb-3 text-[11px] font-bold uppercase tracking-wide text-ink/40">Order {orderIndex + 1} of {orderKeys.length}</p>}
               {customerId && <div className="mb-4 flex items-start gap-3 rounded-xl bg-teal-50 p-3 dark:bg-teal-500/10"><UserRound size={18} className="mt-0.5 shrink-0 text-teal-600" /><div><p className="text-xs font-semibold uppercase tracking-wide text-ink/40">Customer</p><p className="font-semibold text-ink">{group.customerName}</p><p className="text-xs text-ink/55">{group.customerPhone || 'No phone'} · {group.customerAddress || 'No address'}</p></div></div>}
               <div className="space-y-4">
                 {items.map((item) => (
