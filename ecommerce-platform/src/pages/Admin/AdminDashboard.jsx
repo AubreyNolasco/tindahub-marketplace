@@ -198,7 +198,7 @@ export default function AdminDashboard() {
                 setLeaderboardEnd(range.end)
                 loadLeaderboards(range.start, range.end)
               }}
-              className="input-field min-h-9 text-sm"
+              className="input-field w-auto min-h-9 text-sm"
             >
               <option value="all">All time</option>
               {REPORT_PERIODS.filter((p) => p.value !== 'custom').map((period) => (
@@ -209,14 +209,14 @@ export default function AdminDashboard() {
               type="date"
               value={leaderboardStart || ''}
               onChange={(e) => setLeaderboardStart(e.target.value)}
-              className="input-field min-h-9 text-sm"
+              className="input-field w-auto min-h-9 text-sm"
             />
             <span className="text-xs text-fg-muted">to</span>
             <input
               type="date"
               value={leaderboardEnd || ''}
               onChange={(e) => setLeaderboardEnd(e.target.value)}
-              className="input-field min-h-9 text-sm"
+              className="input-field w-auto min-h-9 text-sm"
             />
             <Button variant="secondary" size="sm" icon={RefreshCw} loading={leaderboardLoading} onClick={() => loadLeaderboards(leaderboardStart, leaderboardEnd)}>Apply</Button>
           </div>
