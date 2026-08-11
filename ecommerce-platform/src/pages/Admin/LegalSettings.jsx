@@ -7,6 +7,7 @@ import Spinner from '../../components/ui/Spinner'
 import DataTable from '../../components/ui/DataTable'
 import Badge from '../../components/ui/Badge'
 import Modal from '../../components/ui/Modal'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { sanitizePolicyHtml } from '../../utils/sanitizeHtml'
 
 const types = {
@@ -46,6 +47,8 @@ export default function LegalSettings() {
   const [form, setForm] = useState(null)
   const [preview, setPreviewState] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [confirmAction, setConfirmAction] = useState(null) // { type: 'publish'|'archive', row }
+  const [confirming, setConfirming] = useState(false)
 
   const setPreview = (value) => setPreviewState(value ? { ...value, content: safeHtml(value.content), title: safeHtml(value.title), version: safeHtml(value.version) } : null)
 
@@ -79,19 +82,20 @@ export default function LegalSettings() {
     load()
   }
 
-  const publish = async (row) => {
-    if (!confirm(`Publish ${row.title} version ${row.version}?`)) return
-    const { error } = await supabase.rpc('publish_system_policy', { target_id: row.id })
-    if (error) return toast.error(error.message)
-    toast.success('Policy published.')
-    load()
-  }
+  const publish = (row) => setConfirmAction({ type: 'publish', row })
+  const archive = (row) => setConfirmAction({ type: 'archive', row })
 
-  const archive = async (row) => {
-    if (!confirm('Archive this version?')) return
-    const { error } = await supabase.from('system_policies').update({ status: 'archived', updated_at: new Date().toISOString() }).eq('id', row.id)
+  const runConfirmedAction = async () => {
+    if (!confirmAction) return
+    const { type, row } = confirmAction
+    setConfirming(true)
+    const { error } = type === 'publish'
+      ? await supabase.rpc('publish_system_policy', { target_id: row.id })
+      : await supabase.from('system_policies').update({ status: 'archived', updated_at: new Date().toISOString() }).eq('id', row.id)
+    setConfirming(false)
     if (error) return toast.error(error.message)
-    toast.success('Version archived.')
+    toast.success(type === 'publish' ? 'Policy published.' : 'Version archived.')
+    setConfirmAction(null)
     load()
   }
 
@@ -211,6 +215,16 @@ export default function LegalSettings() {
           </>
         )}
       </Modal>
+      <ConfirmDialog
+        open={!!confirmAction}
+        onClose={() => setConfirmAction(null)}
+        onConfirm={runConfirmedAction}
+        loading={confirming}
+        variant={confirmAction?.type === 'publish' ? 'primary' : 'danger'}
+        title={confirmAction?.type === 'publish' ? 'Publish this policy?' : 'Archive this version?'}
+        message={confirmAction?.type === 'publish' ? `Publish ${confirmAction?.row?.title} version ${confirmAction?.row?.version}?` : 'Archive this version?'}
+        confirmText={confirmAction?.type === 'publish' ? 'Publish' : 'Archive'}
+      />
     </div>
   )
 }

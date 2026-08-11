@@ -4,6 +4,7 @@ import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 
 function slugify(name) {
   return name
@@ -20,6 +21,8 @@ export default function Categories() {
   const [name, setName] = useState('')
   const [parentId, setParentId] = useState('')
   const [saving, setSaving] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     load()
@@ -58,14 +61,18 @@ export default function Categories() {
     load()
   }
 
-  const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this category? Products using it will become uncategorized.')) return
-    const { error } = await supabase.from('categories').delete().eq('id', id)
+  const handleDelete = (id) => setDeleteTarget(id)
+  const confirmDelete = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
+    const { error } = await supabase.from('categories').delete().eq('id', deleteTarget)
+    setDeleting(false)
     if (error) {
       toast.error(error.message)
       return
     }
     toast.success('Category deleted successfully.')
+    setDeleteTarget(null)
     load()
   }
 
@@ -137,6 +144,15 @@ export default function Categories() {
           ))}
         </div>
       )}
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        loading={deleting}
+        title="Delete category?"
+        message="Are you sure you want to delete this category? Products using it will become uncategorized."
+        confirmText="Delete category"
+      />
     </div>
   )
 }

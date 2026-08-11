@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { peso, formatDate } from '../../utils/format'
 import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 
 const STATUS_STYLES = {
   pending: 'bg-mango-100 text-mango-700',
@@ -26,6 +27,7 @@ export default function ReferralRequests() {
   const [referrals, setReferrals] = useState([])
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(null)
+  const [confirmAction, setConfirmAction] = useState(null) // { type: 'complete'|'cancel', id }
 
   const load = async () => {
     setLoading(true)
@@ -47,7 +49,7 @@ export default function ReferralRequests() {
   }
 
   const completeReferral = async (id) => {
-    if (!confirm('Mark this appointment as completed? This will transfer the referral fee from your wallet to the reseller.')) return
+    setConfirmAction(null)
     setProcessing(id)
     const { error } = await supabase.rpc('complete_referral_appointment', { p_appointment_id: id })
     if (error) {
@@ -65,7 +67,7 @@ export default function ReferralRequests() {
   }
 
   const cancelReferral = async (id) => {
-    if (!confirm('Cancel this referral?')) return
+    setConfirmAction(null)
     setProcessing(id)
     const { error } = await supabase.rpc('cancel_referral_appointment', { p_appointment_id: id })
     if (error) { toast.error(error.message); setProcessing(null); return }
@@ -135,7 +137,7 @@ export default function ReferralRequests() {
                     )}
                     {ref.status === 'confirmed' && (
                       <button
-                        onClick={() => completeReferral(ref.id)}
+                        onClick={() => setConfirmAction({ type: 'complete', id: ref.id })}
                         disabled={processing === ref.id}
                         className="btn-primary flex items-center gap-1.5 text-sm bg-teal-700"
                       >
@@ -143,7 +145,7 @@ export default function ReferralRequests() {
                       </button>
                     )}
                     <button
-                      onClick={() => cancelReferral(ref.id)}
+                      onClick={() => setConfirmAction({ type: 'cancel', id: ref.id })}
                       disabled={processing === ref.id}
                       className="btn-secondary flex items-center gap-1.5 text-sm text-coral-600"
                     >
@@ -162,6 +164,16 @@ export default function ReferralRequests() {
           ))}
         </div>
       )}
+      <ConfirmDialog
+        open={!!confirmAction}
+        onClose={() => setConfirmAction(null)}
+        onConfirm={() => confirmAction.type === 'complete' ? completeReferral(confirmAction.id) : cancelReferral(confirmAction.id)}
+        loading={processing === confirmAction?.id}
+        variant={confirmAction?.type === 'complete' ? 'primary' : 'danger'}
+        title={confirmAction?.type === 'complete' ? 'Mark appointment as completed?' : 'Cancel this referral?'}
+        message={confirmAction?.type === 'complete' ? 'This will transfer the referral fee from your wallet to the reseller.' : 'This referral will be cancelled and cannot be undone.'}
+        confirmText={confirmAction?.type === 'complete' ? 'Mark completed' : 'Cancel referral'}
+      />
     </div>
   )
 }

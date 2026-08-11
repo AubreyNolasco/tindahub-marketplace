@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Store, Check, X, Ban, Eye, FileWarning, CalendarClock, Sparkles, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
@@ -218,9 +219,9 @@ export default function Merchants() {
                   )}
                   {m.status === 'pending' && m.business_permit_status === 'approved' && (
                     <>
-                      <a href="/admin/approval-center" className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1">
-                        <Check size={13} /> Complete activation
-                      </a>
+                      <Link to="/admin/approval-center" title="Review subscription payment and activate in the Merchant Approval Center" className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1">
+                        <Check size={13} /> Review payment & activate
+                      </Link>
                       <Button onClick={() => updateStatus(m.id, 'rejected', m.status)} variant="danger-chip" size="sm" icon={X}>Reject</Button>
                     </>
                   )}

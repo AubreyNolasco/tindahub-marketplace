@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { peso } from '../../utils/format'
 import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { cleanText } from '../../utils/security'
 
 const emptyService = { name: '', description: '', service_fee: '', referral_fee: '', estimated_duration_minutes: 30 }
@@ -18,6 +19,8 @@ export default function ClinicServices() {
   const [editing, setEditing] = useState(null)
   const [form, setForm] = useState(emptyService)
   const [saving, setSaving] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -89,11 +92,15 @@ export default function ClinicServices() {
     load()
   }
 
-  const handleDelete = async (id) => {
-    if (!confirm('Delete this service? Referrals linked to it will be unaffected.')) return
-    const { error } = await supabase.from('clinic_services').delete().eq('id', id)
+  const handleDelete = (id) => setDeleteTarget(id)
+  const confirmDelete = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
+    const { error } = await supabase.from('clinic_services').delete().eq('id', deleteTarget)
+    setDeleting(false)
     if (error) return toast.error(error.message)
     toast.success('Service deleted.')
+    setDeleteTarget(null)
     load()
   }
 
@@ -181,6 +188,15 @@ export default function ClinicServices() {
           ))}
         </div>
       )}
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        loading={deleting}
+        title="Delete service?"
+        message="Delete this service? Referrals linked to it will be unaffected."
+        confirmText="Delete service"
+      />
     </div>
   )
 }

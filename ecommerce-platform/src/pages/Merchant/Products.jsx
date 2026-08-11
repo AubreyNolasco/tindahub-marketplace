@@ -7,6 +7,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { peso } from '../../utils/format'
 import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { SAMPLE_PRODUCTS } from '../../config/sampleProducts'
 
 export default function Products({ admin = false }) {
@@ -17,6 +18,8 @@ export default function Products({ admin = false }) {
   const [sampleMerchantId, setSampleMerchantId] = useState('')
   const [seeding, setSeeding] = useState(false)
   const [changingId, setChangingId] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   const loadMerchants = useCallback(async () => {
     const { data, error } = await supabase.rpc('get_admin_merchant_profiles')
@@ -75,15 +78,19 @@ export default function Products({ admin = false }) {
     toast.success(product.is_active ? 'Product hidden.' : 'Product is now visible.')
   }
 
-  const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this product?')) return
-    const { error } = await supabase.from('products').delete().eq('id', id)
+  const handleDelete = (id) => setDeleteTarget(id)
+  const confirmDelete = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
+    const { error } = await supabase.from('products').delete().eq('id', deleteTarget)
+    setDeleting(false)
     if (error) {
       console.error('Product delete failed:', error)
       toast.error('Unable to delete this product. It may already be referenced by an order; hide it instead.')
       return
     }
     toast.success('Product deleted successfully.')
+    setDeleteTarget(null)
     load()
   }
 
@@ -144,6 +151,15 @@ export default function Products({ admin = false }) {
           ))}
         </div>
       )}
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        loading={deleting}
+        title="Delete product?"
+        message="Are you sure you want to delete this product?"
+        confirmText="Delete product"
+      />
     </div>
   )
 }
