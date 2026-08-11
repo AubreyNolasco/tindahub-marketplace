@@ -9,7 +9,6 @@ export default function AuthContinue() {
   if (loading) return <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-bg"><Spinner /></div>
   if (user && !profile) return <ProfileLoadError message={profileError || 'Your account profile is missing.'} onSignOut={signOut} />
   if (!user) return <Navigate to="/login" replace />
-  console.warn('[DIAG] AuthContinue mounted', { onboarding_completed: profile?.onboarding_completed, role, account_status: profile?.account_status })
   if (profile?.onboarding_completed === false) return <Navigate to="/onboarding" replace />
   if (!['admin', 'staff'].includes(role) && profile?.account_status !== 'approved') return <Navigate to="/pending-approval" replace />
   return <Navigate to={['admin', 'staff'].includes(role) ? getAdminHomePath(profile) : role === 'merchant' ? '/merchant' : '/reseller'} replace />

@@ -36,7 +36,7 @@ export default function StatCard({ icon: Icon, label, value, detail, delta, tren
         )}
       </div>
       <div className="relative z-10">
-        {loading ? <div className="skeleton h-7 w-20 sm:h-8" /> : <p className="font-mono text-2xl font-bold tabular-nums text-fg sm:text-3xl">{value}</p>}
+        {loading ? <div className="skeleton h-7 w-20 sm:h-8" /> : <p className="truncate font-mono text-xl font-bold leading-tight tabular-nums text-fg sm:text-2xl" title={typeof value === 'string' ? value : undefined}>{value}</p>}
         <p className="mt-0.5 text-sm font-semibold text-fg-muted">{label}</p>
         {detail && <p className="mt-1 text-xs text-fg-muted/80">{detail}</p>}
       </div>
