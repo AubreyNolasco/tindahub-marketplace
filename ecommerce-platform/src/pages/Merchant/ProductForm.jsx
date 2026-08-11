@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Loader2, Plus, ShieldAlert, Trash2, Upload, X } from 'lucide-react'
+import { Check, ChevronLeft, ChevronRight, Loader2, Plus, ShieldAlert, Trash2, Upload, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
@@ -24,6 +24,14 @@ const emptyForm = {
   product_type: '', fragile: false, keep_upright: false, motorcycle_safe: false
 }
 
+// Same ~20 fields as before, just grouped into steps with a progress
+// indicator instead of one long scroll -- validation rules, the submit
+// RPC, and every field name are unchanged. Each step only gates "Next"
+// on its own required fields (a lightweight check, not the full business
+// validation below); handleSubmit's existing checks remain the actual
+// source of truth and still run in full on the final Save.
+const STEPS = ['Basic info', 'Pricing', 'Stock & shipping', 'Safety & review']
+
 export default function ProductForm({ admin = false }) {
   const { id } = useParams()
   const isEdit = Boolean(id)
@@ -38,6 +46,7 @@ export default function ProductForm({ admin = false }) {
   const [merchants, setMerchants] = useState([])
   const [merchantId, setMerchantId] = useState('')
   const [safetyConfirmed, setSafetyConfirmed] = useState(false)
+  const [step, setStep] = useState(0)
   const merchantProfile = profile?.merchant_profiles
   const hasOperateGrace = merchantProfile?.operate_grace_until && new Date(merchantProfile.operate_grace_until) > new Date()
   const permitRestricted = !admin && merchantProfile?.business_permit_status !== 'approved' && !hasOperateGrace
@@ -106,6 +115,27 @@ export default function ProductForm({ admin = false }) {
     if (fileError) { toast.error(fileError); e.target.value = ''; return }
     setImageFile(file)
     setImagePreview(URL.createObjectURL(file))
+  }
+
+  // Only checks "did you fill this step in", not the business rules
+  // (margin %, positive numbers, etc.) -- those stay solely in
+  // handleSubmit so there is exactly one place that decides whether a
+  // product is actually valid to save.
+  const stepIncomplete = [
+    () => (admin && !merchantId) || !form.name.trim(),
+    () => form.price === '' || form.suggested_retail_price === '',
+    () => [form.stock_quantity, form.min_order_qty, form.packed_weight_kg, form.packed_length_cm, form.packed_width_cm, form.packed_height_cm].some((v) => v === '') || !form.product_type.trim(),
+    () => false
+  ]
+
+  const goNext = () => {
+    if (stepIncomplete[step]()) { toast.error('Complete the required fields on this step first.'); return }
+    setStep((s) => Math.min(s + 1, STEPS.length - 1))
+  }
+  const goBack = () => setStep((s) => Math.max(s - 1, 0))
+  const jumpTo = (target) => {
+    if (target > step) { for (let i = step; i < target; i++) { if (stepIncomplete[i]()) { toast.error('Complete the required fields on this step first.'); return } } }
+    setStep(target)
   }
 
   const handleSubmit = async (e) => {
@@ -201,107 +231,131 @@ export default function ProductForm({ admin = false }) {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
       {!admin && !isCompleteAddress(profile?.merchant_profiles?.business_address) && <div className="mb-5 rounded-2xl border border-mango-300 bg-mango-100/60 p-4 text-sm text-ink/65 dark:border-mango-700 dark:bg-mango-500/10">Complete your pickup address before uploading products. <button onClick={() => navigate('/merchant/address')} className="font-bold text-teal-700 underline">Update address</button></div>}
-      <h1 className="font-display font-bold text-2xl text-ink mb-6">
+      <h1 className="font-display font-bold text-2xl text-ink mb-1">
         {isEdit ? 'Edit Product' : 'New Product'}
       </h1>
+      <p className="mb-6 text-sm text-ink/50">Step {step + 1} of {STEPS.length}: {STEPS[step]}</p>
+
+      <div className="mb-6 flex items-center gap-2">
+        {STEPS.map((label, index) => (
+          <button key={label} type="button" onClick={() => jumpTo(index)} className="group flex flex-1 flex-col items-center gap-1.5" aria-current={index === step ? 'step' : undefined}>
+            <span className={`grid h-8 w-8 place-items-center rounded-full text-xs font-bold transition ${index < step ? 'bg-teal-600 text-white' : index === step ? 'bg-teal-600 text-white ring-4 ring-teal-100 dark:ring-teal-500/20' : 'bg-surface-inset text-ink/40'}`}>
+              {index < step ? <Check size={15} /> : index + 1}
+            </span>
+            <span className={`hidden text-[10px] font-semibold sm:block ${index <= step ? 'text-ink' : 'text-ink/35'}`}>{label}</span>
+          </button>
+        ))}
+      </div>
 
       <form onSubmit={handleSubmit} className="card p-6 space-y-4">
-        {admin && <label className="block text-sm font-semibold text-ink/70">Product owner (Merchant)<select required className="input-field mt-1" value={merchantId} onChange={(event) => setMerchantId(event.target.value)} disabled={isEdit}><option value="">Choose approved Merchant</option>{merchants.map((merchant) => <option key={merchant.id} value={merchant.id}>{merchant.business_name} · {merchant.profile_full_name}</option>)}</select>{isEdit && <span className="mt-1 block text-[11px] font-normal text-ink/40">Product ownership is locked while editing.</span>}</label>}
-        <div>
-          <label className="text-sm font-medium text-ink/70">Product Image</label>
-          <label className="mt-1 flex flex-col items-center justify-center border-2 border-dashed border-teal-200 rounded-xl p-6 cursor-pointer hover:bg-teal-50 transition-colors relative">
-            {(imagePreview || existingImage) ? (
-              <img src={imagePreview || existingImage} alt="preview" className="max-h-40 rounded-lg" />
-            ) : (
-              <>
-                <Upload className="text-teal-400 mb-2" size={24} />
-                <span className="text-sm text-ink/60">Click to upload</span>
-              </>
-            )}
-            <input type="file" accept="image/*" className="hidden" onChange={handleFile} />
-          </label>
-        </div>
-
-        <div>
-          <label className="text-sm font-medium text-ink/70">Product Name</label>
-          <input required className="input-field mt-1" value={form.name} onChange={update('name')} />
-        </div>
-
-        <div>
-          <label className="text-sm font-medium text-ink/70">Description</label>
-          <textarea className="input-field mt-1" rows={3} value={form.description} onChange={update('description')} />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
+        {step === 0 && <>
+          {admin && <label className="block text-sm font-semibold text-ink/70">Product owner (Merchant)<select required className="input-field mt-1" value={merchantId} onChange={(event) => setMerchantId(event.target.value)} disabled={isEdit}><option value="">Choose approved Merchant</option>{merchants.map((merchant) => <option key={merchant.id} value={merchant.id}>{merchant.business_name} · {merchant.profile_full_name}</option>)}</select>{isEdit && <span className="mt-1 block text-[11px] font-normal text-ink/40">Product ownership is locked while editing.</span>}</label>}
           <div>
-            <label className="text-sm font-medium text-ink/70">Category</label>
-            <select className="input-field mt-1" value={form.category_id} onChange={update('category_id')}>
-              <option value="">No category</option>
-              {categories.filter((c) => !c.parent_id).map((parent) => {
-                const children = categories.filter((c) => c.parent_id === parent.id)
-                if (children.length === 0) return <option key={parent.id} value={parent.id}>{parent.name}</option>
-                return (
-                  <optgroup key={parent.id} label={parent.name}>
-                    <option value={parent.id}>{parent.name} (general)</option>
-                    {children.map((child) => (
-                      <option key={child.id} value={child.id}>{child.name}</option>
-                    ))}
-                  </optgroup>
-                )
-              })}
-            </select>
+            <label className="text-sm font-medium text-ink/70">Product Image</label>
+            <label className="mt-1 flex flex-col items-center justify-center border-2 border-dashed border-teal-200 rounded-xl p-6 cursor-pointer hover:bg-teal-50 transition-colors relative">
+              {(imagePreview || existingImage) ? (
+                <img src={imagePreview || existingImage} alt="preview" className="max-h-40 rounded-lg" />
+              ) : (
+                <>
+                  <Upload className="text-teal-400 mb-2" size={24} />
+                  <span className="text-sm text-ink/60">Click to upload</span>
+                </>
+              )}
+              <input type="file" accept="image/*" className="hidden" onChange={handleFile} />
+            </label>
           </div>
+
           <div>
-            <label className="text-sm font-medium text-ink/70">SKU (optional)</label>
-            <input className="input-field mt-1" value={form.sku} onChange={update('sku')} />
+            <label className="text-sm font-medium text-ink/70">Product Name</label>
+            <input required className="input-field mt-1" value={form.name} onChange={update('name')} />
           </div>
-        </div>
 
-        <div className="rounded-2xl border border-teal-100 bg-teal-50/50 p-4">
-          <div className="flex items-center justify-between gap-3"><div><p className="text-sm font-semibold text-ink">Reseller Quantity Discounts</p><p className="mt-0.5 text-xs text-ink/50">Enter how many items qualify and the percentage discount.</p></div><button type="button" onClick={addTier} className="btn-secondary flex shrink-0 items-center gap-1 px-3 py-2 text-xs"><Plus size={14} /> Add discount</button></div>
-          {form.discount_tiers.length === 0 ? <p className="mt-4 rounded-xl border border-dashed border-teal-200 bg-white/60 p-4 text-center text-xs text-ink/45 dark:border-teal-800 dark:bg-surface-inset/60">No reseller discounts yet.</p> : <div className="mt-4 space-y-2">{form.discount_tiers.map((tier, index) => <div key={index} className="grid grid-cols-[1fr_1fr_auto] items-end gap-2 rounded-xl bg-surface p-3"><label className="text-xs font-medium text-ink/55">Minimum quantity<input required type="number" min="2" step="1" className="input-field mt-1" value={tier.min_qty} onChange={(event) => updateTier(index, 'min_qty', event.target.value)} placeholder="10" /></label><label className="text-xs font-medium text-ink/55">Discount from buying price<input required type="number" min="0.01" max="99" step="0.01" className="input-field mt-1" value={tier.discount_percent} onChange={(event) => updateTier(index, 'discount_percent', event.target.value)} placeholder="10%" /></label><button type="button" onClick={() => removeTier(index)} className="mb-0.5 rounded-xl p-3 text-coral-500 hover:bg-coral-100" title="Remove discount"><Trash2 size={17} /></button>{(form.wholesale_price || form.price) && tier.discount_percent > 0 && <p className="col-span-2 text-xs font-semibold text-teal-700">Quantity reseller price: ₱{(Number(form.wholesale_price || form.price) * (1 - Number(tier.discount_percent) / 100)).toFixed(2)} each</p>}</div>)}</div>}
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="text-sm font-medium text-ink/70">Retail Price (₱)</label>
-            <input required type="number" step="0.01" min="0" className="input-field mt-1" value={form.price} onChange={update('price')} />
+            <label className="text-sm font-medium text-ink/70">Description</label>
+            <textarea className="input-field mt-1" rows={3} value={form.description} onChange={update('description')} />
           </div>
-          <div>
-            <label className="text-sm font-medium text-ink/70">Wholesale Price (optional)</label>
-            <input type="number" step="0.01" min="0" className="input-field mt-1" value={form.wholesale_price} onChange={update('wholesale_price')} />
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-ink/70">Category</label>
+              <select className="input-field mt-1" value={form.category_id} onChange={update('category_id')}>
+                <option value="">No category</option>
+                {categories.filter((c) => !c.parent_id).map((parent) => {
+                  const children = categories.filter((c) => c.parent_id === parent.id)
+                  if (children.length === 0) return <option key={parent.id} value={parent.id}>{parent.name}</option>
+                  return (
+                    <optgroup key={parent.id} label={parent.name}>
+                      <option value={parent.id}>{parent.name} (general)</option>
+                      {children.map((child) => (
+                        <option key={child.id} value={child.id}>{child.name}</option>
+                      ))}
+                    </optgroup>
+                  )
+                })}
+              </select>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-ink/70">SKU (optional)</label>
+              <input className="input-field mt-1" value={form.sku} onChange={update('sku')} />
+            </div>
           </div>
-        </div>
-        <div className="rounded-2xl border border-mango-300 bg-mango-100/50 p-4"><label className="text-sm font-semibold text-ink">Suggested Reseller Retail Price (₱)<input required type="number" step="0.01" min="0" className="input-field mt-1 bg-surface" value={form.suggested_retail_price} onChange={update('suggested_retail_price')} /></label><p className="mt-2 text-xs leading-5 text-ink/55">Wholesale must leave at least 15% projected gross margin at this suggested price. The complete one-piece and bulk earnings preview below includes the capped system fee.</p></div>
+        </>}
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="text-sm font-medium text-ink/70">Stock Quantity</label>
-            <input required type="number" min="0" className="input-field mt-1" value={form.stock_quantity} onChange={update('stock_quantity')} />
+        {step === 1 && <>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-ink/70">Retail Price (₱)</label>
+              <input required type="number" step="0.01" min="0" className="input-field mt-1" value={form.price} onChange={update('price')} />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-ink/70">Wholesale Price (optional)</label>
+              <input type="number" step="0.01" min="0" className="input-field mt-1" value={form.wholesale_price} onChange={update('wholesale_price')} />
+            </div>
           </div>
-          <div>
-            <label className="text-sm font-medium text-ink/70">Minimum Order Qty</label>
-            <input required type="number" min="1" className="input-field mt-1" value={form.min_order_qty} onChange={update('min_order_qty')} />
+          <div className="rounded-2xl border border-mango-300 bg-mango-100/50 p-4"><label className="text-sm font-semibold text-ink">Suggested Reseller Retail Price (₱)<input required type="number" step="0.01" min="0" className="input-field mt-1 bg-surface" value={form.suggested_retail_price} onChange={update('suggested_retail_price')} /></label><p className="mt-2 text-xs leading-5 text-ink/55">Wholesale must leave at least 15% projected gross margin at this suggested price. The complete one-piece and bulk earnings preview below includes the capped system fee.</p></div>
+
+          <div className="rounded-2xl border border-teal-100 bg-teal-50/50 p-4">
+            <div className="flex items-center justify-between gap-3"><div><p className="text-sm font-semibold text-ink">Reseller Quantity Discounts</p><p className="mt-0.5 text-xs text-ink/50">Enter how many items qualify and the percentage discount.</p></div><button type="button" onClick={addTier} className="btn-secondary flex shrink-0 items-center gap-1 px-3 py-2 text-xs"><Plus size={14} /> Add discount</button></div>
+            {form.discount_tiers.length === 0 ? <p className="mt-4 rounded-xl border border-dashed border-teal-200 bg-white/60 p-4 text-center text-xs text-ink/45 dark:border-teal-800 dark:bg-surface-inset/60">No reseller discounts yet.</p> : <div className="mt-4 space-y-2">{form.discount_tiers.map((tier, index) => <div key={index} className="grid grid-cols-[1fr_1fr_auto] items-end gap-2 rounded-xl bg-surface p-3"><label className="text-xs font-medium text-ink/55">Minimum quantity<input required type="number" min="2" step="1" className="input-field mt-1" value={tier.min_qty} onChange={(event) => updateTier(index, 'min_qty', event.target.value)} placeholder="10" /></label><label className="text-xs font-medium text-ink/55">Discount from buying price<input required type="number" min="0.01" max="99" step="0.01" className="input-field mt-1" value={tier.discount_percent} onChange={(event) => updateTier(index, 'discount_percent', event.target.value)} placeholder="10%" /></label><button type="button" onClick={() => removeTier(index)} className="mb-0.5 rounded-xl p-3 text-coral-500 hover:bg-coral-100" title="Remove discount"><Trash2 size={17} /></button>{(form.wholesale_price || form.price) && tier.discount_percent > 0 && <p className="col-span-2 text-xs font-semibold text-teal-700">Quantity reseller price: ₱{(Number(form.wholesale_price || form.price) * (1 - Number(tier.discount_percent) / 100)).toFixed(2)} each</p>}</div>)}</div>}
           </div>
-        </div>
+        </>}
 
-        <div className="rounded-2xl border border-teal-100 bg-surface-inset p-4"><h2 className="font-display font-bold text-ink">Packed Shipping Information</h2><p className="mt-1 text-xs leading-5 text-ink/50">Enter the final packed values for one item. Dimensions are Length × Width × Height.</p><div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4"><label className="text-xs font-medium text-ink/60">Actual weight (kg)<input required type="number" min="0.001" step="0.001" className="input-field mt-1" value={form.packed_weight_kg} onChange={update('packed_weight_kg')} /></label><label className="text-xs font-medium text-ink/60">Length (cm)<input required type="number" min="0.01" step="0.01" className="input-field mt-1" value={form.packed_length_cm} onChange={update('packed_length_cm')} /></label><label className="text-xs font-medium text-ink/60">Width (cm)<input required type="number" min="0.01" step="0.01" className="input-field mt-1" value={form.packed_width_cm} onChange={update('packed_width_cm')} /></label><label className="text-xs font-medium text-ink/60">Height (cm)<input required type="number" min="0.01" step="0.01" className="input-field mt-1" value={form.packed_height_cm} onChange={update('packed_height_cm')} /></label></div><div className="mt-3 rounded-xl border border-teal-100 bg-surface p-3"><p className="text-[11px] uppercase tracking-wide text-ink/40">Automatic package volume</p><p className="mt-1 font-display text-lg font-bold text-teal-700">{(Number(form.packed_length_cm || 0) * Number(form.packed_width_cm || 0) * Number(form.packed_height_cm || 0)).toLocaleString()} cm³</p><p className="mt-0.5 text-[11px] text-ink/40">Used only for vehicle fit—not as a separate volumetric charge.</p></div><label className="mt-3 block text-xs font-medium text-ink/60">Product type<input required maxLength="100" className="input-field mt-1" value={form.product_type} onChange={update('product_type')} placeholder="Food tray, bottled drinks, cake..." /></label><div className="mt-4 grid gap-2 sm:grid-cols-3"><label className="flex items-center gap-2 rounded-xl bg-surface p-3 text-xs font-semibold text-ink/65"><input type="checkbox" checked={form.fragile} onChange={toggle('fragile')} className="accent-teal-600" /> Fragile</label><label className="flex items-center gap-2 rounded-xl bg-surface p-3 text-xs font-semibold text-ink/65"><input type="checkbox" checked={form.keep_upright} onChange={toggle('keep_upright')} className="accent-teal-600" /> Keep upright</label><label className="flex items-center gap-2 rounded-xl bg-surface p-3 text-xs font-semibold text-ink/65"><input type="checkbox" checked={form.motorcycle_safe} onChange={toggle('motorcycle_safe')} className="accent-teal-600" /> Motorcycle-safe</label></div></div>
+        {step === 2 && <>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-ink/70">Stock Quantity</label>
+              <input required type="number" min="0" className="input-field mt-1" value={form.stock_quantity} onChange={update('stock_quantity')} />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-ink/70">Minimum Order Qty</label>
+              <input required type="number" min="1" className="input-field mt-1" value={form.min_order_qty} onChange={update('min_order_qty')} />
+            </div>
+          </div>
 
-        <section className="rounded-2xl border border-coral-200 bg-coral-50/60 p-4">
-          <div className="flex items-start gap-3"><ShieldAlert className="mt-0.5 shrink-0 text-coral-600" size={22} /><div><h2 className="font-display font-bold text-ink">Product Posting Safety Rules</h2><p className="mt-1 text-xs leading-5 text-ink/55">For reseller and customer safety, JOM HUB may reject, deactivate, or investigate unlawful, unsafe, misleading, or unverified regulated listings.</p></div></div>
-          <details className="mt-4 rounded-xl border border-coral-100 bg-surface p-3"><summary className="cursor-pointer text-sm font-bold text-coral-700">View products and content that cannot be posted</summary><div className="mt-3 grid gap-2 sm:grid-cols-2">{PROHIBITED_PRODUCT_RULES.map((rule) => <div key={rule.title} className="rounded-lg bg-surface-inset p-3"><p className="text-xs font-bold text-ink">{rule.title}</p><p className="mt-1 text-[11px] leading-5 text-ink/50">{rule.detail}</p></div>)}</div></details>
-          <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl border border-coral-200 bg-surface p-3 text-xs leading-5 text-ink/65"><input required type="checkbox" checked={safetyConfirmed} onChange={(event) => setSafetyConfirmed(event.target.checked)} className="mt-1 accent-coral-600" /><span>I confirm that this product is lawful, authentic, safe, not expired/recalled, accurately described, and has all required registrations, permits, and certifications. I accept responsibility for the listing and supporting documents.</span></label>
-        </section>
+          <div className="rounded-2xl border border-teal-100 bg-surface-inset p-4"><h2 className="font-display font-bold text-ink">Packed Shipping Information</h2><p className="mt-1 text-xs leading-5 text-ink/50">Enter the final packed values for one item. Dimensions are Length × Width × Height.</p><div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4"><label className="text-xs font-medium text-ink/60">Actual weight (kg)<input required type="number" min="0.001" step="0.001" className="input-field mt-1" value={form.packed_weight_kg} onChange={update('packed_weight_kg')} /></label><label className="text-xs font-medium text-ink/60">Length (cm)<input required type="number" min="0.01" step="0.01" className="input-field mt-1" value={form.packed_length_cm} onChange={update('packed_length_cm')} /></label><label className="text-xs font-medium text-ink/60">Width (cm)<input required type="number" min="0.01" step="0.01" className="input-field mt-1" value={form.packed_width_cm} onChange={update('packed_width_cm')} /></label><label className="text-xs font-medium text-ink/60">Height (cm)<input required type="number" min="0.01" step="0.01" className="input-field mt-1" value={form.packed_height_cm} onChange={update('packed_height_cm')} /></label></div><div className="mt-3 rounded-xl border border-teal-100 bg-surface p-3"><p className="text-[11px] uppercase tracking-wide text-ink/40">Automatic package volume</p><p className="mt-1 font-display text-lg font-bold text-teal-700">{(Number(form.packed_length_cm || 0) * Number(form.packed_width_cm || 0) * Number(form.packed_height_cm || 0)).toLocaleString()} cm³</p><p className="mt-0.5 text-[11px] text-ink/40">Used only for vehicle fit—not as a separate volumetric charge.</p></div><label className="mt-3 block text-xs font-medium text-ink/60">Product type<input required maxLength="100" className="input-field mt-1" value={form.product_type} onChange={update('product_type')} placeholder="Food tray, bottled drinks, cake..." /></label><div className="mt-4 grid gap-2 sm:grid-cols-3"><label className="flex items-center gap-2 rounded-xl bg-surface p-3 text-xs font-semibold text-ink/65"><input type="checkbox" checked={form.fragile} onChange={toggle('fragile')} className="accent-teal-600" /> Fragile</label><label className="flex items-center gap-2 rounded-xl bg-surface p-3 text-xs font-semibold text-ink/65"><input type="checkbox" checked={form.keep_upright} onChange={toggle('keep_upright')} className="accent-teal-600" /> Keep upright</label><label className="flex items-center gap-2 rounded-xl bg-surface p-3 text-xs font-semibold text-ink/65"><input type="checkbox" checked={form.motorcycle_safe} onChange={toggle('motorcycle_safe')} className="accent-teal-600" /> Motorcycle-safe</label></div></div>
+        </>}
 
-        {permitRestricted && <p className="text-xs font-semibold text-coral-600">Posting products is locked until Admin approves your business permit, or grants temporary access via a follow-up request.</p>}
+        {step === 3 && <>
+          <section className="rounded-2xl border border-coral-200 bg-coral-50/60 p-4">
+            <div className="flex items-start gap-3"><ShieldAlert className="mt-0.5 shrink-0 text-coral-600" size={22} /><div><h2 className="font-display font-bold text-ink">Product Posting Safety Rules</h2><p className="mt-1 text-xs leading-5 text-ink/55">For reseller and customer safety, JOM HUB may reject, deactivate, or investigate unlawful, unsafe, misleading, or unverified regulated listings.</p></div></div>
+            <details className="mt-4 rounded-xl border border-coral-100 bg-surface p-3"><summary className="cursor-pointer text-sm font-bold text-coral-700">View products and content that cannot be posted</summary><div className="mt-3 grid gap-2 sm:grid-cols-2">{PROHIBITED_PRODUCT_RULES.map((rule) => <div key={rule.title} className="rounded-lg bg-surface-inset p-3"><p className="text-xs font-bold text-ink">{rule.title}</p><p className="mt-1 text-[11px] leading-5 text-ink/50">{rule.detail}</p></div>)}</div></details>
+            <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl border border-coral-200 bg-surface p-3 text-xs leading-5 text-ink/65"><input required type="checkbox" checked={safetyConfirmed} onChange={(event) => setSafetyConfirmed(event.target.checked)} className="mt-1 accent-coral-600" /><span>I confirm that this product is lawful, authentic, safe, not expired/recalled, accurately described, and has all required registrations, permits, and certifications. I accept responsibility for the listing and supporting documents.</span></label>
+          </section>
+          {permitRestricted && <p className="text-xs font-semibold text-coral-600">Posting products is locked until Admin approves your business permit, or grants temporary access via a follow-up request.</p>}
+        </>}
+
         <div className="flex gap-3 pt-2">
-          <button type="submit" disabled={saving || !safetyConfirmed || permitRestricted || (admin ? !merchantId : !isCompleteAddress(profile?.merchant_profiles?.business_address))} className="btn-primary flex-1 flex items-center justify-center gap-2">
-            {saving && <Loader2 size={16} className="animate-spin" />}
-            {saving ? 'Saving...' : 'Save Product'}
-          </button>
+          {step > 0 && <button type="button" onClick={goBack} className="btn-secondary flex items-center gap-1"><ChevronLeft size={16} /> Back</button>}
           <button type="button" onClick={() => navigate(admin ? '/admin/products' : '/merchant/products')} className="btn-secondary flex items-center gap-1">
             <X size={16} /> Cancel
           </button>
+          <div className="flex-1" />
+          {step < STEPS.length - 1
+            ? <button type="button" onClick={goNext} className="btn-primary flex items-center gap-1">Next <ChevronRight size={16} /></button>
+            : <button type="submit" disabled={saving || !safetyConfirmed || permitRestricted || (admin ? !merchantId : !isCompleteAddress(profile?.merchant_profiles?.business_address))} className="btn-primary flex items-center justify-center gap-2">
+                {saving && <Loader2 size={16} className="animate-spin" />}
+                {saving ? 'Saving...' : 'Save Product'}
+              </button>}
         </div>
       </form>
     </div>
