@@ -107,7 +107,7 @@ function Sidebar({ open, collapsed, onClose, onToggleCollapse, visibleSections, 
     <>
       {open && <button type="button" aria-label="Close admin navigation" onClick={onClose} className="fixed inset-x-0 bottom-0 top-16 z-40 bg-scrim/40 backdrop-blur-sm lg:hidden" />}
       <aside className={`fixed bottom-0 left-0 top-16 z-50 flex w-[min(19rem,calc(100vw-1.5rem))] flex-col border-r border-line bg-surface text-fg shadow-2xl transition-transform duration-300 lg:sticky lg:z-20 lg:h-[calc(100vh-4rem)] lg:shrink-0 lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'} ${collapsed ? 'lg:w-[84px]' : 'lg:w-64'}`}>
-        <div className={`flex h-[76px] shrink-0 items-center border-b border-line bg-teal-50 dark:bg-teal-500/10 ${collapsed ? 'justify-center px-3' : 'justify-between px-5'}`}>
+        <div className={`flex h-[76px] shrink-0 items-center border-b border-line ${collapsed ? 'justify-center px-3' : 'justify-between px-5'}`}>
           {!collapsed ? <div className="min-w-0"><img src={theme === 'dark' ? '/rmhub-logo-dark.svg' : '/rmhub-logo.svg'} alt="JOM HUB" className="h-9 w-auto" /><p className="mt-1 flex items-center gap-1.5 text-[11px] font-semibold text-fg-muted"><ShieldCheck size={13} className="text-mango-600" /> Admin Center</p></div> : <img src="/rmhub-mark.svg" alt="JOM HUB" className="h-10 w-10" />}
           <button onClick={onClose} className="rounded-xl p-2 text-fg-muted hover:bg-teal-100 hover:text-teal-900 dark:hover:bg-teal-500/15 dark:hover:text-teal-200 lg:hidden" aria-label="Close menu"><X size={20} /></button>
           <button onClick={onToggleCollapse} className="hidden rounded-xl p-2 text-fg-muted hover:bg-teal-100 hover:text-teal-900 dark:hover:bg-teal-500/15 dark:hover:text-teal-200 lg:block" aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}><PanelLeftClose size={19} className={collapsed ? 'rotate-180' : ''} /></button>
@@ -115,7 +115,7 @@ function Sidebar({ open, collapsed, onClose, onToggleCollapse, visibleSections, 
 
         <SidebarNav sections={visibleSections} collapsed={collapsed} currentPath={currentPath} onNavigate={onClose} />
 
-        {!collapsed && <div className="shrink-0 border-t border-line p-4"><div className="rounded-xl bg-teal-50 px-3 py-3 dark:bg-teal-500/10"><p className="text-xs font-semibold text-teal-900 dark:text-teal-200">Secure admin area</p><p className="mt-0.5 text-[11px] leading-4 text-fg-muted">Review payments and account requests carefully.</p></div></div>}
+        {!collapsed && <div className="shrink-0 border-t border-line p-4"><div className="rounded-xl bg-surface-inset px-3 py-3"><p className="text-xs font-semibold text-teal-900 dark:text-teal-200">Secure admin area</p><p className="mt-0.5 text-[11px] leading-4 text-fg-muted">Review payments and account requests carefully.</p></div></div>}
       </aside>
     </>
   )
@@ -132,7 +132,7 @@ export default function AdminLayout() {
   const visibleSections = sections.map((section) => ({ ...section, items: section.items.filter((item) => item.adminOnly ? profile?.role === 'admin' : !item.permission || canAccessAdmin(profile, item.permission)) })).filter((section) => section.items.length)
   const currentItem = visibleSections.flatMap((section) => section.items).find((item) => item.end ? location.pathname === item.to : location.pathname.startsWith(item.to))
   return (
-    <div className="min-h-[calc(100vh-4rem)] lg:flex">
+    <div className="workspace-luxe min-h-[calc(100vh-4rem)] lg:flex">
       <Sidebar open={menuOpen} collapsed={collapsed} onClose={() => setMenuOpen(false)} onToggleCollapse={() => setCollapsed((value) => !value)} visibleSections={visibleSections} currentPath={location.pathname} theme={theme} />
       <section className="workspace-background min-w-0 flex-1">
         <div className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-line bg-surface/90 px-3 backdrop-blur sm:px-5 lg:px-8">

@@ -134,16 +134,52 @@ select, input, textarea { color-scheme: light; }
   background: linear-gradient(135deg, rgb(var(--bg) / .72), rgb(var(--surface) / .48));
   backdrop-filter: blur(10px);
 }
+/* Same dark-green glow/grid language as .marketplace-luxe below, reused
+   for the logged-in role dashboards (Reseller/Merchant/Admin) instead of
+   the old flat photo texture -- always paired with .workspace-luxe on the
+   layout's outer wrapper so --bg/--surface resolve to the premium palette
+   rather than the plain default one. */
 .workspace-background {
   background-color: rgb(var(--bg));
-  background-image: linear-gradient(var(--workspace-overlay), var(--workspace-overlay)), url('/assets/backgrounds/dashboard-texture-bg.jpg');
-  background-position: center top;
-  background-size: cover;
+  background-image:
+    radial-gradient(circle at 12% 0%, rgb(54 179 116 / .16), transparent 32rem),
+    radial-gradient(circle at 92% 8%, rgb(242 169 59 / .10), transparent 30rem),
+    linear-gradient(rgb(12 84 55 / .035) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(12 84 55 / .035) 1px, transparent 1px);
+  background-size: auto, auto, 44px 44px, 44px 44px;
   background-attachment: fixed;
 }
+.dark .workspace-background {
+  background-image:
+    radial-gradient(circle at 12% 0%, rgb(10 110 70 / .22), transparent 32rem),
+    radial-gradient(circle at 92% 8%, rgb(0 229 133 / .12), transparent 30rem),
+    linear-gradient(rgb(12 84 55 / .05) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(12 84 55 / .05) 1px, transparent 1px);
+}
+/* Token overrides for the dashboard shell -- identical values to
+   .marketplace-luxe, kept as a separate class since the workspace shell
+   (fixed sidebar + sticky topbar) is a different structure from the
+   public marketplace pages. Every bg-surface/text-fg/border-line consumer
+   (Card, StatCard, Badge, SidebarNav, ...) re-themes automatically. */
+.workspace-luxe {
+  --bg: 244 249 246;
+  --surface: 255 255 255;
+  --surface-inset: 234 244 238;
+  --line: rgba(11, 93, 69, .13);
+  --fg: 14 42 31;
+  --fg-muted: rgba(14, 42, 31, .62);
+}
+.dark .workspace-luxe {
+  --bg: 1 13 9;
+  --surface: 4 29 20;
+  --surface-inset: 6 39 27;
+  --line: rgba(71, 184, 124, .17);
+  --fg: 239 248 242;
+  --fg-muted: rgba(223, 240, 229, .62);
+}
 
-/* Reference-driven marketplace art direction. Scoped to public discovery
-   pages so operational dashboards keep their quieter enterprise surfaces. */
+/* Reference-driven marketplace art direction -- same palette as
+   .workspace-luxe above, applied to the public discovery pages. */
 .marketplace-luxe {
   position: relative;
   --bg: 244 249 246;
@@ -159,6 +195,12 @@ select, input, textarea { color-scheme: light; }
     linear-gradient(rgb(12 84 55 / .035) 1px, transparent 1px),
     linear-gradient(90deg, rgb(12 84 55 / .035) 1px, transparent 1px);
   background-size: auto, auto, 44px 44px, 44px 44px;
+  /* Fixed (viewport-relative, not element-relative) so nested
+     .marketplace-luxe boxes (Marketplace.jsx wrapping Catalog.jsx's own
+     root) paint the exact same gradient instead of each restarting it
+     at their own top -- otherwise the glow/grid visibly seams where
+     the hero hands off to the product listing. */
+  background-attachment: fixed;
 }
 .dark .marketplace-luxe {
   --bg: 1 13 9;
@@ -173,6 +215,7 @@ select, input, textarea { color-scheme: light; }
     radial-gradient(circle at 90% 14%, rgb(0 229 133 / .10), transparent 34rem),
     linear-gradient(rgb(12 84 55 / .045) 1px, transparent 1px),
     linear-gradient(90deg, rgb(12 84 55 / .045) 1px, transparent 1px);
+  background-attachment: fixed;
 }
 .marketplace-luxe .card,
 .marketplace-luxe [class*="rounded-2xl"][class*="bg-surface"] {
@@ -254,8 +297,8 @@ select, input, textarea { color-scheme: light; }
 .dark .marketplace-global-nav input { background: rgb(4 29 20 / .9) !important; border-color: rgb(52 170 106 / .18) !important; color: #eff8f2 !important; }
 .dark .marketplace-global-nav button,
 .dark .marketplace-global-nav a { color: rgb(223 240 229 / .78); }
-.marketplace-nav-rail { background: rgb(255 255 255 / .90); color: #0e2a1f; border-color: rgb(11 93 69 / .13); }
-.dark .marketplace-nav-rail { background: rgb(3 27 18 / .95); color: white; border-color: rgb(52 211 153 / .15); }
+.marketplace-nav-rail { background: rgb(244 249 246 / .6); color: #0e2a1f; border-color: rgb(11 93 69 / .13); }
+.dark .marketplace-nav-rail { background: rgb(1 13 9 / .6); color: white; border-color: rgb(52 211 153 / .15); }
 .marketplace-content-panel { border-color: var(--line) !important; background: rgb(var(--surface) / .76) !important; }
 
 /* ===== Tailwind Component Classes ===== */

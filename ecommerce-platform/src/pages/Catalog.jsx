@@ -205,7 +205,7 @@ export default function Catalog() {
 
   return <div className="marketplace-luxe min-h-screen bg-bg">
     {showPromo && (
-      <section className="border-b border-black/[0.06] bg-surface">
+      <section>
         <div className="mx-auto grid max-w-7xl gap-4 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_auto]">
           <MarketplaceSlideshow />
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:w-72 lg:grid-cols-1">
@@ -220,7 +220,7 @@ export default function Catalog() {
       </section>
     )}
     {showPromo && discountedProducts.length > 0 && (
-      <section className="border-b border-black/[0.06] bg-gradient-to-br from-mango-50 to-white dark:from-mango-500/5 dark:to-transparent">
+      <section className="border-b border-black/[0.06]">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
           <div className="mb-4 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2"><span className="grid h-9 w-9 place-items-center rounded-xl bg-mango-500 text-white shadow-sm"><Zap size={18} /></span><div><h2 className="font-display text-lg font-bold text-ink">Flash Sale</h2><p className="text-xs text-ink/50">Limited-time marketplace discounts, updated automatically.</p></div></div>

@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { peso } from '../../utils/format'
 import NextActionCard from '../../components/dashboard/NextActionCard'
+import { DeliveryRiderArt } from '../../components/dashboard/DashboardArt'
 import { isCompleteAddress } from '../../utils/address'
 import SetupChecklist from '../../components/dashboard/SetupChecklist'
 import PageHeader from '../../components/ui/PageHeader'
@@ -98,10 +99,10 @@ export default function ResellerDashboard() {
   const recentOrders = orders.slice(0, 6)
 
   const cards = [
-    { label: 'Wallet balance', value: peso(stats.wallet), detail: 'Available purchasing funds', icon: Wallet, to: '/reseller/wallet', tone: 'mango', loading },
-    { label: 'Total purchases', value: peso(stats.spent), detail: `${stats.orders} lifetime orders`, icon: BarChart3, to: '/reseller/reports/sales', tone: 'teal', loading, delta: stats.spentDelta ?? undefined, trend: activityTrend.length > 1 ? activityTrend : undefined },
-    { label: 'Active orders', value: stats.active, detail: 'Currently being fulfilled', icon: ClipboardList, to: '/reseller/orders', tone: 'coral', loading },
-    { label: 'Customers', value: stats.customers, detail: 'Saved customer records', icon: Users, to: '/reseller/customers', tone: 'teal', loading }
+    { label: 'Wallet balance', value: peso(stats.wallet), detail: 'Available purchasing funds', icon: Wallet, to: '/reseller/wallet', tone: 'teal', loading },
+    { label: 'Total purchases', value: peso(stats.spent), detail: `${stats.orders} lifetime orders`, icon: BarChart3, to: '/reseller/reports/sales', tone: 'violet', loading, delta: stats.spentDelta ?? undefined, trend: activityTrend.length > 1 ? activityTrend : undefined },
+    { label: 'Active orders', value: stats.active, detail: 'Currently being fulfilled', icon: ClipboardList, to: '/reseller/orders', tone: 'mango', loading },
+    { label: 'Customers', value: stats.customers, detail: 'Saved customer records', icon: Users, to: '/reseller/customers', tone: 'sky', loading }
   ]
   const nextAction = profile?.account_status !== 'approved'
     ? { title:'Complete account approval', description:'Finish the required profile and payment verification before placing protected orders.', to:'/pending-approval', action:'View approval' }
@@ -137,9 +138,9 @@ export default function ResellerDashboard() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
-        <AnalyticsPanel title="Order activity" description="Last 14 days, non-cancelled orders" data={activityTrend} valueFormatter={(v) => `₱${(v / 1000).toFixed(0)}k`} />
+        <AnalyticsPanel title="Order activity" description="Last 14 days, non-cancelled orders" data={activityTrend} color="#00C875" valueFormatter={(v) => `₱${(v / 1000).toFixed(0)}k`} />
 
-        <Card>
+        <Card className="relative overflow-hidden">
           <div className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-700 dark:bg-teal-500/15 dark:text-teal-300"><Truck size={20} /></span>
             <div>
@@ -147,7 +148,8 @@ export default function ResellerDashboard() {
               <p className="text-xs text-fg-muted">Your delivery integration</p>
             </div>
           </div>
-          <div className="mt-5 flex items-center justify-between rounded-xl bg-surface-inset p-4">
+          <DeliveryRiderArt className="pointer-events-none absolute -bottom-3 -right-3 hidden h-28 w-40 text-teal-700 dark:text-teal-300 sm:block" />
+          <div className="relative mt-5 flex items-center justify-between rounded-xl bg-surface-inset p-4">
             {lalamove?.has_credentials && lalamove?.is_enabled ? (
               <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-teal-700 dark:text-teal-300"><CheckCircle2 size={16} /> Connected & active</span>
             ) : lalamove?.has_credentials ? (
@@ -156,7 +158,7 @@ export default function ResellerDashboard() {
               <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-fg-muted"><XCircle size={16} /> Not connected</span>
             )}
           </div>
-          <Link to="/reseller/delivery" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-teal-700 dark:text-teal-300">Manage delivery settings <ArrowRight size={15} /></Link>
+          <Link to="/reseller/delivery" className="relative mt-4 inline-flex items-center gap-2 text-sm font-semibold text-teal-700 dark:text-teal-300">Manage delivery settings <ArrowRight size={15} /></Link>
         </Card>
       </div>
 

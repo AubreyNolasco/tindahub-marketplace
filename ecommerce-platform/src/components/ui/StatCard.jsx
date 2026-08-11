@@ -6,7 +6,9 @@ import { Area, AreaChart, ResponsiveContainer } from 'recharts'
 const TONES = {
   teal: 'bg-teal-50 text-teal-600 dark:bg-teal-500/15 dark:text-teal-300',
   mango: 'bg-mango-100 text-mango-700 dark:bg-mango-500/15 dark:text-mango-300',
-  coral: 'bg-coral-100 text-coral-600 dark:bg-coral-500/15 dark:text-coral-300'
+  coral: 'bg-coral-100 text-coral-600 dark:bg-coral-500/15 dark:text-coral-300',
+  violet: 'bg-violet-100 text-violet-600 dark:bg-violet-500/15 dark:text-violet-300',
+  sky: 'bg-sky-100 text-sky-600 dark:bg-sky-500/15 dark:text-sky-300'
 }
 
 // KPI tile used by all three role dashboards. `trend` is an optional array

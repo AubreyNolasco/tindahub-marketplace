@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { ArrowRight, BadgeCheck, BarChart3, Mail, ShieldCheck, Store } from 'lucide-react'
+import { StorefrontArt } from '../dashboard/DashboardArt'
 
 export default function Footer() {
   const { pathname } = useLocation()
@@ -7,13 +8,14 @@ export default function Footer() {
 
   return (
     <footer className="mt-16 overflow-hidden bg-teal-950 text-white">
-      <div className="border-b border-white/10 bg-teal-900/50">
-        <div className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-7 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      <div className="relative overflow-hidden border-b border-white/10 bg-teal-900/50">
+        <div className="pointer-events-none absolute -right-4 top-1/2 hidden h-32 w-44 -translate-y-1/2 opacity-90 sm:block"><StorefrontArt className="h-full w-full text-emerald-300" /></div>
+        <div className="relative mx-auto flex max-w-7xl flex-col gap-5 px-4 py-7 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div>
             <p className="font-display text-xl font-semibold">Ready to grow with JOM HUB?</p>
             <p className="mt-1 text-sm text-white/60">Create your professional Merchant or Reseller workspace today.</p>
           </div>
-          <Link to="/signup" className="inline-flex shrink-0 items-center justify-center gap-2 rounded-[1rem] bg-mango-500 px-5 py-3 text-sm font-semibold text-ink transition hover:bg-mango-600">Join the marketplace <ArrowRight size={16} /></Link>
+          <Link to="/signup" className="inline-flex shrink-0 items-center justify-center gap-2 rounded-[1rem] bg-mango-500 px-5 py-3 text-sm font-semibold text-ink transition hover:bg-mango-600 sm:mr-32">Join the marketplace <ArrowRight size={16} /></Link>
         </div>
       </div>
 

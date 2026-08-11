@@ -25,10 +25,10 @@ export default function WorkspaceLayout({ title, subtitle, sections, children })
     {to:'/reseller',label:'Home',icon:House},{to:'/catalog',label:'Products',icon:Package},{to:'/reseller/orders',label:'Orders',icon:ClipboardList},{to:'/reseller/wallet',label:'Wallet',icon:WalletCards},{to:'/reseller/referrals',label:'Referrals',icon:Handshake}
   ]
 
-  return <div className="min-h-[calc(100vh-4rem)] lg:flex">
+  return <div className="workspace-luxe min-h-[calc(100vh-4rem)] lg:flex">
     {open && <button onClick={() => setOpen(false)} aria-label="Close navigation" className="fixed inset-x-0 bottom-0 top-16 z-40 bg-scrim/40 backdrop-blur-sm lg:hidden" />}
     <aside className={`fixed bottom-0 left-0 top-16 z-50 flex w-[min(19rem,calc(100vw-1.5rem))] flex-col border-r border-line bg-surface shadow-2xl transition-transform duration-300 lg:sticky lg:z-20 lg:h-[calc(100vh-4rem)] lg:shrink-0 lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'} ${collapsed ? 'lg:w-[84px]' : 'lg:w-64'}`}>
-      <div className={`flex h-[76px] shrink-0 items-center border-b border-line bg-teal-50 dark:bg-teal-500/10 ${collapsed ? 'justify-center px-3' : 'justify-between px-5'}`}>
+      <div className={`flex h-[76px] shrink-0 items-center border-b border-line ${collapsed ? 'justify-center px-3' : 'justify-between px-5'}`}>
         {!collapsed && <div className="min-w-0"><div className="flex items-center gap-2 font-display font-bold text-teal-900 dark:text-teal-200"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-600 text-white"><Store size={17} /></span><span className="truncate">{title}</span></div><p className="ml-10 mt-0.5 text-xs text-fg-muted">{subtitle}</p></div>}
         <button onClick={() => setOpen(false)} className="rounded-xl p-2 text-fg-muted hover:bg-teal-100 dark:hover:bg-teal-500/15 lg:hidden"><X size={20} /></button>
         <button onClick={() => setCollapsed((value) => !value)} className="hidden rounded-xl p-2 text-fg-muted hover:bg-teal-100 dark:hover:bg-teal-500/15 lg:block"><PanelLeftClose size={19} className={collapsed ? 'rotate-180' : ''} /></button>
