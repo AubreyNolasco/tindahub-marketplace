@@ -16,8 +16,10 @@ export default function ProtectedRoute({ children, allowedRoles }) {
 
   if (!user) return <Navigate to="/login" replace />
 
+  console.warn('[DIAG] ProtectedRoute check ' + JSON.stringify({ hasProfile: !!profile, onboarding_completed: profile?.onboarding_completed, path: location.pathname, role, userId: user?.id }))
+
   if (!profile || profile.onboarding_completed === false) {
-    console.warn('[DIAG] ProtectedRoute -> /onboarding', { hasProfile: !!profile, onboarding_completed: profile?.onboarding_completed, path: location.pathname, role })
+    console.warn('[DIAG] ProtectedRoute redirect ' + JSON.stringify({ hasProfile: !!profile, onboarding_completed: profile?.onboarding_completed, path: location.pathname, role, userId: user?.id }))
     return <Navigate to="/onboarding" replace />
   }
 
