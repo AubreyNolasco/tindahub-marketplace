@@ -9,6 +9,7 @@ import Spinner from '../../components/ui/Spinner'
 import Tabs from '../../components/ui/Tabs'
 import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
+import PromptModal from '../../components/ui/PromptModal'
 
 const STATUS_COLORS = {
   pending: 'bg-mango-100 text-mango-600',
@@ -22,6 +23,7 @@ export default function Merchants() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('pending')
   const [expiryModal, setExpiryModal] = useState(null) // { merchant, expires_at }
+  const [rejectPermitTarget, setRejectPermitTarget] = useState(null)
   const [ocrAvailable, setOcrAvailable] = useState(false)
   const [ocrResults, setOcrResults] = useState({}) // merchantId -> { loading, raw_text, candidate_dates }
 
@@ -89,9 +91,10 @@ export default function Merchants() {
       })
       return
     }
+    setRejectPermitTarget(merchant)
+  }
 
-    const notes = window.prompt('Reason for rejecting this business permit:', 'Please upload a clearer and valid business permit.')
-    if (notes === null) return
+  const rejectPermit = async (merchant, notes) => {
     const { data: { user } } = await supabase.auth.getUser()
     // Scoped to business_permit_status='pending', same guard
     // review_reseller_id_verification() uses server-side — two admins
@@ -107,6 +110,7 @@ export default function Merchants() {
     if (error) return toast.error(error.message)
     if (!data?.length) { toast.error('This permit was already reviewed by someone else.'); load(); return }
     toast.success('Business permit rejected.')
+    setRejectPermitTarget(null)
     load()
   }
 
@@ -261,6 +265,15 @@ export default function Merchants() {
           </button>
         </div>
       </Modal>
+      <PromptModal
+        open={!!rejectPermitTarget}
+        onClose={() => setRejectPermitTarget(null)}
+        onSubmit={(notes) => rejectPermit(rejectPermitTarget, notes)}
+        title="Reject business permit"
+        label="Reason for rejection"
+        defaultValue="Please upload a clearer and valid business permit."
+        submitText="Reject permit"
+      />
     </div>
   )
 }

@@ -88,7 +88,8 @@ export default function Cart() {
       </div>
 
       <div className="mt-6 text-right text-ink/70">
-        Total ng lahat: <span className="font-display font-bold text-lg text-ink">{peso(totalAmount)}</span>
+        Buying total, all orders: <span className="font-display font-bold text-lg text-ink">{peso(totalAmount)}</span>
+        <p className="mt-0.5 text-xs text-ink/45">Excludes the system fee shown per order above — check out each order separately to pay.</p>
       </div>
     </div>
   )

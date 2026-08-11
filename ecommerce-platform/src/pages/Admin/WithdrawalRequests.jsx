@@ -10,6 +10,7 @@ import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
 import Tabs from '../../components/ui/Tabs'
 import Button from '../../components/ui/Button'
+import PromptModal from '../../components/ui/PromptModal'
 
 export default function WithdrawalRequests() {
   const { user } = useAuth()
@@ -17,6 +18,9 @@ export default function WithdrawalRequests() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('pending')
   const [proofFiles,setProofFiles]=useState({})
+  const [rejectTarget, setRejectTarget] = useState(null)
+  const [scheduleTarget, setScheduleTarget] = useState(null)
+  const [sendTarget, setSendTarget] = useState(null)
 
   useEffect(() => {
     load()
@@ -33,15 +37,7 @@ export default function WithdrawalRequests() {
     setLoading(false)
   }
 
-  const review = async (request, approve) => {
-    let admin_notes = null
-    let scheduled_for = null
-    if (!approve) {
-      admin_notes = window.prompt('Reason for rejection (optional):') || null
-    } else {
-      const schedule = window.prompt('When can the transfer be sent? Example: 2026-07-23 14:00. Leave blank for as soon as available.')
-      if (schedule) { const parsed = new Date(schedule); if (Number.isNaN(parsed.getTime())) return toast.error('Invalid processing schedule.'); scheduled_for = parsed.toISOString() }
-    }
+  const review = async (request, approve, { admin_notes = null, scheduled_for = null } = {}) => {
     const { error } = await supabase
       .from('withdrawal_requests')
       .update({
@@ -58,14 +54,14 @@ export default function WithdrawalRequests() {
       return
     }
     toast.success(approve ? 'Approved and scheduled. Mark it Sent only after the actual transfer.' : 'Withdrawal rejected and refunded to the wallet.')
+    setRejectTarget(null)
+    setScheduleTarget(null)
     load()
   }
 
-  const markSent = async (request) => {
+  const markSent = async (request, reference) => {
     const proof=proofFiles[request.id]
     if(!proof)return toast.error('Upload the transfer proof before marking this withdrawal Sent.')
-    const reference = window.prompt('Enter the bank or e-wallet transfer reference:')
-    if (!reference?.trim()) return
     const compressed=await compressImage(proof)
 
     let proofUrl = null
@@ -83,6 +79,7 @@ export default function WithdrawalRequests() {
     const { error } = await supabase.rpc('mark_withdrawal_sent_with_proof', { p_request_id: request.id, p_transfer_reference: reference.trim(),p_proof_url:proofUrl })
     if (error) return toast.error(error.message)
     toast.success('Withdrawal marked as Sent.')
+    setSendTarget(null)
     load()
   }
 
@@ -120,18 +117,46 @@ export default function WithdrawalRequests() {
                 <span className={`badge capitalize ${r.sent_at?'bg-teal-100 text-teal-800':TOPUP_STATUS_STYLES[r.status]}`}>{r.sent_at?'Sent':r.status==='approved'?'Scheduled / Approved':TOPUP_STATUS_LABELS[r.status]}</span>
                 {r.status === 'pending' && (
                   <>
-                    <button onClick={() => review(r, true)} className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1">
+                    <button onClick={() => setScheduleTarget(r)} className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1">
                       <Check size={13} /> Approve
                     </button>
-                    <Button onClick={() => review(r, false)} variant="danger-chip" size="sm" icon={X}>Reject</Button>
+                    <Button onClick={() => setRejectTarget(r)} variant="danger-chip" size="sm" icon={X}>Reject</Button>
                   </>
                 )}
-                {r.status === 'approved' && !r.sent_at && <div className="flex flex-col gap-2"><input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={e=>setProofFiles(current=>({...current,[r.id]:e.target.files?.[0]||null}))} className="max-w-52 text-[10px]"/><button onClick={() => markSent(r)} className="btn-primary flex items-center gap-1 px-3 py-1.5 text-xs"><Send size={13} /> Mark Sent</button></div>}
+                {r.status === 'approved' && !r.sent_at && <div className="flex flex-col gap-2"><input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={e=>setProofFiles(current=>({...current,[r.id]:e.target.files?.[0]||null}))} className="max-w-52 text-[10px]"/><button onClick={() => setSendTarget(r)} className="btn-primary flex items-center gap-1 px-3 py-1.5 text-xs"><Send size={13} /> Mark Sent</button></div>}
               </div>
             </div>
           ))}
         </div>
       )}
+      <PromptModal
+        open={!!rejectTarget}
+        onClose={() => setRejectTarget(null)}
+        onSubmit={(notes) => review(rejectTarget, false, { admin_notes: notes || null })}
+        title="Reject withdrawal request"
+        label="Reason for rejection"
+        placeholder="Optional — shown to the requester"
+        submitText="Reject request"
+      />
+      <PromptModal
+        open={!!scheduleTarget}
+        onClose={() => setScheduleTarget(null)}
+        onSubmit={(value) => review(scheduleTarget, true, { scheduled_for: value ? new Date(value).toISOString() : null })}
+        title="Approve withdrawal"
+        label="When can the transfer be sent?"
+        type="datetime-local"
+        message="Leave blank to schedule as soon as available."
+        submitText="Approve"
+      />
+      <PromptModal
+        open={!!sendTarget}
+        onClose={() => setSendTarget(null)}
+        onSubmit={(reference) => reference && markSent(sendTarget, reference)}
+        title="Mark withdrawal as Sent"
+        label="Bank or e-wallet transfer reference"
+        required
+        submitText="Mark Sent"
+      />
     </div>
   )
 }

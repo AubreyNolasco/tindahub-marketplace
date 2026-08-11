@@ -5,6 +5,7 @@ import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { SAMPLE_PRODUCTS } from '../../config/sampleProducts'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 
 export default function TestAccounts() {
   const { user, refreshProfile } = useAuth()
@@ -36,8 +37,11 @@ export default function TestAccounts() {
     navigate(targetRole === 'reseller' ? '/reseller' : '/merchant', { replace: true })
   }
 
+  const [confirmReset, setConfirmReset] = useState(false)
+  const [confirmDeleteSamples, setConfirmDeleteSamples] = useState(false)
+
   const resetDemoData = async () => {
-    if (!window.confirm('Delete all orders, products, customers, and wallet history created while in demo mode? This cannot be undone.')) return
+    setConfirmReset(false)
     setResetting(true)
     const { error } = await supabase.rpc('reset_admin_demo_data')
     setResetting(false)
@@ -59,7 +63,7 @@ export default function TestAccounts() {
   }
 
   const deleteSamples = async () => {
-    if (!window.confirm('Remove all sample products (and their seeded ratings/sold history)? This cannot be undone.')) return
+    setConfirmDeleteSamples(false)
     setDeletingSamples(true)
     const { data, error } = await supabase.rpc('admin_delete_sample_catalog')
     setDeletingSamples(false)
@@ -135,7 +139,7 @@ export default function TestAccounts() {
         </div>
 
         <button
-          onClick={resetDemoData}
+          onClick={() => setConfirmReset(true)}
           disabled={resetting}
           className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-coral-200 bg-coral-50 px-4 py-3 text-sm font-bold text-coral-600 transition hover:bg-coral-100 disabled:opacity-50"
         >
@@ -185,7 +189,7 @@ export default function TestAccounts() {
             </div>
           </button>
           <button
-            onClick={deleteSamples}
+            onClick={() => setConfirmDeleteSamples(true)}
             disabled={seedingSamples || deletingSamples}
             className="card group flex items-center gap-3 p-5 text-left hover:border-coral-200 disabled:opacity-50"
           >
@@ -199,6 +203,24 @@ export default function TestAccounts() {
           </button>
         </div>
       </div>
+      <ConfirmDialog
+        open={confirmReset}
+        onClose={() => setConfirmReset(false)}
+        onConfirm={resetDemoData}
+        loading={resetting}
+        title="Reset demo data?"
+        message="Delete all orders, products, customers, and wallet history created while in demo mode? This cannot be undone."
+        confirmText="Delete demo data"
+      />
+      <ConfirmDialog
+        open={confirmDeleteSamples}
+        onClose={() => setConfirmDeleteSamples(false)}
+        onConfirm={deleteSamples}
+        loading={deletingSamples}
+        title="Remove sample products?"
+        message="Remove all sample products (and their seeded ratings/sold history)? This cannot be undone."
+        confirmText="Remove samples"
+      />
     </div>
   )
 }

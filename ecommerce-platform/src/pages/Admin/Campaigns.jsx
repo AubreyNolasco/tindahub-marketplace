@@ -8,6 +8,7 @@ import { exportExcel } from '../../utils/excel'
 import Spinner from '../../components/ui/Spinner'
 import Button from '../../components/ui/Button'
 import EmptyState from '../../components/ui/EmptyState'
+import PromptModal from '../../components/ui/PromptModal'
 
 const initialForm = { name: '', description: '', discount_percent: '', starts_at: '', ends_at: '', requires_approval: true, min_discount_percent: '', max_discount_percent: '' }
 export default function Campaigns() {
@@ -20,6 +21,7 @@ export default function Campaigns() {
   const [saving, setSaving] = useState(false)
   const [editing, setEditing] = useState(null)
   const [showArchived, setShowArchived] = useState(false)
+  const [rejectTarget, setRejectTarget] = useState(null)
   const load = async () => { setLoading(true); await supabase.rpc('ensure_recurring_campaigns'); const { data, error } = await supabase.from('campaigns').select('*, merchant_campaigns(count)').order('starts_at', { ascending: false }); if (error) toast.error(error.message); setCampaigns(data || []); setLoading(false) }
   const loadPending = async () => {
     setPendingLoading(true)
@@ -28,11 +30,11 @@ export default function Campaigns() {
     setPending(data || [])
     setPendingLoading(false)
   }
-  const review = async (id, approve) => {
-    const reason = approve ? null : window.prompt('Reason for rejection (optional):')
+  const review = async (id, approve, reason = null) => {
     const { error } = await supabase.rpc('review_campaign_submission', { p_id: id, p_approve: approve, p_reason: reason || null })
     if (error) return toast.error(error.message)
     toast.success(approve ? 'Submission approved.' : 'Submission rejected.')
+    setRejectTarget(null)
     loadPending()
   }
   useEffect(() => { load(); loadPending() }, [])
@@ -122,7 +124,7 @@ export default function Campaigns() {
               </div>
               <div className="flex items-center gap-2">
                 <Button size="sm" icon={Check} onClick={() => review(s.id, true)}>Approve</Button>
-                <Button size="sm" variant="danger-chip" icon={X} onClick={() => review(s.id, false)}>Reject</Button>
+                <Button size="sm" variant="danger-chip" icon={X} onClick={() => setRejectTarget(s.id)}>Reject</Button>
               </div>
             </div>
           ))}
@@ -165,5 +167,14 @@ export default function Campaigns() {
       <div className="mt-6 flex justify-end gap-3"><button type="button" className="btn-secondary" onClick={() => setEditing(null)}>Cancel</button><button disabled={saving} className="btn-primary">{saving ? 'Saving…' : 'Save'}</button></div>
     </form>
   </div>}
+  <PromptModal
+    open={rejectTarget !== null}
+    onClose={() => setRejectTarget(null)}
+    onSubmit={(reason) => review(rejectTarget, false, reason || null)}
+    title="Reject product submission"
+    label="Reason for rejection"
+    placeholder="Optional — shown to the merchant"
+    submitText="Reject submission"
+  />
   </div>
 }

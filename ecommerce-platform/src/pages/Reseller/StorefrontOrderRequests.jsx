@@ -11,6 +11,7 @@ import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
 import Tabs from '../../components/ui/Tabs'
 import Modal from '../../components/ui/Modal'
+import PromptModal from '../../components/ui/PromptModal'
 import AddressFields from '../../components/address/AddressFields'
 import { composeAddress, emptyAddressParts, isCompleteAddress, partsFromLegacyAddress } from '../../utils/address'
 import { markPendingConversion } from '../../utils/storefrontRequestConversion'
@@ -35,6 +36,7 @@ export default function StorefrontOrderRequests() {
   const [addressPrompt, setAddressPrompt] = useState(null) // { request, product }
   const [addressParts, setAddressParts] = useState(emptyAddressParts())
   const [savingAddress, setSavingAddress] = useState(false)
+  const [declineTarget, setDeclineTarget] = useState(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -50,8 +52,7 @@ export default function StorefrontOrderRequests() {
 
   useEffect(() => { load() }, [load])
 
-  const respond = async (request, status) => {
-    const note = status === 'declined' ? (window.prompt('Reason for declining this request (optional):') || '') : ''
+  const respond = async (request, status, note = '') => {
     const { error } = await supabase
       .from('storefront_order_requests')
       .update({ status, reseller_response_note: note || null, responded_at: new Date().toISOString() })
@@ -59,6 +60,7 @@ export default function StorefrontOrderRequests() {
     if (error) return toast.error(error.message)
     toast.success(status === 'accepted' ? 'Request accepted.' : 'Request declined.')
     setDetail(null)
+    setDeclineTarget(null)
     load()
   }
 
@@ -233,7 +235,7 @@ export default function StorefrontOrderRequests() {
               {detail.status === 'pending' && (
                 <>
                   <button onClick={() => respond(detail, 'accepted')} className="btn-primary flex items-center gap-1.5 text-sm"><Check size={15} /> Accept</button>
-                  <button onClick={() => respond(detail, 'declined')} className="flex items-center gap-1.5 rounded-xl bg-coral-100 px-4 py-2.5 text-sm font-semibold text-coral-700"><Ban size={15} /> Decline</button>
+                  <button onClick={() => setDeclineTarget(detail)} className="flex items-center gap-1.5 rounded-xl bg-coral-100 px-4 py-2.5 text-sm font-semibold text-coral-700"><Ban size={15} /> Decline</button>
                 </>
               )}
               {detail.status === 'accepted' && (
@@ -260,6 +262,15 @@ export default function StorefrontOrderRequests() {
           </button>
         </form>
       </Modal>
+      <PromptModal
+        open={!!declineTarget}
+        onClose={() => setDeclineTarget(null)}
+        onSubmit={(note) => respond(declineTarget, 'declined', note)}
+        title="Decline order request"
+        label="Reason for declining"
+        placeholder="Optional — shown to the customer"
+        submitText="Decline request"
+      />
     </div>
   )
 }

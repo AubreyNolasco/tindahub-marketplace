@@ -7,6 +7,7 @@ import { formatDate } from '../../utils/format'
 import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
 import Button from '../../components/ui/Button'
+import PromptModal from '../../components/ui/PromptModal'
 
 const STATUS_COLORS = {
   active: 'bg-teal-100 text-teal-700',
@@ -125,6 +126,7 @@ export default function Subscriptions() {
   const [editing, setEditing] = useState(null)
   const [requests, setRequests] = useState([])
   const [proofUrls, setProofUrls] = useState({})
+  const [rejectTarget, setRejectTarget] = useState(null)
 
   useEffect(() => {
     load()
@@ -148,14 +150,14 @@ export default function Subscriptions() {
     setProofUrls((current) => ({ ...current, [request.id]: data.signedUrl }))
   }
 
-  const review = async (request, approved) => {
-    const adminNotes = approved ? null : window.prompt('Reason for rejection (optional):') || null
+  const review = async (request, approved, adminNotes = null) => {
     const { data: { user } } = await supabase.auth.getUser()
     const { error } = approved
       ? await supabase.rpc('activate_merchant_application', { p_merchant_id: request.owner_id, p_subscription_request_id: request.id })
       : await supabase.from('subscription_requests').update({ status: 'rejected', admin_notes: adminNotes, reviewed_by: user.id, reviewed_at: new Date().toISOString() }).eq('id', request.id)
     if (error) return toast.error(error.message)
     toast.success(approved ? 'Subscription approved and Merchant account activated.' : 'Subscription request rejected.')
+    setRejectTarget(null)
     load()
   }
 
@@ -182,7 +184,7 @@ export default function Subscriptions() {
                 <span className={`badge ${request.status === 'approved' ? 'bg-teal-100 text-teal-700' : request.status === 'rejected' ? 'bg-coral-100 text-coral-600' : 'bg-mango-100 text-mango-600'}`}>{request.status}</span>
                 {request.status === 'pending' && <>
                   <button onClick={() => review(request, true)} className="btn-primary text-xs px-3 py-1.5 flex gap-1"><Check size={13} /> Approve</button>
-                  <Button onClick={() => review(request, false)} variant="danger-chip" size="sm" icon={X} aria-label="Reject" />
+                  <Button onClick={() => setRejectTarget(request)} variant="danger-chip" size="sm" icon={X} aria-label="Reject" />
                 </>}
               </div>
             </div>
@@ -228,6 +230,15 @@ export default function Subscriptions() {
       {editing && (
         <SubscriptionModal profile={editing} onClose={() => setEditing(null)} onSaved={load} />
       )}
+      <PromptModal
+        open={!!rejectTarget}
+        onClose={() => setRejectTarget(null)}
+        onSubmit={(notes) => review(rejectTarget, false, notes || null)}
+        title="Reject subscription payment"
+        label="Reason for rejection"
+        placeholder="Optional — shown to the merchant"
+        submitText="Reject request"
+      />
     </div>
   )
 }

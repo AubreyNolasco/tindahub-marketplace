@@ -10,6 +10,7 @@ import { PageGuideButton } from '../../components/system/SystemGuide'
 import DeliveryModal from '../../components/order/DeliveryModal'
 import OrderCaseModal from '../../components/order/OrderCaseModal'
 import ShippingFeeModal from '../../components/order/ShippingFeeModal'
+import PromptModal from '../../components/ui/PromptModal'
 import { printReceipt } from '../../utils/receipt'
 
 const NEXT_STATUS = { confirmed: 'processing' }
@@ -28,6 +29,7 @@ export default function Orders() {
   const [deliveryOrder, setDeliveryOrder] = useState(null)
   const [caseOrder, setCaseOrder] = useState(null)
   const [shippingFeeOrder, setShippingFeeOrder] = useState(null)
+  const [caseReviewTarget, setCaseReviewTarget] = useState(null) // { caseItem, approve }
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -80,11 +82,11 @@ export default function Orders() {
     load()
   }
 
-  const reviewCase = async (caseItem, approve) => {
-    const notes = window.prompt(approve ? 'Resolution notes:' : 'Rejection reason:') || ''
+  const reviewCase = async (caseItem, approve, notes = '') => {
     const { error } = await supabase.rpc('review_order_case', { p_case_id: caseItem.id, p_approve: approve, p_notes: notes })
     if (error) return toast.error(error.message)
     toast.success(approve ? 'Approved.' : 'Rejected.')
+    setCaseReviewTarget(null)
     load()
   }
 
@@ -224,8 +226,8 @@ export default function Orders() {
                 <p className="text-sm text-coral-700 mt-1">{c.reason}</p>
                 {c.status === 'merchant_review' && (
                   <div className="mt-3 flex gap-2">
-                    <button onClick={() => reviewCase(c, true)} className="btn-primary text-xs">Approve</button>
-                    <button onClick={() => reviewCase(c, false)} className="btn-secondary text-xs">Reject</button>
+                    <button onClick={() => setCaseReviewTarget({ caseItem: c, approve: true })} className="btn-primary text-xs">Approve</button>
+                    <button onClick={() => setCaseReviewTarget({ caseItem: c, approve: false })} className="btn-secondary text-xs">Reject</button>
                   </div>
                 )}
               </div>
@@ -289,6 +291,15 @@ export default function Orders() {
       <DeliveryModal order={deliveryOrder} open={Boolean(deliveryOrder)} onClose={() => setDeliveryOrder(null)} onSaved={load} />
       <ShippingFeeModal order={shippingFeeOrder} open={Boolean(shippingFeeOrder)} onClose={() => setShippingFeeOrder(null)} onSaved={load} />
       <OrderCaseModal order={caseOrder} open={Boolean(caseOrder)} onClose={() => setCaseOrder(null)} onSaved={load} />
+      <PromptModal
+        open={!!caseReviewTarget}
+        onClose={() => setCaseReviewTarget(null)}
+        onSubmit={(notes) => reviewCase(caseReviewTarget.caseItem, caseReviewTarget.approve, notes)}
+        title={caseReviewTarget?.approve ? 'Approve order case' : 'Reject order case'}
+        label={caseReviewTarget?.approve ? 'Resolution notes' : 'Rejection reason'}
+        type="textarea"
+        submitText={caseReviewTarget?.approve ? 'Approve' : 'Reject'}
+      />
     </div>
   )
 }

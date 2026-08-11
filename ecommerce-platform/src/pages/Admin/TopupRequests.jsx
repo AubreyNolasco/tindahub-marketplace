@@ -8,6 +8,7 @@ import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
 import Tabs from '../../components/ui/Tabs'
 import Button from '../../components/ui/Button'
+import PromptModal from '../../components/ui/PromptModal'
 
 export default function TopupRequests() {
   const { user } = useAuth()
@@ -15,6 +16,7 @@ export default function TopupRequests() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('pending')
   const [proofUrls, setProofUrls] = useState({})
+  const [rejectTarget, setRejectTarget] = useState(null)
 
   useEffect(() => {
     load()
@@ -52,11 +54,7 @@ export default function TopupRequests() {
     setProofUrls((p) => ({ ...p, [request.id]: data.signedUrl }))
   }
 
-  const review = async (request, approve) => {
-    let admin_notes = null
-    if (!approve) {
-      admin_notes = window.prompt('Reason for rejection (optional):') || null
-    }
+  const review = async (request, approve, admin_notes = null) => {
     const { error } = await supabase
       .from('topup_requests')
       .update({
@@ -72,6 +70,7 @@ export default function TopupRequests() {
       return
     }
     toast.success(approve ? 'Top-up approved and credited to the wallet.' : 'Top-up request rejected.')
+    setRejectTarget(null)
     load()
   }
 
@@ -117,7 +116,7 @@ export default function TopupRequests() {
                     <button onClick={() => review(r, true)} className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1">
                       <Check size={13} /> Approve
                     </button>
-                    <Button onClick={() => review(r, false)} variant="danger-chip" size="sm" icon={X}>Reject</Button>
+                    <Button onClick={() => setRejectTarget(r)} variant="danger-chip" size="sm" icon={X}>Reject</Button>
                   </>
                 )}
               </div>
@@ -125,6 +124,15 @@ export default function TopupRequests() {
           ))}
         </div>
       )}
+      <PromptModal
+        open={!!rejectTarget}
+        onClose={() => setRejectTarget(null)}
+        onSubmit={(notes) => review(rejectTarget, false, notes || null)}
+        title="Reject top-up request"
+        label="Reason for rejection"
+        placeholder="Optional — shown to the requester"
+        submitText="Reject request"
+      />
     </div>
   )
 }

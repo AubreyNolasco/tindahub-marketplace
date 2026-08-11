@@ -8,6 +8,7 @@ import Spinner from '../../components/ui/Spinner'
 import Tabs from '../../components/ui/Tabs'
 import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
+import PromptModal from '../../components/ui/PromptModal'
 
 const STATUS_STYLES = {
   pending: 'bg-mango-100 text-mango-600 dark:bg-mango-500/15 dark:text-mango-300',
@@ -28,6 +29,7 @@ export default function MerchantFollowups() {
   const [filter, setFilter] = useState('all')
   const [reviewModal, setReviewModal] = useState(null) // { id, business_name, operate_until }
   const [adjustModal, setAdjustModal] = useState(null) // { merchant_id, business_name, operate_until }
+  const [rejectTarget, setRejectTarget] = useState(null)
 
   useEffect(() => {
     load()
@@ -43,8 +45,7 @@ export default function MerchantFollowups() {
 
   const openReview = (request) => setReviewModal({ id: request.id, business_name: request.business_name, operate_until: '' })
 
-  const reject = async (request) => {
-    const notes = window.prompt('Reason for declining this follow-up request:') || ''
+  const reject = async (request, notes = '') => {
     const { error } = await supabase.rpc('admin_review_merchant_followup', {
       p_request_id: request.id,
       p_approved: false,
@@ -52,6 +53,7 @@ export default function MerchantFollowups() {
     })
     if (error) return toast.error(error.message)
     toast.success('Follow-up request declined.')
+    setRejectTarget(null)
     load()
   }
 
@@ -125,7 +127,7 @@ export default function MerchantFollowups() {
                     <button onClick={() => openReview(r)} className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1">
                       <Check size={13} /> Approve
                     </button>
-                    <Button onClick={() => reject(r)} variant="danger-chip" size="sm" icon={X}>Reject</Button>
+                    <Button onClick={() => setRejectTarget(r)} variant="danger-chip" size="sm" icon={X}>Reject</Button>
                   </>
                 )}
                 {r.status === 'approved' && (
@@ -174,6 +176,14 @@ export default function MerchantFollowups() {
           <button onClick={() => setAdjustModal(null)} className="btn-secondary flex-1">Cancel</button>
         </div>
       </Modal>
+      <PromptModal
+        open={!!rejectTarget}
+        onClose={() => setRejectTarget(null)}
+        onSubmit={(notes) => reject(rejectTarget, notes)}
+        title="Decline follow-up request"
+        label="Reason for declining"
+        submitText="Decline request"
+      />
     </div>
   )
 }

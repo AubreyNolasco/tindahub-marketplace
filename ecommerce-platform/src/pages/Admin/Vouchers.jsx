@@ -6,6 +6,7 @@ import { peso } from '../../utils/format'
 import Spinner from '../../components/ui/Spinner'
 import DataTable from '../../components/ui/DataTable'
 import Badge from '../../components/ui/Badge'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 
 // Phase 10 of TASK6.md. All writes go through create_voucher/update_voucher/
 // delete_voucher (20260806002100_voucher_write_rpcs.sql) -- the vouchers
@@ -37,6 +38,8 @@ export default function AdminVouchers() {
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState(initialForm)
   const [editing, setEditing] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   const load = async () => {
     setLoading(true)
@@ -126,11 +129,15 @@ export default function AdminVouchers() {
     if (error) return toast.error(error.message)
     load()
   }
-  const remove = async (v) => {
-    if (!window.confirm(`Delete voucher "${v.code}"? This cannot be undone.`)) return
-    const { error } = await supabase.rpc('delete_voucher', { p_id: v.id })
+  const remove = (v) => setDeleteTarget(v)
+  const confirmRemove = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
+    const { error } = await supabase.rpc('delete_voucher', { p_id: deleteTarget.id })
+    setDeleting(false)
     if (error) return toast.error(error.message === 'VOUCHER_HAS_REDEMPTIONS' ? 'This voucher has already been redeemed at least once — disable it instead of deleting it.' : error.message)
     toast.success('Voucher deleted.')
+    setDeleteTarget(null)
     load()
   }
 
@@ -249,5 +256,14 @@ export default function AdminVouchers() {
         <div className="mt-6 flex justify-end gap-3"><button type="button" className="btn-secondary" onClick={() => setEditing(null)}>Cancel</button><button disabled={saving} className="btn-primary">{saving ? 'Saving…' : 'Save'}</button></div>
       </form>
     </div>}
+    <ConfirmDialog
+      open={!!deleteTarget}
+      onClose={() => setDeleteTarget(null)}
+      onConfirm={confirmRemove}
+      loading={deleting}
+      title="Delete voucher?"
+      message={`Delete voucher "${deleteTarget?.code}"? This cannot be undone.`}
+      confirmText="Delete voucher"
+    />
   </div>
 }

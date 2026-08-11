@@ -7,6 +7,8 @@ import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
 import Tabs from '../../components/ui/Tabs'
 import Button from '../../components/ui/Button'
+import PromptModal from '../../components/ui/PromptModal'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 
 const STATUS_COLORS = {
   missing: 'bg-ink/10 text-ink/60',
@@ -26,6 +28,9 @@ export default function ResellerVerifications() {
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
+  const [rejectTarget, setRejectTarget] = useState(null)
+  const [suspendTarget, setSuspendTarget] = useState(null)
+  const [suspending, setSuspending] = useState(false)
 
   useEffect(() => {
     load()
@@ -46,13 +51,7 @@ export default function ResellerVerifications() {
     window.open(data.signedUrl, '_blank', 'noopener,noreferrer')
   }
 
-  const review = async (row, approved) => {
-    let notes = ''
-    if (!approved) {
-      const reason = window.prompt('Reason for rejecting this verification:', 'Please upload a clearer selfie and valid ID.')
-      if (reason === null) return
-      notes = reason || ''
-    }
+  const review = async (row, approved, notes = '') => {
     const { error } = await supabase.rpc('review_reseller_id_verification', {
       p_user_id: row.id,
       p_approved: approved,
@@ -60,14 +59,26 @@ export default function ResellerVerifications() {
     })
     if (error) return toast.error(error.message)
     toast.success(approved ? 'Verification approved.' : 'Verification rejected.')
+    setRejectTarget(null)
     load()
   }
 
   const updateAccountStatus = async (row, status) => {
-    if (status === 'suspended' && !window.confirm(`Suspend ${row.full_name}'s reseller account? They will not be able to place orders or manage customers until reinstated.`)) return
+    if (status === 'suspended') { setSuspendTarget(row); return }
     const { error } = await supabase.from('profiles').update({ account_status: status }).eq('id', row.id)
     if (error) return toast.error(error.message)
-    toast.success(status === 'suspended' ? 'Reseller account suspended.' : 'Reseller account reinstated.')
+    toast.success('Reseller account reinstated.')
+    load()
+  }
+
+  const confirmSuspend = async () => {
+    if (!suspendTarget) return
+    setSuspending(true)
+    const { error } = await supabase.from('profiles').update({ account_status: 'suspended' }).eq('id', suspendTarget.id)
+    setSuspending(false)
+    if (error) return toast.error(error.message)
+    toast.success('Reseller account suspended.')
+    setSuspendTarget(null)
     load()
   }
 
@@ -120,7 +131,7 @@ export default function ResellerVerifications() {
                       <button onClick={() => review(r, true)} className="btn-primary flex items-center gap-1 px-3 py-1.5 text-xs">
                         <Check size={13} /> Approve
                       </button>
-                      <Button onClick={() => review(r, false)} variant="danger-chip" size="sm" icon={X}>Reject</Button>
+                      <Button onClick={() => setRejectTarget(r)} variant="danger-chip" size="sm" icon={X}>Reject</Button>
                     </>
                   )}
                   {r.account_status === 'approved' && (
@@ -139,6 +150,24 @@ export default function ResellerVerifications() {
           })}
         </div>
       )}
+      <PromptModal
+        open={!!rejectTarget}
+        onClose={() => setRejectTarget(null)}
+        onSubmit={(notes) => review(rejectTarget, false, notes)}
+        title="Reject ID verification"
+        label="Reason for rejection"
+        defaultValue="Please upload a clearer selfie and valid ID."
+        submitText="Reject verification"
+      />
+      <ConfirmDialog
+        open={!!suspendTarget}
+        onClose={() => setSuspendTarget(null)}
+        onConfirm={confirmSuspend}
+        loading={suspending}
+        title="Suspend reseller account?"
+        message={`Suspend ${suspendTarget?.full_name}'s reseller account? They will not be able to place orders or manage customers until reinstated.`}
+        confirmText="Suspend account"
+      />
     </div>
   )
 }
