@@ -17,6 +17,7 @@ export default function ProtectedRoute({ children, allowedRoles }) {
   if (!user) return <Navigate to="/login" replace />
 
   if (!profile || profile.onboarding_completed === false) {
+    console.warn('[DIAG] ProtectedRoute -> /onboarding', { hasProfile: !!profile, onboarding_completed: profile?.onboarding_completed, path: location.pathname, role })
     return <Navigate to="/onboarding" replace />
   }
 
