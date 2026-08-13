@@ -7,7 +7,7 @@ export function isCompleteAddress(address = '') {
 export const COMPLETE_ADDRESS_HELP = 'Include house/building/unit number, street, barangay, city, province, and postal code when available. Separate address parts with commas.'
 
 export function emptyAddressParts() {
-  return { street: '', barangay: '', city: '', province: '', postalCode: '', latitude: null, longitude: null, provinceCode: null, cityCode: null }
+  return { street: '', barangay: '', city: '', province: '', postalCode: '', latitude: null, longitude: null, provinceCode: null, cityCode: null, barangayCode: null }
 }
 
 // Legacy single-text columns (profiles.address, customers.address,

@@ -117,6 +117,7 @@ const StaffManagement = lazy(() => import('./pages/Admin/StaffManagement'))
 const AdminDeliveryProviders = lazy(() => import('./pages/Admin/DeliveryProviders'))
 const MerchantDeliverySettings = lazy(() => import('./pages/Merchant/DeliverySettings'))
 const LegalSettings = lazy(() => import('./pages/Admin/LegalSettings'))
+const ShippingPricing = lazy(() => import('./pages/Admin/ShippingPricing'))
 const ProcessGuide = lazy(() => import('./pages/Admin/ProcessGuide'))
 const SystemFlowchart = lazy(() => import('./pages/Admin/SystemFlowchart'))
 const FullSystemFlowchart = lazy(() => import('./pages/Admin/FullSystemFlowchart'))
@@ -248,6 +249,7 @@ export default function App() {
                   <Route path="products/new" element={<AdminPermissionRoute adminOnly><ProductForm admin /></AdminPermissionRoute>} />
                   <Route path="products/:id/edit" element={<AdminPermissionRoute adminOnly><ProductForm admin /></AdminPermissionRoute>} />
                   <Route path="legal" element={<AdminPermissionRoute adminOnly><LegalSettings /></AdminPermissionRoute>} />
+                  <Route path="shipping-pricing" element={<AdminPermissionRoute adminOnly><ShippingPricing /></AdminPermissionRoute>} />
                   <Route path="delivery-providers" element={<AdminPermissionRoute adminOnly><AdminDeliveryProviders /></AdminPermissionRoute>} />
                   <Route path="integrations" element={<AdminPermissionRoute adminOnly><Integrations /></AdminPermissionRoute>} />
                   <Route path="system-flowchart" element={<AdminPermissionRoute adminOnly><SystemFlowchart /></AdminPermissionRoute>} />

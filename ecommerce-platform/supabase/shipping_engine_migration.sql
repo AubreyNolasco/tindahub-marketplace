@@ -1,3 +1,15 @@
+-- SUPERSEDED — do not run this file again.
+-- Its still-live parts (shipping_settings, calculate_standard_shipping,
+-- require_complete_customer_address, save_signup_address, and the
+-- columns they depend on) now live in the tracked migration
+-- supabase/migrations/20260813000100_shipping_engine_tracked_migration.sql.
+-- Its dead parts (place_standard_order, place_customer_standard_order,
+-- place_mapped_order, place_customer_mapped_order, shipping_distance_quotes)
+-- were confirmed unused by ecommerce-platform/src and dropped there.
+-- Kept here only for historical reference. See the audit doc for why:
+-- this untracked-file pattern already broke quote_order() once in
+-- production (schema-cache drift), per 20260723000900_quote_order_self_contained_pricing.sql.
+
 -- Shipping/package data required by the Lalamove quotation workflow.
 alter table public.profiles add column if not exists address text;
 alter table public.merchant_profiles add column if not exists pickup_latitude numeric(10,7);

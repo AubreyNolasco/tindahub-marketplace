@@ -42,7 +42,6 @@ delete from public.product_reviews;
 delete from public.chat_messages;
 delete from public.payments;
 delete from public.order_items;
-delete from public.shipping_distance_quotes;
 delete from public.orders;
 delete from public.customers;
 

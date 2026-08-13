@@ -1,3 +1,12 @@
+-- SUPERSEDED (handle_new_user only) — supabase/migrations/20260723002800_remove_test_account_privilege_backdoor.sql
+-- later redefined handle_new_user() to drop all test-account special-casing
+-- from the signup trigger; that tracked migration is what actually governs
+-- new signups today. The two named test accounts (merchant@gmail.com,
+-- reseller@gmail.com) now get their special status from a one-time,
+-- re-runnable script instead: supabase/grant_test_accounts_full_access.sql
+-- (that's the file to edit if their seeded data needs to change).
+-- complete_google_onboarding() below is unaffected and still live.
+--
 -- Email OTP for real accounts, with password bypass for two test accounts.
 
 create or replace function public.handle_new_user()
@@ -40,15 +49,22 @@ begin
     set balance = case when v_is_test then 10000000 else public.wallets.balance end;
 
   if v_is_test and v_role = 'merchant' then
+    -- Real, structured PSGC address (Barangay Bagong Pag-asa, Quezon City,
+    -- Metro Manila) with pickup coordinates, so the test merchant works as
+    -- a valid distance/shipping-fee origin instead of an unmappable
+    -- placeholder string.
     insert into public.merchant_profiles (
       id, business_name, business_description, business_address, status,
       subscription_active, subscription_expires_at,
-      business_permit_status, business_permit_notes, business_permit_reviewed_at
+      business_permit_status, business_permit_notes, business_permit_reviewed_at,
+      street, barangay, city, province, postal_code, pickup_latitude, pickup_longitude
     ) values (
       new.id, 'JOM HUB Test Merchant', 'Internal test merchant account',
-      'Internal test address - not for real deliveries', 'approved', true,
-      now() + interval '100 years', 'approved',
-      'Internal test account exemption', now()
+      '12 Mother Ignacia Avenue, Barangay Bagong Pag-asa, Quezon City, Metro Manila, 1105',
+      'approved', true, now() + interval '100 years', 'approved',
+      'Internal test account exemption', now(),
+      '12 Mother Ignacia Avenue', 'Bagong Pag-asa', 'Quezon City', 'Metro Manila', '1105',
+      14.648000, 121.035000
     ) on conflict (id) do nothing;
   end if;
 

@@ -63,17 +63,21 @@ export default function Onboarding() {
       const structuredPayload = {
         street: cleanText(addressParts.street, 200) || null,
         barangay: cleanText(addressParts.barangay, 120) || null,
+        barangay_code: addressParts.barangayCode || null,
         city: cleanText(addressParts.city, 120) || null,
         province: cleanText(addressParts.province, 120) || null,
         postal_code: cleanText(addressParts.postalCode, 10) || null,
       };
-      if (role === "merchant") {
-        await supabase.from("merchant_profiles").update({ ...structuredPayload, pickup_latitude: addressParts.latitude, pickup_longitude: addressParts.longitude }).eq("id", user.id);
-      } else {
-        await supabase.from("profiles").update({ ...structuredPayload, latitude: addressParts.latitude, longitude: addressParts.longitude }).eq("id", user.id);
-      }
+      const { error: addressError } = role === "merchant"
+        ? await supabase.from("merchant_profiles").update({ ...structuredPayload, pickup_latitude: addressParts.latitude, pickup_longitude: addressParts.longitude }).eq("id", user.id)
+        : await supabase.from("profiles").update({ ...structuredPayload, latitude: addressParts.latitude, longitude: addressParts.longitude }).eq("id", user.id);
 
       await refreshProfile();
+      if (addressError) {
+        toast.error("Your account was created, but the structured address could not be saved. Please save it again.");
+        navigate(role === "merchant" ? "/merchant/address" : "/reseller/address", { replace: true });
+        return;
+      }
       toast.success("Email verified. Complete the remaining approval steps.");
       navigate(role === "merchant" ? "/merchant-permit" : "/reseller", {
         replace: true,
@@ -91,7 +95,6 @@ export default function Onboarding() {
         <div className="bg-gradient-to-br from-teal-950 to-teal-700 px-6 py-7 text-white sm:px-8">
           <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold">
             <BadgeCheck size={14} className="text-mango-300" /> Email verified by OTP
-            verified
           </span>
           <h1 className="mt-4 font-display text-2xl font-bold sm:text-3xl">
             Complete your JOM HUB profile

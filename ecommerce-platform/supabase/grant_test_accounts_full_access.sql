@@ -37,21 +37,27 @@ begin
       updated_at = now()
   where id = v_reseller_id;
 
+  -- Real, structured PSGC address (Barangay Bagong Pag-asa, Quezon City,
+  -- Metro Manila) with pickup coordinates, so the test merchant is a valid
+  -- distance/shipping-fee origin instead of an unmappable placeholder string.
   insert into public.merchant_profiles (
     id, business_name, business_description, business_address, status,
     subscription_active, subscription_expires_at,
-    business_permit_status, business_permit_notes, business_permit_reviewed_at
+    business_permit_status, business_permit_notes, business_permit_reviewed_at,
+    street, barangay, city, province, postal_code, pickup_latitude, pickup_longitude
   ) values (
     v_merchant_id,
     'JOM HUB Test Merchant',
     'Internal test merchant account',
-    'Internal test address - not for real deliveries',
+    '12 Mother Ignacia Avenue, Barangay Bagong Pag-asa, Quezon City, Metro Manila, 1105',
     'approved',
     true,
     now() + interval '100 years',
     'approved',
     'Internal test account exemption',
-    now()
+    now(),
+    '12 Mother Ignacia Avenue', 'Bagong Pag-asa', 'Quezon City', 'Metro Manila', '1105',
+    14.648000, 121.035000
   )
   on conflict (id) do update set
     business_name = excluded.business_name,
@@ -62,7 +68,14 @@ begin
     subscription_expires_at = excluded.subscription_expires_at,
     business_permit_status = 'approved',
     business_permit_notes = excluded.business_permit_notes,
-    business_permit_reviewed_at = now();
+    business_permit_reviewed_at = now(),
+    street = excluded.street,
+    barangay = excluded.barangay,
+    city = excluded.city,
+    province = excluded.province,
+    postal_code = excluded.postal_code,
+    pickup_latitude = excluded.pickup_latitude,
+    pickup_longitude = excluded.pickup_longitude;
 
   insert into public.wallets (owner_id, balance)
   values (v_merchant_id, 10000000), (v_reseller_id, 10000000)

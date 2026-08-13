@@ -137,6 +137,7 @@ export default function StorefrontOrderRequests() {
           address: composedAddress,
           street: cleanText(addressParts.street, 200) || null,
           barangay: cleanText(addressParts.barangay, 120) || null,
+          barangay_code: addressParts.barangayCode || null,
           city: cleanText(addressParts.city, 120) || null,
           province: cleanText(addressParts.province, 120) || null,
           postal_code: cleanText(addressParts.postalCode, 10) || null,

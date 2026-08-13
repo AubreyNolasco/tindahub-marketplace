@@ -21,6 +21,8 @@ export default function Customers() {
   const [selectedCustomer, setSelectedCustomer] = useState(null)
   const [showDetail, setShowDetail] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -34,6 +36,7 @@ export default function Customers() {
 
   const handleAdd = async (e) => {
     e.preventDefault()
+    if (saving) return
     const composedAddress = composeAddress(addressParts)
     if (!isCompleteAddress(composedAddress)) return toast.error('Please enter the customer’s complete address.')
     const payload = {
@@ -44,27 +47,39 @@ export default function Customers() {
       address: cleanText(composedAddress, 500),
       street: cleanText(addressParts.street, 200) || null,
       barangay: cleanText(addressParts.barangay, 120) || null,
+      barangay_code: addressParts.barangayCode || null,
       city: cleanText(addressParts.city, 120) || null,
       province: cleanText(addressParts.province, 120) || null,
       postal_code: cleanText(addressParts.postalCode, 10) || null,
       latitude: addressParts.latitude,
       longitude: addressParts.longitude,
     }
-    const { error } = await supabase.from('customers').insert(payload)
-    if (error) return toast.error(error.message)
-    toast.success('Customer added.')
-    setForm({ name: '', phone: '', notes: '' })
-    setAddressParts(emptyAddressParts())
-    setShowForm(false)
-    load()
+    setSaving(true)
+    try {
+      const { error } = await supabase.from('customers').insert(payload)
+      if (error) return toast.error(error.message)
+      toast.success('Customer added.')
+      setForm({ name: '', phone: '', notes: '' })
+      setAddressParts(emptyAddressParts())
+      setShowForm(false)
+      await load()
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleDelete = async () => {
-    if (!deleteTarget) return
-    await supabase.from('customers').delete().eq('id', deleteTarget.id)
-    setDeleteTarget(null)
-    toast.success('Customer removed.')
-    load()
+    if (!deleteTarget || deleting) return
+    setDeleting(true)
+    try {
+      const { error } = await supabase.from('customers').delete().eq('id', deleteTarget.id).eq('reseller_id', user.id)
+      if (error) return toast.error(error.message)
+      setDeleteTarget(null)
+      toast.success('Customer removed.')
+      await load()
+    } finally {
+      setDeleting(false)
+    }
   }
 
   const columns = [
@@ -102,7 +117,7 @@ export default function Customers() {
             <p className="mt-1 text-[11px] leading-4 text-ink/45">{COMPLETE_ADDRESS_HELP}</p>
           </div>
           <textarea className="input-field" placeholder="Notes (optional)" rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
-          <button type="submit" disabled={!isCompleteAddress(composeAddress(addressParts))} className="btn-primary w-full">Save Customer</button>
+          <button type="submit" disabled={saving || !isCompleteAddress(composeAddress(addressParts))} className="btn-primary w-full">{saving ? 'Saving…' : 'Save Customer'}</button>
         </form>
       )}
 
@@ -149,6 +164,7 @@ export default function Customers() {
         message={`Remove ${deleteTarget?.name || 'this customer'} from your list? This cannot be undone.`}
         confirmText="Delete"
         variant="danger"
+        loading={deleting}
       />
     </div>
   )

@@ -41,64 +41,12 @@ export async function resolvePsgcCodes(provinceName, cityName) {
   return { provinceCode: province.code, cityCode: city?.code || null }
 }
 
-const normalizePlace = (value = '') => value.toLocaleLowerCase()
-  .replace(/\b(city of|province of|municipality of|city|municipality|province|brgy|barangay)\b/g, '')
-  .replace(/[^a-z0-9]/g, '')
-
-const findPlace = (rows, ...candidates) => {
-  const names = candidates.filter(Boolean).map(normalizePlace)
-  return rows.find((row) => names.includes(normalizePlace(row.name))) || null
-}
-
-let allCitiesPromise
-const listAllCities = async () => {
-  if (!allCitiesPromise) {
-    allCitiesPromise = (async () => {
-      const rows = []
-      const pageSize = 1000
-      for (let from = 0; ; from += pageSize) {
-        const { data, error } = await supabase.from('psgc_cities').select('code, name, province_code').order('name').range(from, from + pageSize - 1)
-        if (error) throw error
-        rows.push(...(data || []))
-        if (!data || data.length < pageSize) return rows
-      }
-    })()
-      .catch((error) => {
-        allCitiesPromise = null
-        throw error
-      })
-  }
-  return allCitiesPromise
-}
-
-export async function resolveGeocodedPsgc(parts = {}) {
-  const provinces = await listProvinces()
-  const provinceAliases = /metro manila|national capital region|\bncr\b/i.test(parts.province || '')
-    ? ['Metro Manila', 'National Capital Region', parts.province]
-    : [parts.province]
-  let province = findPlace(provinces, ...provinceAliases)
-  let city = null
-
-  if (province) {
-    city = findPlace(await listCities(province.code), parts.city)
-  } else if (parts.city) {
-    // Nominatim often returns only a broad region for Philippine places
-    // (for example Central Visayas for Cebu City). Use an unambiguous
-    // official city/municipality match to recover its real province.
-    const cityMatches = (await listAllCities()).filter((row) => normalizePlace(row.name) === normalizePlace(parts.city))
-    if (cityMatches.length === 1) {
-      city = cityMatches[0]
-      province = provinces.find((row) => row.code === city.province_code) || null
-    }
-  }
-
-  if (!province) return {}
-  if (!city) return { province: province.name, provinceCode: province.code }
-  const barangays = await listBarangays(city.code)
-  const barangay = findPlace(barangays, parts.barangay)
-  return {
-    province: province.name, provinceCode: province.code,
-    city: city.name, cityCode: city.code,
-    ...(barangay ? { barangay: barangay.name } : {}),
-  }
+// Existing rows saved their barangay as plain free text too. Re-opening
+// the form resolves it back onto a real psgc_barangays row the same way
+// resolvePsgcCodes() does for province/city, so barangay_code can be
+// populated for records saved before that column existed.
+export async function resolveBarangayCode(cityCode, barangayName) {
+  if (!cityCode || !barangayName) return null
+  const { data } = await supabase.from('psgc_barangays').select('code').eq('city_code', cityCode).ilike('name', barangayName).maybeSingle()
+  return data?.code || null
 }

@@ -5,8 +5,7 @@ import iconUrl from 'leaflet/dist/images/marker-icon.png'
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png'
 import 'leaflet/dist/leaflet.css'
 
-// Same Vite asset-URL fix RouteMap.jsx already uses for Leaflet's default
-// marker icon.
+// Vite asset-URL fix for Leaflet's default marker icon.
 const markerIcon = L.icon({ iconRetinaUrl, iconUrl, shadowUrl, iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41] })
 
 // Center of the Philippines — used only when the user has no pin yet, so
@@ -17,10 +16,8 @@ const DEFAULT_ZOOM = 6
 const PIN_ZOOM = 17
 
 // Click-or-drag pin picker for AddressFields' "Pin your exact location"
-// mode. Lets a user set latitude/longitude directly instead of only ever
-// getting coordinates as a side effect of picking a LocationIQ search
-// result (which silently leaves lat/lng null for anyone who just fills in
-// the text fields).
+// mode — the only way latitude/longitude get set, since there's no
+// geocoding provider to derive them from typed text.
 export default function LocationPickerMap({ latitude, longitude, onPick, height = 260 }) {
   const containerRef = useRef(null)
   const mapRef = useRef(null)

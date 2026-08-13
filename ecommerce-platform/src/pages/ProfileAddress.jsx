@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { cleanText } from '../utils/security'
 import AddressFields from '../components/address/AddressFields'
 import { COMPLETE_ADDRESS_HELP, composeAddress, emptyAddressParts, isCompleteAddress, partsFromLegacyAddress } from '../utils/address'
-import { resolvePsgcCodes } from '../lib/services/psgc'
+import { resolveBarangayCode, resolvePsgcCodes } from '../lib/services/psgc'
 
 export default function ProfileAddress({ merchant = false }) {
   const { user, profile, refreshProfile } = useAuth()
@@ -18,13 +18,18 @@ export default function ProfileAddress({ merchant = false }) {
     if (!source) return
     const hasStructured = source.street || source.barangay || source.city || source.province || source.postal_code
     if (!hasStructured) { setParts(partsFromLegacyAddress(merchant ? source.business_address : source.address)); return }
-    const loaded = { street: source.street || '', barangay: source.barangay || '', city: source.city || '', province: source.province || '', postalCode: source.postal_code || '', latitude: merchant ? source.pickup_latitude ?? null : source.latitude ?? null, longitude: merchant ? source.pickup_longitude ?? null : source.longitude ?? null, provinceCode: null, cityCode: null }
+    const loaded = { street: source.street || '', barangay: source.barangay || '', city: source.city || '', province: source.province || '', postalCode: source.postal_code || '', latitude: merchant ? source.pickup_latitude ?? null : source.latitude ?? null, longitude: merchant ? source.pickup_longitude ?? null : source.longitude ?? null, provinceCode: null, cityCode: null, barangayCode: source.barangay_code || null }
     setParts(loaded)
     // Saved rows only ever had names, not PSGC codes — resolve them so
     // the Province/City dropdowns show the existing selection instead of
     // appearing blank on reopen.
     resolvePsgcCodes(loaded.province, loaded.city).then(({ provinceCode, cityCode }) => {
       setParts((current) => (current.province === loaded.province && current.city === loaded.city ? { ...current, provinceCode, cityCode } : current))
+      if (cityCode && !loaded.barangayCode) {
+        resolveBarangayCode(cityCode, loaded.barangay).then((barangayCode) => {
+          if (barangayCode) setParts((current) => (current.city === loaded.city && current.barangay === loaded.barangay ? { ...current, barangayCode } : current))
+        }).catch(() => {})
+      }
     }).catch(() => {})
   }, [profile, merchant])
 
@@ -40,6 +45,7 @@ export default function ProfileAddress({ merchant = false }) {
       [addressColumn]: cleanText(composed, 500),
       street: cleanText(parts.street, 200) || null,
       barangay: cleanText(parts.barangay, 120) || null,
+      barangay_code: parts.barangayCode || null,
       city: cleanText(parts.city, 120) || null,
       province: cleanText(parts.province, 120) || null,
       postal_code: cleanText(parts.postalCode, 10) || null,

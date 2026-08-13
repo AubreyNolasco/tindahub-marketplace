@@ -4,7 +4,7 @@ import {
   BarChart3, Boxes, Building2, CircleDollarSign,
   ClipboardList, CreditCard, FileChartColumn, FileDown,
   FileUp, FolderTree, GalleryHorizontal, House, IdCard, LayoutDashboard, LifeBuoy, Menu, MessageSquare,
-  Megaphone, PanelLeftClose, Presentation, ReceiptText, ShieldAlert, ShieldCheck, Star, UsersRound, WalletCards, X, History, CalendarDays, UserCog, Scale, BookOpenCheck, KeyRound, Activity, Workflow, Bug, Clock3, Truck, Plug, Ticket
+  Megaphone, PanelLeftClose, Presentation, ReceiptText, ShieldAlert, ShieldCheck, Star, UsersRound, WalletCards, X, History, CalendarDays, UserCog, Scale, BookOpenCheck, KeyRound, Activity, Workflow, Bug, Clock3, Truck, Plug, Ticket, Milestone
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { canAccessAdmin } from '../../config/adminPermissions'
@@ -77,6 +77,7 @@ const sections = [
     label: 'Platform Config',
     items: [
       { to: '/admin/delivery-providers', label: 'Delivery Providers', icon: Truck, adminOnly: true },
+      { to: '/admin/shipping-pricing', label: 'Shipping & Order Fees', icon: Milestone, adminOnly: true },
       { to: '/admin/integrations', label: 'Integrations', icon: Plug, adminOnly: true },
       { to: '/admin/legal', label: 'Legal Settings', icon: Scale, adminOnly: true }
     ]

@@ -57,13 +57,16 @@ export default function Checkout() {
   const [merchant, setMerchant] = useState(null)
   const [wallet, setWallet] = useState(null)
   const [customerAddress, setCustomerAddress] = useState(null)
-  const [addressParts, setAddressParts] = useState(partsFromLegacyAddress(group?.customerAddress || ''))
+  const [customerLocation, setCustomerLocation] = useState({ latitude: null, longitude: null })
+  const [addressParts, setAddressParts] = useState({ ...partsFromLegacyAddress(group?.customerAddress || ''), latitude: null, longitude: null })
   // place_customer_receiver_shipping_order requires the shipping address to
   // match the saved customer's address exactly (case-insensitive) -- it's
   // not a freeform field for that path, so skip the editable form entirely
   // and always submit the customer's own address, re-fetched live so it
   // can't drift from what the RPC will compare against.
   const address = customerId ? (customerAddress ?? '') : composeAddress(addressParts)
+  const deliveryLatitude = customerId ? customerLocation.latitude : addressParts.latitude
+  const deliveryLongitude = customerId ? customerLocation.longitude : addressParts.longitude
   const [submitting, setSubmitting] = useState(false)
   const [shippingGuideOpen, setShippingGuideOpen] = useState(false)
   const [shippingAccepted, setShippingAccepted] = useState(false)
@@ -90,9 +93,10 @@ export default function Checkout() {
 
   const loadCustomerAddress = useCallback(async () => {
     if (!customerId) return
-    const { data, error } = await supabase.from('customers').select('address').eq('id', customerId).maybeSingle()
+    const { data, error } = await supabase.from('customers').select('address, latitude, longitude').eq('id', customerId).maybeSingle()
     if (error) toast.error(error.message)
     setCustomerAddress(data?.address || '')
+    setCustomerLocation({ latitude: data?.latitude ?? null, longitude: data?.longitude ?? null })
   }, [customerId])
 
   useEffect(() => {
@@ -103,8 +107,8 @@ export default function Checkout() {
   useEffect(() => {
     if (customerId || !profile?.address) return
     const hasStructured = profile.street || profile.barangay || profile.city || profile.province || profile.postal_code
-    if (!hasStructured) { setAddressParts(partsFromLegacyAddress(profile.address)); return }
-    const loaded = { street: profile.street || '', barangay: profile.barangay || '', city: profile.city || '', province: profile.province || '', postalCode: profile.postal_code || '', latitude: null, longitude: null, provinceCode: null, cityCode: null }
+    if (!hasStructured) { setAddressParts({ ...partsFromLegacyAddress(profile.address), latitude: profile.latitude ?? null, longitude: profile.longitude ?? null }); return }
+    const loaded = { street: profile.street || '', barangay: profile.barangay || '', city: profile.city || '', province: profile.province || '', postalCode: profile.postal_code || '', latitude: profile.latitude ?? null, longitude: profile.longitude ?? null, provinceCode: null, cityCode: null }
     setAddressParts(loaded)
     resolvePsgcCodes(loaded.province, loaded.city).then(({ provinceCode, cityCode }) => {
       setAddressParts((current) => (current.province === loaded.province && current.city === loaded.city ? { ...current, provinceCode, cityCode } : current))
@@ -115,10 +119,10 @@ export default function Checkout() {
     if (!merchantId || items.length === 0) return
     let active = true
     setQuoteLoading(true)
-    supabase.rpc('quote_order', { p_merchant_id: merchantId, p_items: items.map((item) => ({ product_id: item.product_id, quantity: item.quantity })), p_shipping_fee: 0, p_voucher_code: activeVoucherCode })
+    supabase.rpc('quote_order', { p_merchant_id: merchantId, p_items: items.map((item) => ({ product_id: item.product_id, quantity: item.quantity })), p_delivery_latitude: deliveryLatitude, p_delivery_longitude: deliveryLongitude, p_voucher_code: activeVoucherCode })
       .then(({ data, error }) => { if (!active) return; if (error) { setQuote(null); toast.error(`Unable to verify checkout price: ${error.message}`) } else setQuote(data); setQuoteLoading(false) })
     return () => { active = false }
-  }, [merchantId, items, activeVoucherCode])
+  }, [merchantId, items, activeVoucherCode, deliveryLatitude, deliveryLongitude])
 
   const applyVoucher = () => setActiveVoucherCode(voucherInput.trim().toUpperCase() || null)
   const removeVoucher = () => { setVoucherInput(''); setActiveVoucherCode(null) }
@@ -140,6 +144,8 @@ export default function Checkout() {
   const localSubtotal = items.reduce((s, i) => s + itemPrice(i) * i.quantity, 0)
   const subtotal = quote ? Number(quote.subtotal) : localSubtotal
   const resellerOperationFee = quote ? Number(quote.reseller_fee) : role === 'reseller' ? Math.max(3, Math.min(50, Math.round(localSubtotal * 0.01 * 100) / 100)) : 0
+  const shippingCalculated = quote?.shipping_status === 'calculated'
+  const shippingFee = shippingCalculated ? Number(quote.shipping_fee) : 0
   const total = quote ? Number(quote.total) : subtotal + resellerOperationFee
   const customerRevenue = role === 'reseller' ? items.reduce((sum, item) => sum + Number(item.customer_selling_price ?? getSuggestedCustomerPrice(item)) * item.quantity, 0) : 0
   const estimatedProfit = customerRevenue - subtotal - resellerOperationFee
@@ -157,7 +163,7 @@ export default function Checkout() {
   const handleSubmit = (e) => {
     e.preventDefault()
     if (!validateOrder()) return
-    if (role === 'reseller') { setShippingAccepted(false); setShippingGuideOpen(true) }
+    if (role === 'reseller' && !shippingCalculated) { setShippingAccepted(false); setShippingGuideOpen(true) }
     else placeOrder()
   }
 
@@ -172,7 +178,8 @@ export default function Checkout() {
         p_items: items.map((i) => ({ product_id: i.product_id, quantity: i.quantity })), p_voucher_code: activeVoucherCode
       } : {
         p_merchant_id: merchantId, p_shipping_address: address,
-        p_items: items.map((i) => ({ product_id: i.product_id, quantity: i.quantity })), p_voucher_code: activeVoucherCode
+        p_items: items.map((i) => ({ product_id: i.product_id, quantity: i.quantity })), p_voucher_code: activeVoucherCode,
+        p_delivery_latitude: deliveryLatitude, p_delivery_longitude: deliveryLongitude
       }
       const { data: order, error } = await supabase.rpc(rpc, params)
 
@@ -202,7 +209,9 @@ export default function Checkout() {
       // still sitting unpaid back in the cart.
       const remainingGroups = Object.keys(groupedOrders).filter((key) => key !== `${merchantId}__${customerId || 'self'}`)
       clearOrderItems(merchantId, customerId)
-      toast.success('Order placed! Product and system fees were charged to your wallet. Shipping will be paid upon delivery.')
+      toast.success(shippingCalculated
+        ? 'Order placed! Product, shipping, and system fees were charged to your wallet.'
+        : 'Order placed! Product and system fees were charged to your wallet. Shipping will be confirmed and paid upon delivery.')
       if (role === 'reseller' && remainingGroups.length > 0) {
         toast.success(`${remainingGroups.length} more order${remainingGroups.length === 1 ? '' : 's'} from other stores still waiting in your cart.`, { duration: 5000 })
         navigate('/cart')
@@ -234,7 +243,10 @@ export default function Checkout() {
                 <span>{peso(itemPrice(i) * i.quantity)}</span>
               </div>
             ))}
-            <div className="flex justify-between border-t border-black/5 pt-2 text-ink/60"><span>Shipping fee</span><span className="font-semibold text-mango-600">Pay upon delivery</span></div>
+            <div className="flex justify-between border-t border-black/5 pt-2 text-ink/60">
+              <span>Delivery Fee{shippingCalculated && quote?.distance_km != null ? ` (${Number(quote.distance_km).toFixed(1)} km, ${quote.shipping_vehicle})` : ''}</span>
+              {quoteLoading ? <span className="text-ink/40">…</span> : shippingCalculated ? <span>{peso(shippingFee)}</span> : <span className="font-semibold text-mango-600">Confirmed after ordering</span>}
+            </div>
             {resellerOperationFee > 0 && <div className="flex justify-between text-ink/60"><span>{quote?.reseller_fee_percent || 1}% Reseller System Fee</span><span>{peso(resellerOperationFee)}</span></div>}
             {quote?.voucher_valid && Number(quote.voucher_discount) > 0 && <div className="flex justify-between text-teal-700"><span>Voucher ({activeVoucherCode})</span><span>-{peso(quote.voucher_discount)}</span></div>}
             <div className="flex justify-between border-t border-black/5 pt-3 font-display text-lg font-bold text-ink"><span>Final amount to pay</span><span className="text-teal-700">{peso(total)}</span></div>
@@ -268,11 +280,18 @@ export default function Checkout() {
               <p className="mt-2 text-xs text-ink/45">This order ships to {group?.customerName}'s saved address. To change it, update the customer's address from <Link to="/reseller/customers" className="font-semibold text-teal-700 underline">Customers</Link> first.</p>
             </>
           ) : (
-            <AddressFields value={addressParts} onChange={setAddressParts} required />
+            <>
+              <AddressFields value={addressParts} onChange={setAddressParts} required withCoordinates />
+              {addressParts.latitude == null && <p className="mt-2 text-xs leading-5 text-mango-700">Pin your exact location on the map above to get an automatic delivery fee. Without it, shipping will be confirmed and paid separately after ordering.</p>}
+            </>
           )}
         </div>
 
-        <div className="card border-mango-300 bg-mango-100/50 p-5"><div className="flex items-start gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-surface text-mango-600"><Truck size={19} /></span><div><h2 className="font-semibold text-ink">Shipping fee is paid upon delivery</h2><p className="mt-1 text-sm leading-6 text-ink/60">The reseller or final recipient will pay the actual delivery fee directly to the rider or delivery provider when the products arrive. This fee is not included in the JOM HUB wallet payment.</p></div></div></div>
+        {shippingCalculated ? (
+          <div className="card border-teal-300 bg-teal-50 p-5 dark:border-teal-700 dark:bg-teal-500/10"><div className="flex items-start gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-surface text-teal-600"><Truck size={19} /></span><div><h2 className="font-semibold text-ink">Delivery fee included in your payment</h2><p className="mt-1 text-sm leading-6 text-ink/60">Calculated automatically from the distance between the merchant and your pinned delivery location, and charged to your wallet along with the rest of this order.</p></div></div></div>
+        ) : (
+          <div className="card border-mango-300 bg-mango-100/50 p-5"><div className="flex items-start gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-surface text-mango-600"><Truck size={19} /></span><div><h2 className="font-semibold text-ink">Shipping fee will be confirmed after ordering</h2><p className="mt-1 text-sm leading-6 text-ink/60">An automatic fee couldn't be calculated for this order yet{addressParts.latitude == null && !customerId ? ' — pin your delivery location above to enable it next time' : ''}. The merchant will propose a fee, and the reseller or final recipient will pay it directly to the rider or delivery provider when the products arrive. This fee is not included in the JOM HUB wallet payment.</p></div></div></div>
+        )}
 
         <div className={`card p-5 ${insufficientBalance ? 'bg-coral-100' : 'bg-teal-500 text-white'}`}>
           <div className={`flex items-center gap-2 mb-1 text-sm ${insufficientBalance ? 'text-coral-600' : 'text-teal-100'}`}>
