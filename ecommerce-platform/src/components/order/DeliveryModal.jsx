@@ -31,17 +31,19 @@ export default function DeliveryModal({order,open,onClose,onSaved}){
 
   const bookingActive = booking && ACTIVE_LALAMOVE_STATUSES.includes(booking.status)
   const bookingFailed = booking && booking.status === 'failed'
+  const isPrepaid = order.shipping_payment_method === 'prepaid_wallet'
+  const confirmedFee = order.proposed_shipping_fee ?? order.shipping_fee
 
   const submit=async e=>{
     e.preventDefault()
-    if(order.shipping_fee_confirmation_status!=='accepted')return toast.error('Reseller shipping confirmation is required.')
+    if(!isPrepaid && order.shipping_fee_confirmation_status!=='accepted')return toast.error('Reseller shipping confirmation is required.')
     if(!proof)return toast.error('Upload dispatch or booking proof.')
     setSaving(true)
     const compressed=await compressImage(proof)
     const ext=compressed.name.split('.').pop()?.toLowerCase()||'jpg',path=`${user.id}/${order.id}/${Date.now()}.${ext}`
     const upload=await supabase.storage.from('delivery-proofs').upload(path,compressed,{contentType:compressed.type,upsert:false})
     if(upload.error){setSaving(false);return toast.error(upload.error.message)}
-    const{error}=await supabase.rpc('set_order_delivery',{p_order_id:order.id,p_provider:provider,p_tracking:tracking,p_pickup:pickup?new Date(pickup).toISOString():null,p_estimated:eta?new Date(eta).toISOString():null,p_proof_url:path,p_actual_fee:Number(order.proposed_shipping_fee)})
+    const{error}=await supabase.rpc('set_order_delivery',{p_order_id:order.id,p_provider:provider,p_tracking:tracking,p_pickup:pickup?new Date(pickup).toISOString():null,p_estimated:eta?new Date(eta).toISOString():null,p_proof_url:path,p_actual_fee:Number(confirmedFee)})
     setSaving(false)
     if(error)return toast.error(error.message)
     toast.success('Delivery details saved and the order was marked Shipped.')
@@ -50,8 +52,8 @@ export default function DeliveryModal({order,open,onClose,onSaved}){
 
   return <div className="fixed inset-0 z-[90] grid place-items-center bg-scrim/60 p-4">
     <div className="card max-h-[90vh] w-full max-w-lg overflow-y-auto p-6">
-      <div className="flex justify-between"><div><h2 className="font-display text-xl font-bold">Dispatch order</h2><p className="text-xs text-ink/45">The Reseller accepted the shipping fee. Complete the dispatch details.</p></div><button type="button" onClick={onClose}><X size={18}/></button></div>
-      <div className="mt-4 rounded-xl bg-teal-50 p-3 text-sm text-teal-900"><strong>Accepted shipping fee:</strong> {peso(order.proposed_shipping_fee)}</div>
+      <div className="flex justify-between"><div><h2 className="font-display text-xl font-bold">Dispatch order</h2><p className="text-xs text-ink/45">{isPrepaid ? 'Shipping was charged automatically at checkout. Complete the dispatch details.' : 'The Reseller accepted the shipping fee. Complete the dispatch details.'}</p></div><button type="button" onClick={onClose}><X size={18}/></button></div>
+      <div className="mt-4 rounded-xl bg-teal-50 p-3 text-sm text-teal-900"><strong>{isPrepaid ? 'Shipping fee (charged automatically):' : 'Accepted shipping fee:'}</strong> {peso(confirmedFee)}</div>
 
       {checkingBooking ? (
         <div className="mt-5 flex justify-center py-6"><Loader2 size={20} className="animate-spin text-teal-600"/></div>

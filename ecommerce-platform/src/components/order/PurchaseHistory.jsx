@@ -68,7 +68,9 @@ export default function PurchaseHistory() {
     { header: 'Status', accessor: 'status', format: 'badge', sortable: true },
     {
       header: 'Shipping fee',
-      render: (row) => row.status !== 'processing' || !row.shipping_fee_confirmation_status ? <span className="text-ink/30">—</span>
+      render: (row) => row.status !== 'processing' ? <span className="text-ink/30">—</span>
+        : row.shipping_payment_method === 'prepaid_wallet' ? <span className="badge bg-teal-100 text-teal-700">Paid</span>
+        : !row.shipping_fee_confirmation_status ? <span className="text-ink/30">—</span>
         : row.shipping_fee_confirmation_status === 'pending' ? <span className="badge bg-coral-100 text-coral-700">Needs your decision</span>
         : row.shipping_fee_confirmation_status === 'declined' ? <span className="badge bg-mango-100 text-mango-700">Waiting on Merchant</span>
         : <span className="badge bg-teal-100 text-teal-700">Accepted</span>

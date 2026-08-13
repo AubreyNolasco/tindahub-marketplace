@@ -107,7 +107,9 @@ export default function Orders() {
     { header: 'Status', accessor: 'status', format: 'badge', sortable: true },
     {
       header: 'Shipping fee',
-      render: (row) => row.status !== 'processing' || !row.shipping_fee_confirmation_status ? <span className="text-ink/30">—</span>
+      render: (row) => row.status !== 'processing' ? <span className="text-ink/30">—</span>
+        : row.shipping_payment_method === 'prepaid_wallet' ? <span className="badge bg-teal-100 text-teal-700">Paid — ready to dispatch</span>
+        : !row.shipping_fee_confirmation_status ? <span className="text-ink/30">—</span>
         : row.shipping_fee_confirmation_status === 'pending' ? <span className="badge bg-mango-100 text-mango-700">Waiting on reseller</span>
         : row.shipping_fee_confirmation_status === 'declined' ? <span className="badge bg-coral-100 text-coral-700">Needs your action</span>
         : <span className="badge bg-teal-100 text-teal-700">Accepted</span>
@@ -253,7 +255,12 @@ export default function Orders() {
             {/* Shipping fee / dispatch */}
             {selectedOrder.status === 'processing' && (
               <div className="mt-4 rounded-xl border border-mango-200 bg-mango-50 p-4 text-sm text-ink/65">
-                {!selectedOrder.shipping_fee_confirmation_status && (
+                {selectedOrder.shipping_payment_method === 'prepaid_wallet' ? (
+                  <>
+                    <p className="font-semibold text-teal-800">Shipping fee of {peso(selectedOrder.shipping_fee)} was charged automatically at checkout. You may now dispatch the order.</p>
+                    <button onClick={() => { setShowDetail(false); setDeliveryOrder(selectedOrder) }} className="btn-primary mt-2 flex items-center gap-1.5 text-sm"><Truck size={16} /> Enter delivery details</button>
+                  </>
+                ) : !selectedOrder.shipping_fee_confirmation_status && (
                   <>
                     <p className="font-semibold text-ink">Packaging step: enter the actual shipping fee for Reseller approval.</p>
                     <button onClick={() => { setShowDetail(false); setShippingFeeOrder(selectedOrder) }} className="btn-primary mt-2 flex items-center gap-1.5 text-sm"><Truck size={16} /> Submit shipping fee</button>

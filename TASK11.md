@@ -1,6 +1,6 @@
 # Automatic Distance-Based Shipping Fee, PSGC+Leaflet-Only Address System — Progress & Handoff
 
-**Status: built, migrated to production (commit `b8f01ce` on `agent/fix-address-map-sync`, migrations applied via `supabase db push` and spot-verified with live RPC calls), NOT yet click-tested in a browser. Two real, unfinished gaps are documented at the bottom — read those before doing anything else.**
+**Status: built, migrated to production (commits `b8f01ce`/`7bc008c`/`<this fix>` on `agent/fix-address-map-sync`, migrations applied via `supabase db push` and spot-verified with live RPC calls), NOT yet click-tested in a browser. Gap 1 (dispatch blocked for automatic orders) is now fixed — see "Gap 1 — FIXED" below. Gap 2 (Lalamove vehicle-type selection) is still open.**
 
 Full architectural audit + rationale (why each decision was made, what was rejected and why) is a published artifact the owner already has: ask them for the link if it's not in your context, or re-derive from this file — this doc is the code-accurate summary, that one is the reasoning.
 
@@ -58,21 +58,18 @@ Two scope-defining decisions the owner gave mid-session, both **final, do not re
 
 ## Known gaps — read before continuing
 
-### Gap 1 (real bug, high priority): dispatch is blocked for automatically-priced orders
+### Gap 1 — FIXED: dispatch was blocked for automatically-priced orders
 
-`set_order_delivery()` (last defined `20260723001900_fix_database_lint_warnings.sql:5-49`) — the RPC `DeliveryModal.jsx` calls to mark an order `shipped` and record courier/tracking info — requires:
+`set_order_delivery()` (was `20260723001900_fix_database_lint_warnings.sql:5-49`) — the RPC `DeliveryModal.jsx` calls to mark an order `shipped` and record courier/tracking info — required `shipping_fee_confirmation_status='accepted' and proposed_shipping_fee is not null`, a pair **only ever set by the manual negotiation flow**. The automatic path (`shipping_payment_method = 'prepaid_wallet'`) never touched those columns, so they stayed `null` — a merchant had no way to mark an automatically-priced order as shipped through any existing UI. Same condition also gated the `enforce_shipping_fee_before_dispatch()` trigger directly on the `orders.status` transition.
 
-```sql
-where id=p_order_id and merchant_id=auth.uid() and status='processing'
-  and shipping_fee_confirmation_status='accepted'
-  and proposed_shipping_fee is not null
-```
+**Fixed in `20260813000600_prepaid_dispatch_fix.sql`** (applied to production): both the trigger and `set_order_delivery()`'s `where` clause now treat `shipping_payment_method = 'prepaid_wallet'` as an alternative already-confirmed state — an order is dispatch-ready if *either* the automatic fee was charged *or* the manual negotiation was accepted. `actual_shipping_fee` and the `p_actual_fee` compatibility check now use `coalesce(proposed_shipping_fee, shipping_fee)` so they resolve correctly on the prepaid path too (`proposed_shipping_fee` stays null there; `shipping_fee` holds the real charged amount).
 
-`shipping_fee_confirmation_status`/`proposed_shipping_fee` are **only ever set by the manual negotiation flow** (`propose_order_shipping_fee`/`respond_order_shipping_fee`, `20260722000900_shipping_fee_confirmation.sql`). The new automatic path built this session (`shipping_payment_method = 'prepaid_wallet'`) never touches those columns — they stay `null`. There is also a trigger, `enforce_shipping_fee_before_dispatch()` (same migration, `:49-58`), with the identical condition, blocking the `orders.status` transition from `processing` → `shipped` directly.
+**Frontend also fixed** (was silently broken in the same way — worth knowing even though the RPC fix alone would have surfaced a clear error instead of nothing):
+- `DeliveryModal.jsx` — `submit`'s guard, the header copy, and the fee shown/sent to the RPC all branch on a new `isPrepaid = order.shipping_payment_method === 'prepaid_wallet'` / `confirmedFee = order.proposed_shipping_fee ?? order.shipping_fee`, instead of assuming `proposed_shipping_fee` is always populated.
+- `Merchant/Orders.jsx` — the order-detail "Shipping fee / dispatch" panel had exactly one branch, `!selectedOrder.shipping_fee_confirmation_status`, which is `true` for both "genuinely needs manual pricing" *and* "already prepaid automatically" (both leave that column null) — it was showing "enter the actual shipping fee for Reseller approval" on already-paid orders, with no way to reach "Enter delivery details" at all. Added a `shipping_payment_method === 'prepaid_wallet'` branch ahead of it showing the charged fee and the dispatch button directly. The list-view "Shipping fee" column badge got the same branch (new "Paid — ready to dispatch" badge) so it's visible without opening the detail view.
+- `PurchaseHistory.jsx` (reseller side) — was already safe by construction (its branches only fire on non-null `shipping_fee_confirmation_status` values, so a prepaid order correctly fell through to `—`), but added a matching "Paid" badge for consistency/visibility rather than leaving it blank.
 
-**Net effect: a merchant currently has no way to mark an automatically-priced order as shipped, or record a real courier booking for it, through any existing UI.** This is not a hypothetical — it's the default path now for every order where both pins exist and the cart fits standard limits.
-
-**Recommended fix** (not yet built): widen both the RPC's `where` clause and the trigger's condition to also accept `shipping_payment_method = 'prepaid_wallet'` as an already-confirmed state, alongside the existing `shipping_fee_confirmation_status = 'accepted'` check — i.e. an order is dispatch-ready if *either* the automatic fee was charged *or* the manual negotiation was accepted. `set_order_delivery`'s `p_actual_fee` compatibility check (`:41`, `p_actual_fee is null or round(p_actual_fee,2)=proposed_shipping_fee`) would need the equivalent addition for the `shipping_fee` column when `proposed_shipping_fee` is null.
+**Not done**: no live click-through — there's no real order in the `processing` status with `shipping_payment_method = 'prepaid_wallet'` yet in production (no merchant has pickup coordinates set except the unapplied test-account fix, so no real order has taken the automatic path yet). Verified via `npm run lint` (clean), `npm test` (45/45), and a clean `supabase db push` (a broken function body would have failed it). Whoever picks this up next should place one real test order end-to-end (merchant with a pickup pin + customer with a delivery pin) and click through Orders → dispatch to confirm live, not just trust the migration compiled.
 
 ### Gap 2 (real gap, discussed with owner but not yet built): no vehicle-type choice for the actual courier booking
 
