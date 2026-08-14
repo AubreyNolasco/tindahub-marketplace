@@ -24,15 +24,23 @@ export default function LocationPickerMap({ latitude, longitude, onPick, height 
   const containerRef = useRef(null)
   const mapRef = useRef(null)
   const markerRef = useRef(null)
-  const searchWrapperRef = useRef(null)
   const onPickRef = useRef(onPick)
   onPickRef.current = onPick
 
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [searching, setSearching] = useState(false)
-  const [dismissed, setDismissed] = useState(false)
 
+  // Dropdown visibility is driven by results.length alone — nothing
+  // tracks focus/blur/click-outside. Two earlier attempts (an onBlur
+  // timeout, then a click-outside listener) both raced the 600ms
+  // debounced fetch and could end up hidden by the time results arrived,
+  // even though the fetch itself always succeeded (confirmed repeatedly
+  // via network inspection during testing — the bug was purely the
+  // dropdown's own visibility state, never the search). Showing/hiding
+  // strictly from whether there are results to show removes the race
+  // entirely: results are cleared on selecting one, or on the next
+  // effect run once the query gets too short to search.
   useEffect(() => {
     if (query.trim().length < 3) { setResults([]); setSearching(false); return }
     let stale = false
@@ -44,17 +52,6 @@ export default function LocationPickerMap({ latitude, longitude, onPick, height 
     }, 600)
     return () => { stale = true; clearTimeout(timer) }
   }, [query])
-
-  // Click-outside to dismiss, rather than the input's own onBlur: a
-  // blur-driven hide races with the debounced fetch above and can hide
-  // the dropdown moments before results arrive, when the field briefly
-  // loses focus for any reason (a tap on a scrollbar, a touch-device
-  // quirk) during the 600ms wait.
-  useEffect(() => {
-    const onClickAway = (event) => { if (searchWrapperRef.current && !searchWrapperRef.current.contains(event.target)) setDismissed(true) }
-    document.addEventListener('mousedown', onClickAway)
-    return () => document.removeEventListener('mousedown', onClickAway)
-  }, [])
 
   const selectResult = (result) => {
     onPickRef.current(result.latitude, result.longitude)
@@ -122,17 +119,17 @@ export default function LocationPickerMap({ latitude, longitude, onPick, height 
 
   return (
     <div>
-      <div className="relative mb-2" ref={searchWrapperRef}>
+      <div className="relative mb-2">
         <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink/35" />
         <input
           type="text"
           value={query}
-          onChange={(event) => { setQuery(event.target.value); setDismissed(false) }}
+          onChange={(event) => setQuery(event.target.value)}
           placeholder="Search your address to jump the pin there…"
           className="input-field w-full pl-8 text-sm"
         />
         {searching && <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-ink/35" />}
-        {!dismissed && results.length > 0 && (
+        {results.length > 0 && (
           <ul className="absolute z-[1000] mt-1 max-h-52 w-full overflow-y-auto rounded-xl border border-black/10 bg-surface shadow-lg">
             {results.map((result) => (
               <li key={result.id}>
