@@ -91,6 +91,27 @@ export default function AddressFields({ value, onChange, required = false, withC
     )
   }
 
+  // Opening the map for the first time (no pin yet) tries the device's
+  // current location automatically, so the pin starts near wherever the
+  // form was opened instead of the middle of the country — same
+  // permission prompt as the explicit "Use my current location" button,
+  // just triggered by opening the map instead of a second click. Silent
+  // on failure/denial (no toast): this is a convenience, not a request
+  // the user explicitly made, so it degrades to the plain map + manual
+  // pin without complaint.
+  const toggleMap = () => {
+    const opening = !showMap
+    setShowMap(opening)
+    if (opening && value.latitude == null && navigator.geolocation) {
+      setLocating(true)
+      navigator.geolocation.getCurrentPosition(
+        (position) => { pickMapLocation(position.coords.latitude, position.coords.longitude); setLocating(false) },
+        () => setLocating(false),
+        { enableHighAccuracy: true, timeout: 10000 }
+      )
+    }
+  }
+
   return (
     <div className="space-y-2">
       <input required={required} className="input-field w-full" placeholder="House/Unit No. & Street" value={value.street} onChange={setStreet} maxLength={200} />
@@ -136,7 +157,7 @@ export default function AddressFields({ value, onChange, required = false, withC
               <button type="button" onClick={useCurrentLocation} disabled={locating} className="flex items-center gap-1.5 text-xs font-semibold text-teal-700 hover:text-teal-800 disabled:opacity-50">
                 {locating ? <Loader2 size={13} className="animate-spin" /> : <Crosshair size={13} />} Use my current location
               </button>
-              <button type="button" onClick={() => setShowMap((v) => !v)} className="text-xs font-semibold text-teal-700 hover:text-teal-800">
+              <button type="button" onClick={toggleMap} className="text-xs font-semibold text-teal-700 hover:text-teal-800">
                 {showMap ? 'Hide map' : value.latitude != null ? 'Adjust on map' : 'Pin on map'}
               </button>
               {value.latitude != null && <button type="button" onClick={clearMapLocation} className="text-xs font-semibold text-ink/40 hover:text-ink/60">Clear</button>}

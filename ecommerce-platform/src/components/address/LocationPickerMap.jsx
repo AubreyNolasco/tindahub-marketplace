@@ -24,13 +24,14 @@ export default function LocationPickerMap({ latitude, longitude, onPick, height 
   const containerRef = useRef(null)
   const mapRef = useRef(null)
   const markerRef = useRef(null)
+  const searchWrapperRef = useRef(null)
   const onPickRef = useRef(onPick)
   onPickRef.current = onPick
 
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [searching, setSearching] = useState(false)
-  const [showResults, setShowResults] = useState(false)
+  const [dismissed, setDismissed] = useState(false)
 
   useEffect(() => {
     if (query.trim().length < 3) { setResults([]); setSearching(false); return }
@@ -44,10 +45,21 @@ export default function LocationPickerMap({ latitude, longitude, onPick, height 
     return () => { stale = true; clearTimeout(timer) }
   }, [query])
 
+  // Click-outside to dismiss, rather than the input's own onBlur: a
+  // blur-driven hide races with the debounced fetch above and can hide
+  // the dropdown moments before results arrive, when the field briefly
+  // loses focus for any reason (a tap on a scrollbar, a touch-device
+  // quirk) during the 600ms wait.
+  useEffect(() => {
+    const onClickAway = (event) => { if (searchWrapperRef.current && !searchWrapperRef.current.contains(event.target)) setDismissed(true) }
+    document.addEventListener('mousedown', onClickAway)
+    return () => document.removeEventListener('mousedown', onClickAway)
+  }, [])
+
   const selectResult = (result) => {
     onPickRef.current(result.latitude, result.longitude)
     setQuery(result.label)
-    setShowResults(false)
+    setResults([])
   }
   // Supabase returns `numeric` columns as strings to avoid float
   // precision loss in JSON, so lat/lng arriving from a saved profile can
@@ -110,23 +122,21 @@ export default function LocationPickerMap({ latitude, longitude, onPick, height 
 
   return (
     <div>
-      <div className="relative mb-2">
+      <div className="relative mb-2" ref={searchWrapperRef}>
         <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink/35" />
         <input
           type="text"
           value={query}
-          onChange={(event) => { setQuery(event.target.value); setShowResults(true) }}
-          onFocus={() => setShowResults(true)}
-          onBlur={() => setTimeout(() => setShowResults(false), 150)}
+          onChange={(event) => { setQuery(event.target.value); setDismissed(false) }}
           placeholder="Search your address to jump the pin there…"
           className="input-field w-full pl-8 text-sm"
         />
         {searching && <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-ink/35" />}
-        {showResults && results.length > 0 && (
+        {!dismissed && results.length > 0 && (
           <ul className="absolute z-[1000] mt-1 max-h-52 w-full overflow-y-auto rounded-xl border border-black/10 bg-surface shadow-lg">
             {results.map((result) => (
               <li key={result.id}>
-                <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => selectResult(result)} className="block w-full px-3 py-2 text-left text-xs text-ink/70 hover:bg-teal-50">
+                <button type="button" onClick={() => selectResult(result)} className="block w-full px-3 py-2 text-left text-xs text-ink/70 hover:bg-teal-50">
                   {result.label}
                 </button>
               </li>
