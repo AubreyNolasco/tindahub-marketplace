@@ -238,8 +238,8 @@ export default function ShippingPricing() {
               </label>
               {(() => {
                 const distance = Number(previewDistance)
-                const rule = { base_fee: Number(form.base_fee), included_distance_km: Number(form.included_distance_km), rate_per_km: Number(form.rate_per_km), additional_distance_rate: Number(form.additional_distance_rate), minimum_fee: form.minimum_fee === '' ? null : Number(form.minimum_fee), maximum_fee: form.maximum_fee === '' ? null : Number(form.maximum_fee), surcharge_percent: Number(form.surcharge_percent || 0), rounding_increment: Number(form.rounding_increment || 5), road_directness_multiplier: Number(form.road_directness_multiplier || 1) }
-                if (!distance || Number.isNaN(distance) || Object.values(rule).some((v) => v !== null && Number.isNaN(v))) return <p className="mt-2 text-xs text-ink/45">Fill in the rate fields above to see a preview.</p>
+                const rule = { base_fee: Number(form.base_fee), included_distance_km: Number(form.included_distance_km), rate_per_km: Number(form.rate_per_km), additional_distance_rate: Number(form.additional_distance_rate), minimum_fee: form.minimum_fee === '' ? null : Number(form.minimum_fee), maximum_fee: form.maximum_fee === '' ? null : Number(form.maximum_fee), surcharge_percent: Number(form.surcharge_percent || 0), rounding_increment: Number(form.rounding_increment || 5), road_directness_multiplier: Number(form.road_directness_multiplier || 1.3) }
+                if (previewDistance === '' || Number.isNaN(distance) || distance < 0 || Object.values(rule).some((v) => v !== null && Number.isNaN(v))) return <p className="mt-2 text-xs text-ink/45">Fill in the rate fields above to see a preview.</p>
                 const { fee, billingDistanceKm } = previewShippingFee(rule, distance)
                 return <p className="mt-2 text-sm text-ink/70">A {distance} km straight-line trip bills as <strong>{billingDistanceKm} km</strong> after the road multiplier, charging <strong className="text-teal-700">{peso(fee)}</strong>.</p>
               })()}

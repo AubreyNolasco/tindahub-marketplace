@@ -1,5 +1,10 @@
 import { supabase } from '../supabase'
 
+// Escapes ILIKE wildcards (%, _) in free text before using it in a
+// pattern match, so a stray '_' or '%' in an old free-text-saved name
+// can't accidentally match an unrelated row.
+const escapeIlike = (value) => value.replace(/[%_\\]/g, (char) => `\\${char}`)
+
 // Cascading Province -> City/Municipality -> Barangay, backed by the
 // official PSGC reference tables (20260806000600_psgc_reference_data.sql)
 // instead of free text, so a barangay can only ever be one that actually
@@ -34,10 +39,10 @@ export async function listBarangays(cityCode) {
 // dropdown just starts unselected and the user re-picks it once.
 export async function resolvePsgcCodes(provinceName, cityName) {
   if (!provinceName) return { provinceCode: null, cityCode: null }
-  const { data: province } = await supabase.from('psgc_provinces').select('code').ilike('name', provinceName).maybeSingle()
+  const { data: province } = await supabase.from('psgc_provinces').select('code').ilike('name', escapeIlike(provinceName)).maybeSingle()
   if (!province) return { provinceCode: null, cityCode: null }
   if (!cityName) return { provinceCode: province.code, cityCode: null }
-  const { data: city } = await supabase.from('psgc_cities').select('code').eq('province_code', province.code).ilike('name', cityName).maybeSingle()
+  const { data: city } = await supabase.from('psgc_cities').select('code').eq('province_code', province.code).ilike('name', escapeIlike(cityName)).maybeSingle()
   return { provinceCode: province.code, cityCode: city?.code || null }
 }
 
@@ -47,6 +52,6 @@ export async function resolvePsgcCodes(provinceName, cityName) {
 // populated for records saved before that column existed.
 export async function resolveBarangayCode(cityCode, barangayName) {
   if (!cityCode || !barangayName) return null
-  const { data } = await supabase.from('psgc_barangays').select('code').eq('city_code', cityCode).ilike('name', barangayName).maybeSingle()
+  const { data } = await supabase.from('psgc_barangays').select('code').eq('city_code', cityCode).ilike('name', escapeIlike(barangayName)).maybeSingle()
   return data?.code || null
 }

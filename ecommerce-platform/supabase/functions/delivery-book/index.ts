@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
 
     const { data: order, error: orderError } = await admin
       .from('orders')
-      .select('id, merchant_id, reseller_id, customer_id, status, shipping_fee_confirmation_status, proposed_shipping_fee, delivery_quote_account_id')
+      .select('id, merchant_id, reseller_id, customer_id, status, shipping_fee_confirmation_status, proposed_shipping_fee, delivery_quote_account_id, delivery_service_type')
       .eq('id', orderId)
       .single()
     if (orderError || !order) throw new Error('Order not found')
@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
     const pickup = { lat: merchant.pickup_latitude, lng: merchant.pickup_longitude, address: merchant.business_address || '', name: merchant.business_name || 'Merchant', phone: merchantProfile?.phone || '' }
     const dropoff = { lat: customer.latitude, lng: customer.longitude, address: customer.address || '', name: customer.name, phone: customer.phone || '' }
 
-    const booked = await getAdapter(account.provider_code).createBooking({ orderId: order.id, pickup, dropoff }, cred)
+    const booked = await getAdapter(account.provider_code).createBooking({ orderId: order.id, pickup, dropoff, serviceType: order.delivery_service_type || undefined }, cred)
     if (!booked.ok || !booked.externalOrderId) throw new Error(booked.error?.code || 'DELIVERY_BOOKING_FAILED')
 
     await admin

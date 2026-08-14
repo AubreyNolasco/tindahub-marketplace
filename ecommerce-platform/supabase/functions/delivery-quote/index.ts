@@ -3,6 +3,12 @@ import { getAdapter } from '../_shared/delivery/registry.ts'
 
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info, x-jomhub-device-id' }
 
+// VERIFY: Lalamove's exact PH serviceType enum once a real sandbox
+// account is available (see _shared/lalamove.ts header). Only the two
+// values the owner actually asked to distinguish (motorcycle vs. a real
+// car for bulkier orders) are exposed for now.
+const ALLOWED_SERVICE_TYPES = new Set(['MOTORCYCLE', 'CAR'])
+
 // Merchant-invoked: generalizes lalamove-quote to try every delivery
 // account available for this order — the Merchant's own, then the
 // Reseller's, then the Platform's (resolve_delivery_candidates, in that
@@ -17,8 +23,9 @@ Deno.serve(async (req) => {
     const { data: { user }, error: authError } = await userClient.auth.getUser()
     if (authError || !user) throw new Error('Unauthorized')
 
-    const { order_id } = await req.json()
+    const { order_id, service_type } = await req.json()
     if (typeof order_id !== 'string' || !order_id) throw new Error('Invalid request')
+    const serviceType = typeof service_type === 'string' && ALLOWED_SERVICE_TYPES.has(service_type) ? service_type : undefined
 
     const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
 
@@ -56,7 +63,7 @@ Deno.serve(async (req) => {
     let lastErrorCode = 'DELIVERY_NOT_AVAILABLE'
     for (const candidate of candidates) {
       const { data: cred } = await admin.rpc('get_delivery_provider_credentials', { p_account_id: candidate.id })
-      const quote = await getAdapter(candidate.provider_code).getQuote({ pickup, dropoff }, cred)
+      const quote = await getAdapter(candidate.provider_code).getQuote({ pickup, dropoff, serviceType }, cred)
       if (quote.ok) {
         return new Response(
           JSON.stringify({
@@ -65,6 +72,7 @@ Deno.serve(async (req) => {
             currency: quote.currency || 'PHP',
             provider_code: candidate.provider_code,
             account_id: candidate.id,
+            service_type: serviceType || 'MOTORCYCLE',
           }),
           { headers: { ...cors, 'Content-Type': 'application/json' } }
         )

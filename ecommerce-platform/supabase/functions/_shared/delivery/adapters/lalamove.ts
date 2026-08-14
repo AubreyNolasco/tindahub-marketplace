@@ -34,6 +34,7 @@ export const lalamoveAdapter: DeliveryProviderAdapter = {
         market: countryMarket(cred.market),
         pickup: input.pickup,
         dropoff: input.dropoff,
+        serviceType: input.serviceType,
       })
       if (!quote.quotationId || !quote.priceTotal) {
         return { ok: false, error: { code: 'LALAMOVE_QUOTE_FAILED', message: 'Lalamove returned an incomplete quote', retryable: true } }
@@ -59,7 +60,7 @@ export const lalamoveAdapter: DeliveryProviderAdapter = {
       const market = countryMarket(cred.market)
       // Quotes expire quickly on Lalamove's side — always re-quote right
       // before placing the order rather than trusting an earlier one.
-      const quote = await requestQuotation({ apiKey: cred.api_key, apiSecret: cred.api_secret, market, pickup: input.pickup, dropoff: input.dropoff })
+      const quote = await requestQuotation({ apiKey: cred.api_key, apiSecret: cred.api_secret, market, pickup: input.pickup, dropoff: input.dropoff, serviceType: input.serviceType })
       if (!quote.quotationId || !quote.pickupStopId || !quote.dropoffStopId) {
         return { ok: false, error: { code: 'LALAMOVE_QUOTE_FAILED', message: 'Lalamove returned an incomplete quote', retryable: true } }
       }

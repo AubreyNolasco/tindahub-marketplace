@@ -14,6 +14,10 @@ export interface DeliveryStop {
 export interface QuoteInput {
   pickup: DeliveryStop
   dropoff: DeliveryStop
+  // Real courier vehicle the merchant wants to book (e.g. Lalamove
+  // 'MOTORCYCLE'/'CAR') — separate from the platform's own automatic
+  // pricing tier. Adapters that don't support vehicle selection ignore it.
+  serviceType?: string
 }
 
 export interface QuoteResult {
@@ -29,6 +33,7 @@ export interface BookingInput {
   orderId: string
   pickup: DeliveryStop
   dropoff: DeliveryStop
+  serviceType?: string
 }
 
 export interface BookingResult {

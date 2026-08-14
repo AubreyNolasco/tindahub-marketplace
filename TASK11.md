@@ -1,6 +1,30 @@
 # Automatic Distance-Based Shipping Fee, PSGC+Leaflet-Only Address System — Progress & Handoff
 
-**Status: built, migrated to production (commits `b8f01ce`/`7bc008c`/`<this fix>` on `agent/fix-address-map-sync`, migrations applied via `supabase db push` and spot-verified with live RPC calls), NOT yet click-tested in a browser. Gap 1 (dispatch blocked for automatic orders) is now fixed — see "Gap 1 — FIXED" below. Gap 2 (Lalamove vehicle-type selection) is still open.**
+**Status: built, migrated to production, AND now live click-tested end-to-end (this pass) — see "Live verification" below. Gap 1 (dispatch blocked for automatic orders) is fixed and confirmed working in production. Gap 2 (Lalamove vehicle-type selection) is built and its migration is pushed, but Gap 2 itself is still not live-tested (needs a real connected Lalamove account, which this codebase has never had). Several real bugs found during this pass were fixed and pushed — see "Bugs found and fixed this pass" below.**
+
+## Live verification (this pass)
+
+Test accounts `merchant@gmail.com`/`reseller@gmail.com` have been deleted from production. Use **Admin → Test Accounts → Admin demo mode** instead (`/admin/test-accounts`): "Switch to Reseller Mode" / "Switch to Merchant Mode" temporarily flips your own admin account's role so you can place real orders and manage real products against the "Admin Demo Merchant" storefront, then "Back to Admin" (shown at the top of every page while switched) returns you to admin. This is the supported way to test now — update any future doc/handoff that assumes the old Gmail test accounts still exist.
+
+Ran a full real order end-to-end against production using this mode:
+1. Created a customer with a PSGC address + Leaflet map pin (`AddressFields`/`LocationPickerMap` — confirmed the pin-drop, drag, and clear mechanics all work).
+2. Checked out as Reseller against Admin Demo Merchant → **checkout showed "Delivery Fee (249.0 km, Sedan) ₱3,850.00", calculated live via `quote_order()`** — confirmed the automatic pricing pipeline built in this session's earlier passes works correctly in production, not just in migration-compiles-cleanly theory.
+3. Paid & placed the order — wallet debited correctly, order created with `shipping_payment_method='prepaid_wallet'`.
+4. Switched to Merchant Mode, marked the order Processing → **order list showed the "Paid — ready to dispatch" badge** (Gap 1's frontend fix), opened the order → **"Shipping fee (charged automatically): ₱3,850.00" banner + "Enter delivery details" button** (Gap 1's `DeliveryModal.jsx` fix) → filled in provider/tracking/proof → **"Save and mark Shipped" succeeded**, order status went to `Shipped`.
+
+This is the exact click-through TASK11 previously flagged as "not done" for Gap 1 — it now works, confirmed live, not just via a clean `supabase db push`.
+
+## Bugs found and fixed this pass
+
+Found via a background `/code-review high` pass over the full branch diff, plus one found by hand while live-testing the map picker. All fixed, migrated, and re-verified (`npm run lint` clean, `npm test` 45/45, `supabase db push` clean).
+
+- **`LocationPickerMap.jsx` stale marker after Clear** — reproduced live: clicking "Clear" on a pinned address set `latitude`/`longitude` to `null` and correctly updated the "No exact location pinned yet" badge, but the Leaflet marker glyph stayed visually parked at the old position, contradicting the badge. The marker-sync `useEffect` returned early on `null` coordinates without ever removing the existing marker. Fixed: it now calls `marker.remove()` and clears the ref when coordinates go null.
+- **`quote_order()` missing the PH bounding-box check `place_order()` has** (`20260813000800_quote_order_bounding_box_fix.sql`) — a delivery pin placed outside the box (trivial via the un-geofenced Leaflet picker) would show a calculated fee at checkout *preview* time, then silently fall back to manual/pay-on-delivery when `place_order()` ran moments later for the same coordinates — the previewed amount never matched what was actually charged. Same migration also widens the box from `lat between 4 and 21` to `4 and 21.5` on both functions, since the strict 21 cutoff excluded the northernmost inhabited Philippine territory (Y'Ami/Itbayat, Batanes, up to ~21.2°N) — a legitimate domestic address could otherwise be quoted then rejected.
+- **Admin Shipping Pricing preview: `0` km treated as "fill in the fields"** (`ShippingPricing.jsx`) — the guard used `!distance`, so a deliberately-typed `0` (a valid, allowed input per the field's own `min="0"`) showed the same message as an empty field. Fixed to check for the empty string explicitly.
+- **Admin Shipping Pricing preview: multiplier default mismatch** (`ShippingPricing.jsx`) — the live preview defaulted `road_directness_multiplier` to `1` when the field was transiently empty, while `save()` defaults it to `1.3` — the previewed fee could understate what would actually be saved. Aligned both to `1.3`.
+- **`resolveBarangayCode`/`resolvePsgcCodes` ILIKE wildcard injection** (`src/lib/services/psgc.js`) — free-text province/city/barangay names saved before PSGC codes existed are matched with `.ilike()` without escaping `%`/`_`, so a stray wildcard character in old saved text could match an unrelated row and attach the wrong code. Fixed with a `%`/`_`/`\` escaper applied before every `.ilike()` call.
+
+**Reviewed but not changed** (real findings, lower priority, left for a future pass — full detail in the code-review agent's report if picked up again): `ShippingFeeModal.jsx` lost its specific error-code-to-message mapping (`MISSING_PACKAGE_INFORMATION` etc.) when the old "Free distance estimate" button was removed, so a merchant whose products are missing weight/dimensions has no in-app way to learn why automatic pricing keeps failing for them — needs a small design decision on where that diagnostic should surface, not just a one-line fix; the `shipping_payment_method === 'prepaid_wallet'` dispatch-ready check is independently re-typed as a raw string comparison in four places (`DeliveryModal.jsx`, `PurchaseHistory.jsx`, `Merchant/Orders.jsx` ×2) instead of one shared predicate; `calculate_standard_shipping()` runs its own per-item product-row loop and is called twice per checkout (once from `quote_order()`, once from `place_order()`), which is correct but does more DB round-trips than necessary on the checkout hot path.
 
 Full architectural audit + rationale (why each decision was made, what was rejected and why) is a published artifact the owner already has: ask them for the link if it's not in your context, or re-derive from this file — this doc is the code-accurate summary, that one is the reasoning.
 
@@ -71,7 +95,22 @@ Two scope-defining decisions the owner gave mid-session, both **final, do not re
 
 **Not done**: no live click-through — there's no real order in the `processing` status with `shipping_payment_method = 'prepaid_wallet'` yet in production (no merchant has pickup coordinates set except the unapplied test-account fix, so no real order has taken the automatic path yet). Verified via `npm run lint` (clean), `npm test` (45/45), and a clean `supabase db push` (a broken function body would have failed it). Whoever picks this up next should place one real test order end-to-end (merchant with a pickup pin + customer with a delivery pin) and click through Orders → dispatch to confirm live, not just trust the migration compiled.
 
-### Gap 2 (real gap, discussed with owner but not yet built): no vehicle-type choice for the actual courier booking
+### Gap 2 — BUILT (not yet migrated to production, not live-tested): vehicle-type choice for the actual courier booking
+
+Built in this session, `20260813000700_lalamove_service_type.sql` + code changes below. **Not yet applied to the live database** (`supabase db push` not run this pass) and Lalamove itself is still marked "NOT LIVE-TESTED" in `lalamove.ts`'s own header — this only wires the plumbing, it doesn't newly validate against a real Lalamove account.
+
+- `orders.delivery_service_type text` — new column. Set once, at `propose_order_shipping_fee` time (merchant picks a vehicle before getting an automatic quote), read back by `delivery-book` when it re-quotes/books after the Reseller accepts, so the booked vehicle matches what was quoted rather than the adapter's `MOTORCYCLE` default.
+- `propose_order_shipping_fee` — new 6th param `p_delivery_service_type text default null`, validated server-side against `('MOTORCYCLE','CAR')` (defense in depth — the edge function already validates, but the RPC is reachable directly by any authenticated merchant).
+- `_shared/delivery/types.ts` — `QuoteInput`/`BookingInput` both get an optional `serviceType?: string`, adapter-agnostic (an adapter that doesn't support vehicle selection just ignores it).
+- `_shared/delivery/adapters/lalamove.ts` — `getQuote`/`createBooking` both pass `input.serviceType` through to `requestQuotation`.
+- `delivery-quote/index.ts` — accepts `service_type` in the request body, validated against an `ALLOWED_SERVICE_TYPES` allowlist (`MOTORCYCLE`/`CAR` only — see VERIFY comment, the real Lalamove PH enum is still unconfirmed), passed into `getQuote`, echoed back in the response.
+- `delivery-book/index.ts` — now selects `delivery_service_type` off the order and passes it into `createBooking`.
+- `ShippingFeeModal.jsx` — new "Vehicle needed" dropdown (Motorcycle/Car) above "Get delivery quote"; selecting a vehicle re-quotes; the choice is only persisted (`p_delivery_service_type`) when the automatic-quote path was actually used (`accountId` is set) — a manually-typed fee sends `null`, same pattern as `quotationId`/`accountId`.
+- Customer-facing charge is unaffected — the automatic platform estimate (Gap 1's motorcycle/sedan tiers) stays fixed at order time regardless of what vehicle the merchant later books, matching the owner's discussed recommendation (same as Shopee/Lazada shipping estimates never being re-billed).
+
+**Not done**: migration not pushed to production; no live click-through (would also require a real connected Lalamove account, which nothing in this codebase has ever had — see the "NOT LIVE-TESTED" header in `lalamove.ts`); van/truck vehicle tiers were deliberately left out — the owner's own example was specifically "kotse" (car) vs. motor, so only those two were built rather than guessing at additional untested Lalamove enum values.
+
+### Superseded — original Gap 2 investigation notes, kept for context
 
 The owner asked specifically about this (see chat: "paano kapag kotse ang gusto book ni merchant tapos motor lang ang nasa system... iba-iba ang shipping fee ng courier type ni Lalamove"). Investigated and confirmed:
 

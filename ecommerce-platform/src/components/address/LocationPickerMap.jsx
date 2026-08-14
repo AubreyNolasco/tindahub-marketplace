@@ -73,7 +73,11 @@ export default function LocationPickerMap({ latitude, longitude, onPick, height 
 
   useEffect(() => {
     const map = mapRef.current
-    if (!map || latitude == null || longitude == null) return
+    if (!map) return
+    if (latitude == null || longitude == null) {
+      if (markerRef.current) { markerRef.current.remove(); markerRef.current = null }
+      return
+    }
     if (markerRef.current) markerRef.current.setLatLng([latitude, longitude])
     else markerRef.current = L.marker([latitude, longitude], { icon: markerIcon, draggable: true }).addTo(map).on('dragend', function () { const pos = this.getLatLng(); onPickRef.current(pos.lat, pos.lng) })
     map.setView([latitude, longitude], Math.max(map.getZoom(), PIN_ZOOM))
