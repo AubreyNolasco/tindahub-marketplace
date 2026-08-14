@@ -91,26 +91,19 @@ export default function AddressFields({ value, onChange, required = false, withC
     )
   }
 
-  // Opening the map for the first time (no pin yet) tries the device's
-  // current location automatically, so the pin starts near wherever the
-  // form was opened instead of the middle of the country — same
-  // permission prompt as the explicit "Use my current location" button,
-  // just triggered by opening the map instead of a second click. Silent
-  // on failure/denial (no toast): this is a convenience, not a request
-  // the user explicitly made, so it degrades to the plain map + manual
-  // pin without complaint.
-  const toggleMap = () => {
-    const opening = !showMap
-    setShowMap(opening)
-    if (opening && value.latitude == null && navigator.geolocation) {
-      setLocating(true)
-      navigator.geolocation.getCurrentPosition(
-        (position) => { pickMapLocation(position.coords.latitude, position.coords.longitude); setLocating(false) },
-        () => setLocating(false),
-        { enableHighAccuracy: true, timeout: 10000 }
-      )
-    }
-  }
+  // Reverted: opening the map used to try geolocation automatically and
+  // drop a pin that displayed exactly like a manually-confirmed one.
+  // Without real GPS hardware (any desktop, and plenty of phones indoors)
+  // browser geolocation is IP/WiFi-based and can be off by several
+  // kilometers — landing in the next city over, not just imprecise
+  // within the same block. Presenting that guess as "Pinned at ..." gave
+  // false confidence with no visual difference from a pin the customer
+  // actually placed. Confirmed live: the auto-pin landed in Quezon City
+  // for someone actually in Valenzuela. Geolocation now only ever runs
+  // from the explicit "Use my current location" button below, same as
+  // before this session — an intentional request the customer chose to
+  // make, not a silent guess presented as done.
+  const toggleMap = () => setShowMap((v) => !v)
 
   return (
     <div className="space-y-2">
