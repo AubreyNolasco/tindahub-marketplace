@@ -27,7 +27,8 @@ export default [
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
       'no-undef': 'error',
       'no-console': ['warn', { allow: ['error'] }],
-      'react-hooks/exhaustive-deps': 'warn'
+      'react-hooks/exhaustive-deps': 'warn',
+      'react-hooks/rules-of-hooks': 'error'
     }
   },
   {

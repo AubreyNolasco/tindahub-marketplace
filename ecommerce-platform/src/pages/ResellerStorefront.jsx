@@ -75,6 +75,33 @@ export default function ResellerStorefront() {
     })()
   }, [id, slug])
 
+  const pinned = orderForm.addressParts.latitude != null && orderForm.addressParts.longitude != null
+
+  // Live delivery-fee preview — same haversine + standard-shipping
+  // formula the real checkout uses later, so what the customer sees here
+  // isn't a different number than what the Reseller will actually see.
+  // Debounced so dragging the map pin doesn't fire a request per frame.
+  // Declared before the loading/store early returns below — hooks can
+  // never come after a conditional return, or their order desyncs
+  // between the first render (store still null) and every render after.
+  useEffect(() => {
+    if (!store || !viewingProduct || view !== 'order' || !pinned) { setFeeEstimate(null); return }
+    setEstimating(true)
+    const timer = setTimeout(() => {
+      supabase.rpc('estimate_storefront_shipping_fee', {
+        p_reseller_id: store.id,
+        p_product_id: viewingProduct.id,
+        p_quantity: orderForm.quantity,
+        p_delivery_latitude: orderForm.addressParts.latitude,
+        p_delivery_longitude: orderForm.addressParts.longitude
+      }).then(({ data, error }) => {
+        setFeeEstimate(error ? null : data)
+        setEstimating(false)
+      })
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [store, viewingProduct, view, pinned, orderForm.quantity, orderForm.addressParts.latitude, orderForm.addressParts.longitude])
+
   if (loading) return <div className="grid min-h-[70vh] place-items-center bg-bg"><Spinner /></div>
   if (!store) return <div className="mx-auto min-h-[70vh] max-w-4xl p-6"><EmptyState icon={Store} title="Storefront unavailable" message="This Reseller storefront is not active." /></div>
 
@@ -99,30 +126,6 @@ export default function ResellerStorefront() {
     const max = viewingProduct.stock_quantity
     setOrderForm((prev) => ({ ...prev, quantity: Math.min(max, Math.max(min, prev.quantity + delta)) }))
   }
-
-  const pinned = orderForm.addressParts.latitude != null && orderForm.addressParts.longitude != null
-
-  // Live delivery-fee preview — same haversine + standard-shipping
-  // formula the real checkout uses later, so what the customer sees here
-  // isn't a different number than what the Reseller will actually see.
-  // Debounced so dragging the map pin doesn't fire a request per frame.
-  useEffect(() => {
-    if (!viewingProduct || view !== 'order' || !pinned) { setFeeEstimate(null); return }
-    setEstimating(true)
-    const timer = setTimeout(() => {
-      supabase.rpc('estimate_storefront_shipping_fee', {
-        p_reseller_id: store.id,
-        p_product_id: viewingProduct.id,
-        p_quantity: orderForm.quantity,
-        p_delivery_latitude: orderForm.addressParts.latitude,
-        p_delivery_longitude: orderForm.addressParts.longitude
-      }).then(({ data, error }) => {
-        setFeeEstimate(error ? null : data)
-        setEstimating(false)
-      })
-    }, 400)
-    return () => clearTimeout(timer)
-  }, [store?.id, viewingProduct, view, pinned, orderForm.quantity, orderForm.addressParts.latitude, orderForm.addressParts.longitude])
 
   const submitOrder = async (event) => {
     event.preventDefault()
