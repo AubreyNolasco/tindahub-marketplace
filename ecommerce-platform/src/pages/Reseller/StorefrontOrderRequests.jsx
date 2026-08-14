@@ -89,24 +89,36 @@ export default function StorefrontOrderRequests() {
         if (existing) return finishConvert(request, product, existing)
       }
 
-      // customers.address is DB-validated (trg_require_complete_customer_address:
-      // >=25 chars, a digit, and 4 comma-separated parts) on every insert, same
-      // shape the AddressFields form everywhere else in the app produces. A
-      // storefront request's address is free text a customer typed in one box
-      // and essentially never matches that shape, so a matching new customer
-      // can't be silently auto-created here — ask the Reseller to complete it
-      // once, prefilled from whatever the customer already typed.
-      if (isCompleteAddress(request.customer_address)) {
+      // The storefront order form now requires the customer to pin their
+      // exact location before it lets them submit a request (see
+      // ResellerStorefront.jsx), so a request coming in today almost
+      // always carries customer_latitude/longitude — when it does, this
+      // customer can be created automatically, fully pinned, with zero
+      // extra Reseller typing. Older requests submitted before that pin
+      // requirement (or the rare one where geolocation failed) won't have
+      // coordinates — those still fall through to the confirm-address
+      // prompt below, same safety net as before.
+      if (request.customer_latitude != null && request.customer_longitude != null && isCompleteAddress(request.customer_address)) {
         const { data: created, error: createError } = await supabase
           .from('customers')
-          .insert({ reseller_id: user.id, name: request.customer_name, phone: request.customer_phone, address: request.customer_address, notes: request.customer_notes })
+          .insert({
+            reseller_id: user.id, name: request.customer_name, phone: request.customer_phone, notes: request.customer_notes,
+            address: request.customer_address,
+            latitude: request.customer_latitude,
+            longitude: request.customer_longitude
+          })
           .select()
           .single()
         if (createError) throw createError
         return finishConvert(request, product, created)
       }
 
-      setAddressParts(partsFromLegacyAddress(request.customer_address))
+      const prefill = partsFromLegacyAddress(request.customer_address)
+      if (request.customer_latitude != null && request.customer_longitude != null) {
+        prefill.latitude = request.customer_latitude
+        prefill.longitude = request.customer_longitude
+      }
+      setAddressParts(prefill)
       setAddressPrompt({ request, product })
     } catch (err) {
       toast.error(err.message || 'Unable to convert this request.')

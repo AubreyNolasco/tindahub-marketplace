@@ -36,7 +36,12 @@ export default function DeliveryModal({order,open,onClose,onSaved}){
 
   const submit=async e=>{
     e.preventDefault()
-    if(!isPrepaid && order.shipping_fee_confirmation_status!=='accepted')return toast.error('Reseller shipping confirmation is required.')
+    // order.dispatch_ready is a single generated column mirroring the exact
+    // condition set_order_delivery()'s own WHERE clause enforces server-side
+    // (prepaid OR fee accepted) — checking it here instead of re-deriving the
+    // same boolean means this pre-check can't drift from what the RPC
+    // actually allows.
+    if(!order.dispatch_ready)return toast.error('Reseller shipping confirmation is required.')
     if(!proof)return toast.error('Upload dispatch or booking proof.')
     setSaving(true)
     const compressed=await compressImage(proof)

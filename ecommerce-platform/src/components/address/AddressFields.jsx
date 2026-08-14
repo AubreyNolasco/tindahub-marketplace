@@ -144,10 +144,9 @@ export default function AddressFields({ value, onChange, required = false, withC
           </div>
           {showMap && (
             <div className="mt-3">
-              <Suspense fallback={<div className="flex h-[260px] items-center justify-center rounded-xl border border-black/10 bg-surface"><Loader2 size={20} className="animate-spin text-ink/30" /></div>}>
+              <Suspense fallback={<div className="flex h-[297px] items-center justify-center rounded-xl border border-black/10 bg-surface"><Loader2 size={20} className="animate-spin text-ink/30" /></div>}>
                 <LocationPickerMap latitude={value.latitude} longitude={value.longitude} onPick={pickMapLocation} />
               </Suspense>
-              <p className="mt-1.5 text-[11px] text-ink/40">Tap or drag the pin to your exact location.</p>
             </div>
           )}
         </div>

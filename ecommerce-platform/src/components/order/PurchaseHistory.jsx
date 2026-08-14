@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
-import { CircleDollarSign, PackageCheck, Printer, ShieldAlert, RefreshCw } from 'lucide-react'
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
+import { CircleDollarSign, PackageCheck, Printer, ShieldAlert, RefreshCw, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
@@ -12,6 +12,7 @@ import CustomerPaymentModal from './CustomerPaymentModal'
 import { realizedResellerMargin } from '../../utils/orderProcess'
 import { printReceipt } from '../../utils/receipt'
 import ShippingDecisionModal from './ShippingDecisionModal'
+const OrderRouteMap = lazy(() => import('./OrderRouteMap'))
 
 export default function PurchaseHistory() {
   const { user } = useAuth()
@@ -28,7 +29,7 @@ export default function PurchaseHistory() {
     setLoading(true)
     const { data, error } = await supabase
       .from('orders')
-      .select('*, merchant_profiles(business_name), order_items(*), order_cases(id,case_type,status,created_at), customer_payment_records(*), lalamove_bookings(status,lalamove_order_id,driver_info,failure_reason,updated_at)')
+      .select('*, merchant_profiles(business_name, pickup_latitude, pickup_longitude), order_items(*), order_cases(id,case_type,status,created_at), customer_payment_records(*), lalamove_bookings(status,lalamove_order_id,driver_info,failure_reason,updated_at)')
       .eq('reseller_id', user.id)
       .order('created_at', { ascending: false })
     if (error) toast.error(error.message)
@@ -147,11 +148,26 @@ export default function PurchaseHistory() {
               ))}
               <DetailRow label="Subtotal" value={peso(selectedOrder.subtotal)} className="font-bold border-t border-black/10 pt-2 mt-2" />
               <DetailRow label="Shipping" value={selectedOrder.shipping_payment_method === 'receiver_pays_on_delivery' ? 'Pay upon delivery' : peso(selectedOrder.shipping_fee)} />
+              {selectedOrder.shipping_distance_km != null && (
+                <DetailRow label="Distance / vehicle" value={`${Number(selectedOrder.shipping_distance_km).toFixed(1)} km · ${selectedOrder.shipping_vehicle || '—'}`} />
+              )}
               {Number(selectedOrder.reseller_operation_fee) > 0 && (
                 <DetailRow label="System Fee (1%)" value={peso(selectedOrder.reseller_operation_fee)} />
               )}
               <DetailRow label="Total Charged" value={peso(selectedOrder.total)} className="font-bold text-teal-700 text-base" />
             </DetailSection>
+
+            {(selectedOrder.delivery_latitude != null || selectedOrder.merchant_profiles?.pickup_latitude != null) && (
+              <DetailSection title="Delivery Route">
+                <Suspense fallback={<div className="flex h-[260px] items-center justify-center rounded-xl border border-black/10 bg-surface-inset"><Loader2 size={20} className="animate-spin text-ink/30" /></div>}>
+                  <OrderRouteMap
+                    pickup={{ latitude: selectedOrder.merchant_profiles?.pickup_latitude, longitude: selectedOrder.merchant_profiles?.pickup_longitude }}
+                    delivery={{ latitude: selectedOrder.delivery_latitude, longitude: selectedOrder.delivery_longitude }}
+                    distanceKm={selectedOrder.shipping_distance_km}
+                  />
+                </Suspense>
+              </DetailSection>
+            )}
 
             {selectedOrder.delivery_provider && (
               <DetailSection title="Delivery">

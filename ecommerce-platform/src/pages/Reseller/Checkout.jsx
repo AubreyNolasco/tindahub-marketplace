@@ -13,6 +13,7 @@ import AddressFields from '../../components/address/AddressFields'
 import { resolvePsgcCodes } from '../../lib/services/psgc'
 import Modal from '../../components/ui/Modal'
 import { takePendingConversions } from '../../utils/storefrontRequestConversion'
+import { describeShippingFallback } from '../../utils/shippingDiagnostics'
 
 const ERROR_MESSAGES = {
   STORE_CLOSED: 'The Merchant store is currently closed. Try again during its published store hours.',
@@ -247,6 +248,9 @@ export default function Checkout() {
               <span>Delivery Fee{shippingCalculated && quote?.distance_km != null ? ` (${Number(quote.distance_km).toFixed(1)} km, ${quote.shipping_vehicle})` : ''}</span>
               {quoteLoading ? <span className="text-ink/40">…</span> : shippingCalculated ? <span>{peso(shippingFee)}</span> : <span className="font-semibold text-mango-600">Confirmed after ordering</span>}
             </div>
+            {!quoteLoading && !shippingCalculated && quote?.shipping_fallback_reason && (
+              <p className="text-xs leading-5 text-mango-700/80">{describeShippingFallback(quote.shipping_fallback_reason)}</p>
+            )}
             {resellerOperationFee > 0 && <div className="flex justify-between text-ink/60"><span>{quote?.reseller_fee_percent || 1}% Reseller System Fee</span><span>{peso(resellerOperationFee)}</span></div>}
             {quote?.voucher_valid && Number(quote.voucher_discount) > 0 && <div className="flex justify-between text-teal-700"><span>Voucher ({activeVoucherCode})</span><span>-{peso(quote.voucher_discount)}</span></div>}
             <div className="flex justify-between border-t border-black/5 pt-3 font-display text-lg font-bold text-ink"><span>Final amount to pay</span><span className="text-teal-700">{peso(total)}</span></div>

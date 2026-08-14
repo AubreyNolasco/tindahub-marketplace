@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CheckCircle2, Facebook, Loader2, MessageCircle, Minus, Package, Phone, Plus, ShieldCheck, ShoppingBag, Store, X } from 'lucide-react'
+import { CheckCircle2, Facebook, Loader2, MapPin, MessageCircle, Minus, Package, Phone, Plus, ShieldCheck, ShoppingBag, Store, X } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
@@ -7,10 +7,12 @@ import Spinner from '../components/ui/Spinner'
 import EmptyState from '../components/ui/EmptyState'
 import Modal from '../components/ui/Modal'
 import StarRating from '../components/product/StarRating'
-import { compactCount } from '../utils/format'
+import AddressFields from '../components/address/AddressFields'
+import { compactCount, peso } from '../utils/format'
 import { applyCampaignDiscount, getActiveCampaignDiscounts, getActiveCampaignProducts } from '../utils/campaigns'
 import { getUnitPrice } from '../utils/pricing'
 import { isStoreOpen } from '../utils/storeHours'
+import { composeAddress, emptyAddressParts } from '../utils/address'
 
 const REQUEST_ERROR_MESSAGES = {
   RESELLER_NOT_AVAILABLE: 'This storefront is no longer available.',
@@ -29,8 +31,10 @@ export default function ResellerStorefront() {
   const [loading, setLoading] = useState(true)
   const [viewingProduct, setViewingProduct] = useState(null)
   const [view, setView] = useState('detail')
-  const [orderForm, setOrderForm] = useState({ quantity: 1, name: '', phone: '', address: '', notes: '' })
+  const [orderForm, setOrderForm] = useState({ quantity: 1, name: '', phone: '', addressParts: emptyAddressParts(), notes: '' })
   const [submitting, setSubmitting] = useState(false)
+  const [feeEstimate, setFeeEstimate] = useState(null) // { status, fee, distance_km, vehicle }
+  const [estimating, setEstimating] = useState(false)
 
   useEffect(() => {
     (async () => {
@@ -85,7 +89,8 @@ export default function ResellerStorefront() {
   const openProduct = (product) => {
     setViewingProduct(product)
     setView('detail')
-    setOrderForm({ quantity: product.min_order_qty || 1, name: '', phone: '', address: '', notes: '' })
+    setOrderForm({ quantity: product.min_order_qty || 1, name: '', phone: '', addressParts: emptyAddressParts(), notes: '' })
+    setFeeEstimate(null)
   }
   const closeProduct = () => setViewingProduct(null)
 
@@ -95,9 +100,34 @@ export default function ResellerStorefront() {
     setOrderForm((prev) => ({ ...prev, quantity: Math.min(max, Math.max(min, prev.quantity + delta)) }))
   }
 
+  const pinned = orderForm.addressParts.latitude != null && orderForm.addressParts.longitude != null
+
+  // Live delivery-fee preview — same haversine + standard-shipping
+  // formula the real checkout uses later, so what the customer sees here
+  // isn't a different number than what the Reseller will actually see.
+  // Debounced so dragging the map pin doesn't fire a request per frame.
+  useEffect(() => {
+    if (!viewingProduct || view !== 'order' || !pinned) { setFeeEstimate(null); return }
+    setEstimating(true)
+    const timer = setTimeout(() => {
+      supabase.rpc('estimate_storefront_shipping_fee', {
+        p_reseller_id: store.id,
+        p_product_id: viewingProduct.id,
+        p_quantity: orderForm.quantity,
+        p_delivery_latitude: orderForm.addressParts.latitude,
+        p_delivery_longitude: orderForm.addressParts.longitude
+      }).then(({ data, error }) => {
+        setFeeEstimate(error ? null : data)
+        setEstimating(false)
+      })
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [store?.id, viewingProduct, view, pinned, orderForm.quantity, orderForm.addressParts.latitude, orderForm.addressParts.longitude])
+
   const submitOrder = async (event) => {
     event.preventDefault()
     if (!orderForm.name.trim()) return toast.error('Please enter your name.')
+    if (!pinned) return toast.error('Please pin your delivery location on the map so we can show your delivery fee.')
     setSubmitting(true)
     const { error } = await supabase.rpc('submit_storefront_order_request', {
       p_reseller_id: store.id,
@@ -105,8 +135,10 @@ export default function ResellerStorefront() {
       p_quantity: orderForm.quantity,
       p_customer_name: orderForm.name,
       p_customer_phone: orderForm.phone || null,
-      p_customer_address: orderForm.address || null,
-      p_customer_notes: orderForm.notes || null
+      p_customer_address: composeAddress(orderForm.addressParts) || null,
+      p_customer_notes: orderForm.notes || null,
+      p_customer_latitude: orderForm.addressParts.latitude,
+      p_customer_longitude: orderForm.addressParts.longitude
     })
     setSubmitting(false)
     if (error) return toast.error(REQUEST_ERROR_MESSAGES[error.message] || error.message)
@@ -265,14 +297,29 @@ export default function ResellerStorefront() {
                 <label className="block text-sm font-semibold text-fg-muted">Phone number
                   <input type="tel" maxLength={30} value={orderForm.phone} onChange={(e) => setOrderForm({ ...orderForm, phone: e.target.value })} className="input-field mt-1.5" placeholder="+63 912 345 6789" />
                 </label>
-                <label className="block text-sm font-semibold text-fg-muted">Delivery address
-                  <textarea maxLength={500} rows={2} value={orderForm.address} onChange={(e) => setOrderForm({ ...orderForm, address: e.target.value })} className="input-field mt-1.5 resize-none" placeholder="House/unit, street, barangay, city" />
-                </label>
+                <div>
+                  <label className="text-sm font-semibold text-fg-muted">Delivery address *</label>
+                  <div className="mt-1.5">
+                    <AddressFields value={orderForm.addressParts} onChange={(addressParts) => setOrderForm({ ...orderForm, addressParts })} required withCoordinates />
+                  </div>
+                  {!pinned && <p className="mt-1.5 flex items-center gap-1.5 text-[11px] text-coral-600 dark:text-coral-300"><MapPin size={12} /> Pin your exact location above to see your delivery fee and send this request.</p>}
+                </div>
+                {pinned && (
+                  <div className="rounded-xl border border-teal-500/25 bg-teal-500/5 p-3 text-sm">
+                    {estimating ? (
+                      <span className="flex items-center gap-2 text-fg-muted"><Loader2 size={14} className="animate-spin" /> Estimating delivery fee…</span>
+                    ) : feeEstimate?.status === 'calculated' ? (
+                      <p className="font-semibold text-teal-700 dark:text-teal-300">Estimated delivery fee: {peso(feeEstimate.fee)} <span className="font-normal text-fg-muted">({Number(feeEstimate.distance_km).toFixed(1)} km, {feeEstimate.vehicle})</span></p>
+                    ) : (
+                      <p className="text-fg-muted">Delivery fee will be confirmed by the seller after you send this request.</p>
+                    )}
+                  </div>
+                )}
                 <label className="block text-sm font-semibold text-fg-muted">Note (optional)
                   <textarea maxLength={500} rows={2} value={orderForm.notes} onChange={(e) => setOrderForm({ ...orderForm, notes: e.target.value })} className="input-field mt-1.5 resize-none" placeholder="Preferred delivery time, color/variant, etc." />
                 </label>
                 <p className="flex gap-2 rounded-xl bg-coral-500/10 p-3 text-xs leading-5 text-coral-700 dark:text-coral-300"><ShieldCheck size={16} className="mt-0.5 shrink-0" />Never share your email OTP, password, banking OTP, or recovery code. The Reseller will contact you to confirm final price, delivery, and payment.</p>
-                <button disabled={submitting} className="btn-primary flex w-full items-center justify-center gap-2">
+                <button disabled={submitting || !pinned} className="btn-primary flex w-full items-center justify-center gap-2">
                   {submitting && <Loader2 size={16} className="animate-spin" />}{submitting ? 'Sending…' : 'Send order request'}
                 </button>
               </form>

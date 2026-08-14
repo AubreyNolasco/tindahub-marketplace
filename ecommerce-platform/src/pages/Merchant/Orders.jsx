@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
-import { Check, X, Truck, ShieldAlert, RefreshCw, Eye, Printer } from 'lucide-react'
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
+import { Check, X, Truck, ShieldAlert, RefreshCw, Eye, Printer, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
@@ -12,6 +12,8 @@ import OrderCaseModal from '../../components/order/OrderCaseModal'
 import ShippingFeeModal from '../../components/order/ShippingFeeModal'
 import PromptModal from '../../components/ui/PromptModal'
 import { printReceipt } from '../../utils/receipt'
+import { describeShippingFallback } from '../../utils/shippingDiagnostics'
+const OrderRouteMap = lazy(() => import('../../components/order/OrderRouteMap'))
 
 const NEXT_STATUS = { confirmed: 'processing' }
 
@@ -30,6 +32,13 @@ export default function Orders() {
   const [caseOrder, setCaseOrder] = useState(null)
   const [shippingFeeOrder, setShippingFeeOrder] = useState(null)
   const [caseReviewTarget, setCaseReviewTarget] = useState(null) // { caseItem, approve }
+  const [pickupPin, setPickupPin] = useState(null)
+
+  useEffect(() => {
+    if (!user) return
+    supabase.from('merchant_profiles').select('pickup_latitude, pickup_longitude').eq('id', user.id).maybeSingle()
+      .then(({ data }) => setPickupPin(data?.pickup_latitude != null && data?.pickup_longitude != null ? { latitude: data.pickup_latitude, longitude: data.pickup_longitude } : null))
+  }, [user])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -208,8 +217,20 @@ export default function Orders() {
               ))}
               <DetailRow label="Subtotal" value={peso(selectedOrder.subtotal)} className="font-bold border-t border-black/10 pt-2 mt-2" />
               <DetailRow label="Shipping" value={selectedOrder.shipping_payment_method === 'receiver_pays_on_delivery' ? 'Pay on delivery' : peso(selectedOrder.shipping_fee)} />
+              {selectedOrder.shipping_distance_km != null && (
+                <DetailRow label="Distance / vehicle" value={`${Number(selectedOrder.shipping_distance_km).toFixed(1)} km · ${selectedOrder.shipping_vehicle || '—'}`} />
+              )}
               <DetailRow label="Total" value={peso(selectedOrder.total)} className="font-bold text-teal-700 text-base" />
             </DetailSection>
+
+            {/* Delivery route */}
+            {(selectedOrder.delivery_latitude != null || pickupPin) && (
+              <DetailSection title="Delivery Route">
+                <Suspense fallback={<div className="flex h-[260px] items-center justify-center rounded-xl border border-black/10 bg-surface-inset"><Loader2 size={20} className="animate-spin text-ink/30" /></div>}>
+                  <OrderRouteMap pickup={pickupPin} delivery={{ latitude: selectedOrder.delivery_latitude, longitude: selectedOrder.delivery_longitude }} distanceKm={selectedOrder.shipping_distance_km} />
+                </Suspense>
+              </DetailSection>
+            )}
 
             {/* Payment */}
             {selectedOrder.payments?.[0] && (
@@ -263,6 +284,9 @@ export default function Orders() {
                 ) : !selectedOrder.shipping_fee_confirmation_status && (
                   <>
                     <p className="font-semibold text-ink">Packaging step: enter the actual shipping fee for Reseller approval.</p>
+                    {describeShippingFallback(selectedOrder.shipping_rate_source) && (
+                      <p className="mt-1 text-xs leading-5 text-ink/50">Why not automatic: {describeShippingFallback(selectedOrder.shipping_rate_source)}</p>
+                    )}
                     <button onClick={() => { setShowDetail(false); setShippingFeeOrder(selectedOrder) }} className="btn-primary mt-2 flex items-center gap-1.5 text-sm"><Truck size={16} /> Submit shipping fee</button>
                   </>
                 )}

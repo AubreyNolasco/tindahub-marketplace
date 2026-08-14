@@ -1,9 +1,11 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
+import { Loader2, Search } from 'lucide-react'
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png'
 import iconUrl from 'leaflet/dist/images/marker-icon.png'
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png'
 import 'leaflet/dist/leaflet.css'
+import { searchPhilippineAddress } from '../../lib/services/nominatim'
 
 // Vite asset-URL fix for Leaflet's default marker icon.
 const markerIcon = L.icon({ iconRetinaUrl, iconUrl, shadowUrl, iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41] })
@@ -24,6 +26,29 @@ export default function LocationPickerMap({ latitude, longitude, onPick, height 
   const markerRef = useRef(null)
   const onPickRef = useRef(onPick)
   onPickRef.current = onPick
+
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState([])
+  const [searching, setSearching] = useState(false)
+  const [showResults, setShowResults] = useState(false)
+
+  useEffect(() => {
+    if (query.trim().length < 3) { setResults([]); setSearching(false); return }
+    const controller = new AbortController()
+    setSearching(true)
+    const timer = setTimeout(() => {
+      searchPhilippineAddress(query, { signal: controller.signal })
+        .then((found) => { setResults(found); setSearching(false) })
+        .catch((error) => { if (error.name !== 'AbortError') setSearching(false) })
+    }, 600)
+    return () => { clearTimeout(timer); controller.abort() }
+  }, [query])
+
+  const selectResult = (result) => {
+    onPickRef.current(result.latitude, result.longitude)
+    setQuery(result.label)
+    setShowResults(false)
+  }
   // Supabase returns `numeric` columns as strings to avoid float
   // precision loss in JSON, so lat/lng arriving from a saved profile can
   // be "14.599500" rather than a number — Leaflet needs real numbers.
@@ -83,5 +108,34 @@ export default function LocationPickerMap({ latitude, longitude, onPick, height 
     map.setView([latitude, longitude], Math.max(map.getZoom(), PIN_ZOOM))
   }, [latitude, longitude])
 
-  return <div ref={containerRef} style={{ height }} className="w-full overflow-hidden rounded-xl border border-black/10" />
+  return (
+    <div>
+      <div className="relative mb-2">
+        <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink/35" />
+        <input
+          type="text"
+          value={query}
+          onChange={(event) => { setQuery(event.target.value); setShowResults(true) }}
+          onFocus={() => setShowResults(true)}
+          onBlur={() => setTimeout(() => setShowResults(false), 150)}
+          placeholder="Search your address to jump the pin there…"
+          className="input-field w-full pl-8 text-sm"
+        />
+        {searching && <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-ink/35" />}
+        {showResults && results.length > 0 && (
+          <ul className="absolute z-[1000] mt-1 max-h-52 w-full overflow-y-auto rounded-xl border border-black/10 bg-surface shadow-lg">
+            {results.map((result) => (
+              <li key={result.id}>
+                <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => selectResult(result)} className="block w-full px-3 py-2 text-left text-xs text-ink/70 hover:bg-teal-50">
+                  {result.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      <div ref={containerRef} style={{ height }} className="w-full overflow-hidden rounded-xl border border-black/10" />
+      <p className="mt-1.5 text-[11px] text-ink/40">Tap or drag the pin to your exact location. Search results come from OpenStreetMap and may not exactly match Google Maps.</p>
+    </div>
+  )
 }
