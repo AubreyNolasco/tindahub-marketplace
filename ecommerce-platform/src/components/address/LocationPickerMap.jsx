@@ -34,14 +34,14 @@ export default function LocationPickerMap({ latitude, longitude, onPick, height 
 
   useEffect(() => {
     if (query.trim().length < 3) { setResults([]); setSearching(false); return }
-    const controller = new AbortController()
+    let stale = false
     setSearching(true)
     const timer = setTimeout(() => {
-      searchPhilippineAddress(query, { signal: controller.signal })
-        .then((found) => { setResults(found); setSearching(false) })
-        .catch((error) => { if (error.name !== 'AbortError') setSearching(false) })
+      searchPhilippineAddress(query)
+        .then((found) => { if (!stale) { setResults(found); setSearching(false) } })
+        .catch(() => { if (!stale) setSearching(false) })
     }, 600)
-    return () => { clearTimeout(timer); controller.abort() }
+    return () => { stale = true; clearTimeout(timer) }
   }, [query])
 
   const selectResult = (result) => {
