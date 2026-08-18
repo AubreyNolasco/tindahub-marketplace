@@ -64,9 +64,9 @@ export default function ProductCard({ product }) {
           {hasSold && <span className={hasRating ? 'before:mr-1 before:content-["·"]' : ''}>{compactCount(product.sold_count)} sold</span>}
         </div>}
         <div className="mt-auto pt-1.5 sm:pt-4">
-          <div className="flex min-w-0 items-baseline gap-1.5">
-            <span className={`block truncate font-display text-[10px] font-bold sm:text-lg ${bestDiscount > 0 ? 'text-coral-600' : 'text-teal-700'}`}>{peso(displayPrice)}</span>
-            {bestDiscount > 0 && role !== 'reseller' && <span className="truncate text-[8px] text-ink/35 line-through sm:text-xs">{peso(product.price)}</span>}
+          <div className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
+            <span className={`block font-display text-[10px] font-bold sm:text-lg ${bestDiscount > 0 ? 'text-coral-600' : 'text-teal-700'}`}>{peso(displayPrice)}</span>
+            {bestDiscount > 0 && role !== 'reseller' && <span className="text-[8px] text-ink/35 line-through sm:text-xs">{peso(product.price)}</span>}
           </div>
           <div className="mt-1 flex items-end justify-between gap-1 sm:mt-1.5">
             <p className="flex items-center gap-1 text-xs text-ink/40"><PackageCheck size={12} className="hidden sm:block" />{inStock ? `${product.stock_quantity} available` : 'Unavailable'}</p>

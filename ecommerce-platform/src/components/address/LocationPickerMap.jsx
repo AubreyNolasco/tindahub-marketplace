@@ -24,6 +24,7 @@ export default function LocationPickerMap({ latitude, longitude, onPick, height 
   const containerRef = useRef(null)
   const mapRef = useRef(null)
   const markerRef = useRef(null)
+  const searchWrapperRef = useRef(null)
   const onPickRef = useRef(onPick)
   onPickRef.current = onPick
 
@@ -32,26 +33,32 @@ export default function LocationPickerMap({ latitude, longitude, onPick, height 
   const [searching, setSearching] = useState(false)
 
   // Dropdown visibility is driven by results.length alone — nothing
-  // tracks focus/blur/click-outside. Two earlier attempts (an onBlur
-  // timeout, then a click-outside listener) both raced the 600ms
-  // debounced fetch and could end up hidden by the time results arrived,
-  // even though the fetch itself always succeeded (confirmed repeatedly
-  // via network inspection during testing — the bug was purely the
-  // dropdown's own visibility state, never the search). Showing/hiding
-  // strictly from whether there are results to show removes the race
-  // entirely: results are cleared on selecting one, or on the next
+  // tracks focus/blur. Showing/hiding strictly from whether there are
+  // results to show avoids racing the 600ms debounced fetch below:
+  // results are cleared on selecting one, on click-away, or on the next
   // effect run once the query gets too short to search.
   useEffect(() => {
     if (query.trim().length < 3) { setResults([]); setSearching(false); return }
     let stale = false
+    const controller = new AbortController()
     setSearching(true)
     const timer = setTimeout(() => {
-      searchPhilippineAddress(query)
+      searchPhilippineAddress(query, controller.signal)
         .then((found) => { if (!stale) { setResults(found); setSearching(false) } })
         .catch(() => { if (!stale) setSearching(false) })
     }, 600)
-    return () => { stale = true; clearTimeout(timer) }
+    return () => { stale = true; controller.abort(); clearTimeout(timer) }
   }, [query])
+
+  // Click-outside to dismiss: a document mousedown listener only fires
+  // on a genuine outside click, so unlike onBlur it can't race the
+  // debounced fetch above — it just clears results, the same state the
+  // dropdown already keys its visibility off of.
+  useEffect(() => {
+    const onClickAway = (event) => { if (searchWrapperRef.current && !searchWrapperRef.current.contains(event.target)) setResults([]) }
+    document.addEventListener('mousedown', onClickAway)
+    return () => document.removeEventListener('mousedown', onClickAway)
+  }, [])
 
   const selectResult = (result) => {
     onPickRef.current(result.latitude, result.longitude)
@@ -94,7 +101,18 @@ export default function LocationPickerMap({ latitude, longitude, onPick, height 
       onPickRef.current(event.latlng.lat, event.latlng.lng)
     })
 
+    // Leaflet measures its container once at creation. Rotating a phone,
+    // or any later layout shift that resizes this container without
+    // unmounting it (e.g. a sidebar collapsing), leaves the map rendered
+    // at its old size — grey gaps or a cut-off view — until told to
+    // remeasure.
+    const handleResize = () => map.invalidateSize()
+    window.addEventListener('resize', handleResize)
+    window.addEventListener('orientationchange', handleResize)
+
     return () => {
+      window.removeEventListener('resize', handleResize)
+      window.removeEventListener('orientationchange', handleResize)
       map.remove()
       mapRef.current = null
       markerRef.current = null
@@ -119,7 +137,7 @@ export default function LocationPickerMap({ latitude, longitude, onPick, height 
 
   return (
     <div>
-      <div className="relative mb-2">
+      <div className="relative mb-2" ref={searchWrapperRef}>
         <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink/35" />
         <input
           type="text"

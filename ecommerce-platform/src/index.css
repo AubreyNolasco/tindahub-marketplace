@@ -285,6 +285,16 @@ select, input, textarea { color-scheme: light; }
 }
 .marketplace-luxe .text-coral-600 { color: #ff7b45; }
 .marketplace-luxe footer { border-top: 1px solid rgb(52 170 106 / .18); }
+.home-trust-strip > * + * {
+  border-top: 1px solid rgb(11 93 69 / .10);
+}
+@media (min-width: 640px) {
+  .home-trust-strip > * + * {
+    border-top: 0;
+    border-left: 1px solid rgb(11 93 69 / .10);
+  }
+}
+.dark .home-trust-strip > * + * { border-color: rgb(71 184 124 / .16); }
 .marketplace-global-nav {
   border-color: rgb(11 93 69 / .12) !important;
   background: rgb(247 250 247 / .94) !important;
@@ -602,6 +612,16 @@ select, input, textarea { color-scheme: light; }
   input[type="radio"] {
     min-width: 20px;
     min-height: 20px;
+  }
+  /* Leaflet's default zoom control renders at 26x26px — well under the
+     44px touch-target minimum, so bump it up on touch devices only
+     (LocationPickerMap.jsx). Desktop mouse users keep the compact
+     default. */
+  .leaflet-control-zoom a {
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    font-size: 20px;
   }
 }
 

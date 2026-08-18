@@ -14,11 +14,15 @@ import { supabase } from '../supabase'
 // always fails with a CORS error (confirmed live) even though curl/Node
 // reach it fine — CORS is enforced by the browser, not the server.
 // Callers are responsible for debouncing; this module does not
-// rate-limit itself.
-export async function searchPhilippineAddress(query) {
+// rate-limit itself. Accepts an optional AbortSignal so a caller can
+// cancel a still-in-flight search once it's been superseded by a newer
+// keystroke, rather than letting it complete and just discarding the
+// result — the edge function shares one rate-limit budget across every
+// visitor, so an abandoned request left running still spends from it.
+export async function searchPhilippineAddress(query, signal) {
   const trimmed = query.trim()
   if (trimmed.length < 3) return []
-  const { data, error } = await supabase.functions.invoke('nominatim-search', { body: { q: trimmed } })
+  const { data, error } = await supabase.functions.invoke('nominatim-search', { body: { q: trimmed }, signal })
   if (error) throw error
   return data?.results || []
 }

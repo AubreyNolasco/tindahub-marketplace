@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowDown, ArrowRight, ArrowUp, Building2, Check, CheckCircle2, ChevronDown,
-  CircleDollarSign, Clock3, FileImage, MailCheck, Quote, ShieldCheck, ShoppingBag,
+  CircleDollarSign, Clock3, FileCheck2, FileImage, MailCheck, Quote, ShieldCheck, ShoppingBag,
   Sparkles, Star, Stethoscope, Store, TrendingUp, Truck, UsersRound, Wallet, X
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
@@ -150,6 +150,22 @@ export default function Home() {
             </div>
           </div>
         </div>
+      </div>
+    </section>
+
+    {/* ===== TRUST STRIP ===== */}
+    <section aria-label="JOM HUB platform benefits" className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6">
+      <div className="home-trust-strip grid overflow-hidden rounded-[1.5rem] border border-teal-100 bg-white/85 shadow-lg shadow-teal-950/[0.06] backdrop-blur sm:grid-cols-3 dark:border-teal-900/60 dark:bg-surface/85">
+        {[
+          { icon: ShieldCheck, title: 'Protected access', text: 'Email verification helps keep each workspace secure.' },
+          { icon: FileCheck2, title: 'Clear business records', text: 'Orders, payments, and activity stay organized in one place.' },
+          { icon: UsersRound, title: 'Built around people', text: 'Designed for Merchants and Resellers working together.' },
+        ].map(({ icon: Icon, title, text }) => (
+          <div key={title} className="flex items-start gap-3 px-4 py-4 sm:px-5 sm:py-5">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-teal-50 text-teal-700 dark:bg-teal-500/10 dark:text-teal-300"><Icon size={19} /></span>
+            <div><h2 className="text-sm font-bold text-ink">{title}</h2><p className="mt-1 text-xs leading-5 text-ink/60">{text}</p></div>
+          </div>
+        ))}
       </div>
     </section>
 
